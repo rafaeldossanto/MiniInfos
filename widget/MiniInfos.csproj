@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MiniInfos</RootNamespace>
+    <AssemblyName>MiniInfos</AssemblyName>
+    <ApplicationIcon>MiniInfos.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- What ships carries nothing of the machine it was built on: no symbols file, no build paths. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <PathMap>$(MSBuildProjectDirectory)=MiniInfos</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Windows Forms is here for the tray icon alone: its names stay out of the WPF code. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Resource Include="MiniInfos.ico" />
+  </ItemGroup>
+
+</Project>

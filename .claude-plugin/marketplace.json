@@ -1,0 +1,5 @@
+{
+  "name": "miniinfos",
+  "owner": { "name": "MiniInfos" },
+  "plugins": [{ "name": "miniinfos", "source": "./mod" }]
+}
