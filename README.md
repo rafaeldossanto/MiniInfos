@@ -13,6 +13,8 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
+Ele se atualiza sozinho a cada 3 segundos. O botão ↻, ao lado do ✕, atualiza na hora (também em "Atualizar agora", no botão direito e no ícone da bandeja). Os % de 5h e semanal mudam quando algum chat do Claude Code recebe resposta, porque é dela que eles vêm.
+
 Arraste o quadrado pra onde quiser. Pra mudar o tamanho, puxe uma borda ou um canto: tudo cresce ou encolhe junto, na mesma proporção. A posição e o tamanho ficam salvos. Botão direito: "Sempre por cima", "Voltar pro canto", "Tamanho padrão", "Esconder" e "Sair do MiniInfos".
 
 ## Junto com o Claude

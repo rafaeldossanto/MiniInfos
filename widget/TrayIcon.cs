@@ -24,6 +24,7 @@ public sealed class TrayIcon : IDisposable
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(_toggleItem);
+        menu.Items.Add("Atualizar agora", null, async (_, _) => await window.ForceRefreshAsync());
         menu.Items.Add("Voltar pro canto", null, (_, _) => window.BackToCorner());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Sair do MiniInfos", null, (_, _) => window.Quit());

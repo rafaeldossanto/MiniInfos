@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
 namespace MiniInfos;
@@ -20,6 +22,8 @@ public partial class MainWindow : Window
     private const int WmExitSizeMove = 0x0232;
 
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan SpinTurn = TimeSpan.FromMilliseconds(800);
+    private static readonly TimeSpan MinSpin = TimeSpan.FromMilliseconds(600);
     private static readonly TimeSpan FiveHours = TimeSpan.FromHours(5);
     private static readonly TimeSpan Week = TimeSpan.FromDays(7);
 
@@ -133,6 +137,33 @@ public partial class MainWindow : Window
     {
         _isQuitting = true;
         Application.Current.Shutdown();
+    }
+
+    /// <summary>
+    /// A refresh the person asked for: it waits for one already running, then reads everything
+    /// again, the refresh icon turning meanwhile (for a moment at least, so the press shows).
+    /// </summary>
+    public async Task ForceRefreshAsync()
+    {
+        if (!RefreshButton.IsEnabled) return;
+
+        RefreshButton.IsEnabled = false;
+        RefreshSpin.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, SpinTurn) { RepeatBehavior = RepeatBehavior.Forever });
+        var startedAt = Stopwatch.GetTimestamp();
+
+        try
+        {
+            if (_refresh is { IsCompleted: false } running) await running;
+            await RefreshAsync();
+
+            var left = MinSpin - Stopwatch.GetElapsedTime(startedAt);
+            if (left > TimeSpan.Zero) await Task.Delay(left);
+        }
+        finally
+        {
+            RefreshSpin.BeginAnimation(RotateTransform.AngleProperty, null);
+            RefreshButton.IsEnabled = true;
+        }
     }
 
     /// <summary>Runs one refresh at a time: a call while one runs waits for that one.</summary>
@@ -307,6 +338,8 @@ public partial class MainWindow : Window
         if (!IsOnScreen(Left, Top)) Place(saved: null);
         SaveSettings();
     }
+
+    private async void OnRefresh(object sender, RoutedEventArgs e) => await ForceRefreshAsync();
 
     private void OnHide(object sender, RoutedEventArgs e) => HideCard();
 
