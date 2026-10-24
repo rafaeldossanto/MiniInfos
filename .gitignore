@@ -2,3 +2,6 @@ bin/
 obj/
 installer/out/
 installer/dist/
+.idea/
+.vs/
+*.user
