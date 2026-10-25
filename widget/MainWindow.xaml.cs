@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -36,7 +37,8 @@ public partial class MainWindow : Window
     private static readonly Brush CalmMeter = Frozen(Color.FromRgb(0x4C, 0x8D, 0xF6));
     private static readonly Brush WarningMeter = Frozen(Color.FromRgb(0xE3, 0xA3, 0x3B));
     private static readonly Brush DangerMeter = Frozen(Color.FromRgb(0xE5, 0x53, 0x4B));
-    private static readonly Brush OtherPageDot = Frozen(Color.FromRgb(0x55, 0x56, 0x5A));
+    private static readonly Brush SelectedPageIcon = Frozen(Color.FromRgb(0xED, 0xED, 0xED));
+    private static readonly Brush OtherPageIcon = Frozen(Color.FromRgb(0x55, 0x56, 0x5A));
 
     private readonly IReadOnlyList<IUsageProvider> _providers;
     private readonly DispatcherTimer _timer = new() { Interval = RefreshEvery };
@@ -71,7 +73,7 @@ public partial class MainWindow : Window
 
         var settings = CardSettings.Load();
         _page = Math.Max(0, IndexOf(settings?.Page));
-        BuildPageDots();
+        BuildPageIcons();
         (settings?.IsDetailed == true ? DetailedView : CompactView).IsChecked = true;
 
         // It keeps counting while hidden, so the tray icon's numbers stay current.
@@ -206,6 +208,12 @@ public partial class MainWindow : Window
         var pages = await Task.WhenAll(_providers.Select((provider, index) =>
             provider.ReadAsync(now, isShown: index == shown, force: force && index == shown)));
 
+        for (var index = 0; index < pages.Length; index++)
+        {
+            var button = (Button)PageIcons.Children[index];
+            button.ToolTip = pages[index].Title;
+            AutomationProperties.SetName(button, $"Mostrar {pages[index].Title}");
+        }
         Show(pages[_page], now);
     }
 
@@ -287,35 +295,47 @@ public partial class MainWindow : Window
 
         _page = next;
         foreach (var count in (RollingCount[])[_shortTokens, _longTokens, _todayTokens, _totalTokens]) count.Reset();
-        UpdatePageDots();
+        UpdatePageIcons();
         SaveSettings();
         _ = RefreshAsync();
     }
 
-    private void BuildPageDots()
+    private void BuildPageIcons()
     {
         Pager.Visibility = _providers.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        PageDots.Children.Clear();
+        PageIcons.Children.Clear();
         for (var index = 0; index < _providers.Count; index++)
         {
             var page = index;
-            var dot = new Ellipse { Width = 4, Height = 4, Margin = new Thickness(2, 0, 2, 0), Cursor = Cursors.Hand };
-            dot.MouseLeftButtonDown += (_, e) =>
+            var icon = new Path
             {
-                ShowPage(page);
-                e.Handled = true;
+                Data = TryFindResource($"ProviderIcon.{_providers[index].Id}") as Geometry
+                    ?? (Geometry)FindResource("ProviderIcon.default"),
+                Width = 12,
+                Height = 12,
+                Stretch = Stretch.Uniform,
             };
-            PageDots.Children.Add(dot);
+            var button = new Button
+            {
+                Style = (Style)FindResource("PageArrow"),
+                Width = 20,
+                Height = 20,
+                Content = icon,
+                ToolTip = $"Página {index + 1}",
+            };
+            button.Click += (_, _) => ShowPage(page);
+            PageIcons.Children.Add(button);
         }
 
-        UpdatePageDots();
+        UpdatePageIcons();
     }
 
-    private void UpdatePageDots()
+    private void UpdatePageIcons()
     {
-        for (var index = 0; index < PageDots.Children.Count; index++)
+        for (var index = 0; index < PageIcons.Children.Count; index++)
         {
-            ((Ellipse)PageDots.Children[index]).Fill = index == _page ? CalmMeter : OtherPageDot;
+            var icon = (Path)((Button)PageIcons.Children[index]).Content;
+            icon.Fill = index == _page ? SelectedPageIcon : OtherPageIcon;
         }
     }
 

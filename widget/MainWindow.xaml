@@ -23,6 +23,10 @@
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ProviderIcons.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <SolidColorBrush x:Key="DimText" Color="#8F8F8F" />
 
         <Style x:Key="Meter" TargetType="ProgressBar">
@@ -126,6 +130,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Viewbox Stretch="Uniform">
@@ -216,14 +221,14 @@
 
                     <TextBlock x:Name="ChatText" Style="{StaticResource Caption}" Margin="0,8,0,0" />
 
-                    <Grid Margin="0,8,-4,0">
-                        <!-- One dot per provider page; the arrows, ←/→ and a sideways touchpad swipe turn them. -->
+                    <Grid Margin="-4,8,-4,0">
+                        <!-- Monochrome provider marks, centered in the card; white marks the selected page. -->
                         <StackPanel x:Name="Pager" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Button x:Name="PreviousPageButton" Style="{StaticResource PageArrow}" Click="OnPreviousPage" ToolTip="Página anterior">
                                 <Path Data="M5,0 L1,4 L5,8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                       StrokeThickness="1.2" Width="6" Height="8" Stretch="None" />
                             </Button>
-                            <StackPanel x:Name="PageDots" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0" />
+                            <StackPanel x:Name="PageIcons" Orientation="Horizontal" VerticalAlignment="Center" Margin="1,0" />
                             <Button x:Name="NextPageButton" Style="{StaticResource PageArrow}" Click="OnNextPage" ToolTip="Próxima página">
                                 <Path Data="M1,0 L5,4 L1,8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                       StrokeThickness="1.2" Width="6" Height="8" Stretch="None" />

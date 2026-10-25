@@ -1,6 +1,6 @@
 # MiniInfos
 
-Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para Claude e outra para Codex (GPT). Pra trocar de página: as setinhas ou as bolinhas do rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. A página escolhida fica salva.
+Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para Claude e outra para Codex (GPT). Pra trocar de página: as setinhas ou os ícones das IAs no rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. Os ícones são monocromáticos, com o selecionado branco e os demais cinza. A página escolhida fica salva.
 
 Na página do Claude:
 
@@ -55,7 +55,9 @@ São duas partes:
 | `widget/` (app WPF, .NET 10) | Lê os arquivos do mod e os históricos em `~/.claude/projects/**/*.jsonl`. Também lê as sessões locais do Codex em `~/.codex/sessions/**/*.jsonl` e consulta os limites da conta pelo `codex app-server`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 
-Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; o quadrado desenha qualquer página do mesmo jeito e gera uma bolinha por provedor. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
+Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; o quadrado desenha qualquer página do mesmo jeito e gera um botão com seu ícone. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
+
+Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0 e OpenAI da 11.15.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
 
 O `codex` é procurado no PATH (instalação nativa, ou o `codex.cmd` do npm) e, se não estiver lá, na cópia que o app do Codex guarda em `%LOCALAPPDATA%\OpenAI\Codex\bin`. É o caso do app da Microsoft Store, que não põe o `codex` no PATH.
 

@@ -8,7 +8,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using MiniInfos;
 
@@ -131,10 +130,10 @@ internal static partial class Program
     private static void CheckPages(MainWindow window, IntPtr handle, int pageCount, string pictures)
     {
         var title = Find<TextBlock>(window, "PageTitle");
-        var dots = Find<StackPanel>(window, "PageDots");
+        var icons = Find<StackPanel>(window, "PageIcons");
         var first = title.Text;
         var height = window.ActualHeight;
-        Check(dots.Children.Count == pageCount, $"one dot per provider ({dots.Children.Count})");
+        Check(icons.Children.Count == pageCount, $"one monochrome icon per provider ({icons.Children.Count})");
         Render(window, System.IO.Path.Combine(pictures, "page-1.png"));
 
         Find<Button>(window, "NextPageButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
@@ -162,11 +161,9 @@ internal static partial class Program
         Pump(TimeSpan.FromSeconds(1));
         Check(title.Text == second, "a sideways touchpad swipe turns it, once per swipe");
 
-        ((Ellipse)dots.Children[0]).RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(
-            System.Windows.Input.Mouse.PrimaryDevice, Environment.TickCount, System.Windows.Input.MouseButton.Left)
-        { RoutedEvent = UIElement.MouseLeftButtonDownEvent });
+        ((Button)icons.Children[0]).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Pump(TimeSpan.FromSeconds(1));
-        Check(title.Text == first, "a dot turns straight to its page");
+        Check(title.Text == first, "a provider icon turns straight to its page");
     }
 
     private static void CheckApps()
