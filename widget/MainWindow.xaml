@@ -135,7 +135,7 @@
                 Background="#F21C1C1E"
                 BorderBrush="#2EFFFFFF"
                 BorderThickness="1"
-                Padding="14,8,10,12"
+                Padding="14,8,10,6"
                 Focusable="True"
                 MouseLeftButtonDown="OnCardPressed"
                 PreviewMouseWheel="OnCardWheel">
