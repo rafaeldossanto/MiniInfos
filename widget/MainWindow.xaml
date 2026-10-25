@@ -25,40 +25,9 @@
     <Window.Resources>
         <ResourceDictionary>
         <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="CardStyles.xaml" />
             <ResourceDictionary Source="ProviderIcons.xaml" />
         </ResourceDictionary.MergedDictionaries>
-        <SolidColorBrush x:Key="DimText" Color="#8F8F8F" />
-
-        <Style x:Key="Meter" TargetType="ProgressBar">
-            <Setter Property="Height" Value="5" />
-            <Setter Property="Minimum" Value="0" />
-            <Setter Property="Maximum" Value="100" />
-            <Setter Property="Margin" Value="0,5,0,4" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ProgressBar">
-                        <Grid>
-                            <Border x:Name="PART_Track" CornerRadius="2.5" Background="#2EFFFFFF" />
-                            <Border x:Name="PART_Indicator" CornerRadius="2.5" HorizontalAlignment="Left"
-                                    Background="{TemplateBinding Foreground}" />
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="Caption" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{StaticResource DimText}" />
-            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-            <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
-        </Style>
-
-        <Style x:Key="BigCount" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
-        </Style>
 
         <!-- The two view buttons, as in Explorer's corner: the chosen one stays lit. -->
         <Style x:Key="ViewSwitch" TargetType="RadioButton">
@@ -153,7 +122,7 @@
                     <MenuItem Header="Voltar pro canto" Click="OnBackToCorner" />
                     <MenuItem Header="Tamanho padrão" Click="OnDefaultSize" />
                     <Separator />
-                    <MenuItem Header="Esconder" Click="OnHide" />
+                    <MenuItem x:Name="DismissItem" Click="OnDismiss" />
                     <MenuItem Header="Sair do MiniInfos" Click="OnQuit" />
                 </ContextMenu>
             </Border.ContextMenu>
@@ -176,50 +145,14 @@
                             </TextBlock.RenderTransform>
                         </TextBlock>
                     </Button>
-                    <Button Grid.Column="3" Style="{StaticResource HeaderButton}" Click="OnHide"
-                            ToolTip="Esconder (volta quando um app acompanhado abrir de novo)">
+                    <Button x:Name="DismissButton" Grid.Column="3" Style="{StaticResource HeaderButton}" Click="OnDismiss">
                         <TextBlock Text="&#xE711;" />
                     </Button>
                 </Grid>
 
                 <StackPanel Margin="0,0,4,0">
-                    <TextBlock x:Name="PageTitle" FontWeight="SemiBold" Margin="0,0,0,6" />
-                    <Grid>
-                        <TextBlock x:Name="ShortLabel" />
-                        <TextBlock x:Name="ShortPercent" HorizontalAlignment="Right" FontWeight="SemiBold" />
-                    </Grid>
-                    <ProgressBar x:Name="ShortBar" Style="{StaticResource Meter}" />
-                    <TextBlock x:Name="ShortDetail" Style="{StaticResource Caption}" />
-
-                    <Grid Margin="0,10,0,0">
-                        <TextBlock x:Name="LongLabel" />
-                        <TextBlock x:Name="LongPercent" HorizontalAlignment="Right" FontWeight="SemiBold" />
-                    </Grid>
-                    <ProgressBar x:Name="LongBar" Style="{StaticResource Meter}" />
-                    <TextBlock x:Name="LongDetail" Style="{StaticResource Caption}" />
-
-                    <Border Height="1" Background="#1FFFFFFF" Margin="0,10" />
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel x:Name="TodayBlock" Background="Transparent">
-                            <TextBlock Text="Tokens hoje" Style="{StaticResource Caption}" />
-                            <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left">
-                                <TextBlock x:Name="TodayTokens" Style="{StaticResource BigCount}" />
-                            </Viewbox>
-                        </StackPanel>
-                        <StackPanel x:Name="TotalBlock" Grid.Column="1" Background="Transparent" Margin="6,0,0,0">
-                            <TextBlock Text="Tokens no total" Style="{StaticResource Caption}" />
-                            <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left">
-                                <TextBlock x:Name="TotalTokens" Style="{StaticResource BigCount}" />
-                            </Viewbox>
-                        </StackPanel>
-                    </Grid>
-
-                    <TextBlock x:Name="ChatText" Style="{StaticResource Caption}" Margin="0,8,0,0" />
+                    <!-- One PageView per page on screen: one, or two side by side with a line between. -->
+                    <StackPanel x:Name="Columns" Orientation="Horizontal" />
 
                     <Grid Margin="-4,8,-4,0">
                         <!-- Monochrome provider marks, centered in the card; white marks the selected page. -->

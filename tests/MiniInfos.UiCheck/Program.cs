@@ -52,10 +52,11 @@ internal static partial class Program
     {
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var providers = UsageProviders.Create();
-        var window = new MainWindow(providers);
+        var cards = new CardSet(providers);
+        var window = cards.Main;
         var summaries = new List<string>();
         window.SummaryChanged += summaries.Add;
-        using var tray = new TrayIcon(window);
+        using var tray = new TrayIcon(cards);
 
         var opening = Stopwatch.StartNew();
         window.Show();
@@ -69,11 +70,103 @@ internal static partial class Program
         CheckViews(window);
         CheckRefresh(window, summaries);
         CheckPages(window, handle, providers.Count, pictures);
+        CheckSplit(window, handle, pictures);
+        CheckNewWindow(cards, pictures);
         CheckApps();
-        CheckProportions(window, handle, pictures);
+        CheckDragKeepsProportions(window, handle, "one page");
 
-        window.Quit();
+        cards.Quit();
     }
+
+    private static void CheckSplit(MainWindow window, IntPtr handle, string pictures)
+    {
+        var icons = Find<StackPanel>(window, "PageIcons");
+        var singleWidth = window.Width;
+
+        var (openIn, split, single, _) = OpenPageMenu(icons, 1);
+        Check(openIn.Header as string == "Abrir em" && Offered(split) && !Offered(single),
+            "right-clicking a page icon offers Abrir em > Visualização dividida");
+        Choose(split);
+
+        Check(Columns(window).Count == 2, "Visualização dividida shows two pages side by side");
+        Check(IconIsLit(icons, 0) && IconIsLit(icons, 1), "and lights both their icons");
+        Check(Find<TextBlock>(Columns(window)[0], "PageTitle").Text != Find<TextBlock>(Columns(window)[1], "PageTitle").Text,
+            $"each column shows its own provider ({Find<TextBlock>(Columns(window)[0], "PageTitle").Text} | {Find<TextBlock>(Columns(window)[1], "PageTitle").Text})");
+        Check(Find<TextBlock>(window, "UpdatedText").Text == "" && Find<TextBlock>(Columns(window)[1], "Note").Text != "",
+            "each column says how fresh its own limits are");
+        Check(window.Width > singleWidth * 1.8 && window.Width < singleWidth * 2.1, $"the card widens to hold them ({singleWidth:0} -> {window.Width:0})");
+        Check(window.Left >= SystemParameters.VirtualScreenLeft
+            && window.Left + window.Width <= SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth, "and stays on screen");
+        Check(Settings().Contains("\"BesidePage\":\"codex\""), "the split is kept for next time");
+        CheckDragKeepsProportions(window, handle, "split");
+        Render(window, System.IO.Path.Combine(pictures, "split.png"));
+
+        var (_, splitAgain, back, _) = OpenPageMenu(icons, 0);
+        Check(Offered(back) && !Offered(splitAgain), "a split card offers Visualização única");
+        Choose(back);
+        Check(Columns(window).Count == 1 && IconIsLit(icons, 0) && !IconIsLit(icons, 1), "Visualização única goes back to one page");
+        Check(Math.Abs(window.Width - singleWidth) < 2, $"at the card's own width ({window.Width:0})");
+    }
+
+    private static void CheckNewWindow(CardSet cards, string pictures)
+    {
+        var (_, _, _, newWindow) = OpenPageMenu(Find<StackPanel>(cards.Main, "PageIcons"), 1);
+        Choose(newWindow);
+        PumpUntil(() => cards.Extras.Count == 1 && cards.Extras[0].Opacity == 1, TimeSpan.FromSeconds(10));
+
+        var extra = cards.Extras.FirstOrDefault();
+        Check(extra is { IsVisible: true }, "Nova janela opens a card of its own");
+        if (extra is null) return;
+
+        Pump(TimeSpan.FromSeconds(1));
+        Check(Find<TextBlock>(Columns(extra)[0], "PageTitle").Text == "Codex (GPT)", "showing the page it was opened from");
+        Check(Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Count() == 1, "and kept, so it comes back with the app");
+        Check((Find<Button>(extra, "DismissButton").ToolTip as string) == "Fechar esta janela", "its ✕ closes it");
+        Render(extra, System.IO.Path.Combine(pictures, "new-window.png"));
+
+        cards.Hide();
+        Check(!extra.IsVisible && !cards.Main.IsVisible, "hiding the cards hides it too");
+        cards.BringBack();
+        Pump(TimeSpan.FromSeconds(1));
+        Check(extra.IsVisible && cards.Main.IsVisible, "and bringing them back brings it back");
+
+        Find<Button>(extra, "DismissButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Pump(TimeSpan.FromSeconds(1));
+        Check(cards.Extras.Count == 0 && !Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Any(),
+            "closing it forgets it for good");
+    }
+
+    /// <summary>Opens a page icon's right-click menu as Windows would, and hands back its items.</summary>
+    private static (MenuItem OpenIn, MenuItem Split, MenuItem Single, MenuItem NewWindow) OpenPageMenu(StackPanel icons, int page)
+    {
+        var button = (Button)icons.Children[page];
+        var menu = button.ContextMenu!;
+        menu.PlacementTarget = button;
+        menu.IsOpen = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        var openIn = (MenuItem)menu.Items[0];
+        var items = openIn.Items.OfType<MenuItem>().ToList();
+        return (openIn, items.Single(item => item.Header as string == "Visualização dividida"),
+            items.Single(item => item.Header as string == "Visualização única"),
+            items.Single(item => item.Header as string == "Nova janela"));
+    }
+
+    /// <summary>Whether the menu offers an item: what it sets as it opens, read without drawing the submenu.</summary>
+    private static bool Offered(MenuItem item) => item.Visibility == Visibility.Visible;
+
+    private static void Choose(MenuItem item)
+    {
+        item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        if (item.Parent is MenuItem { Parent: ContextMenu menu }) menu.IsOpen = false;
+        Pump(TimeSpan.FromSeconds(2));
+    }
+
+    private static List<PageView> Columns(MainWindow window) => [.. Find<StackPanel>(window, "Columns").Children.OfType<PageView>()];
+
+    private static bool IconIsLit(StackPanel icons, int page) =>
+        ((System.Windows.Shapes.Path)((Button)icons.Children[page]).Content).Fill is SolidColorBrush { Color: { R: 0xED, G: 0xED, B: 0xED } };
+
+    private static string Data => Environment.GetEnvironmentVariable("MINIINFOS_DATA_DIR")!;
 
     private static void CheckEdges(IntPtr handle)
     {
@@ -104,7 +197,7 @@ internal static partial class Program
 
     private static void CheckViews(MainWindow window)
     {
-        var total = Find<TextBlock>(window, "TotalTokens");
+        var total = Find<TextBlock>(Columns(window)[0], "TotalTokens");
         Find<RadioButton>(window, "CompactView").IsChecked = true;
         Pump(TimeSpan.FromSeconds(2));
         Check(Regex.IsMatch(total.Text, "^[0-9]+(,[0-9])?[kMB]?$"), $"Resumido shows the short form ({total.Text})");
@@ -129,7 +222,7 @@ internal static partial class Program
 
     private static void CheckPages(MainWindow window, IntPtr handle, int pageCount, string pictures)
     {
-        var title = Find<TextBlock>(window, "PageTitle");
+        var title = Find<TextBlock>(Columns(window)[0], "PageTitle");
         var icons = Find<StackPanel>(window, "PageIcons");
         var first = title.Text;
         var height = window.ActualHeight;
@@ -146,7 +239,7 @@ internal static partial class Program
         _ = window.ForceRefreshAsync();
         Pump(TimeSpan.FromMilliseconds(100));
         PumpUntil(() => Find<Button>(window, "RefreshButton").IsEnabled, TimeSpan.FromSeconds(20));
-        Console.WriteLine($"     page 2: {Find<TextBlock>(window, "ShortPercent").Text} / {Find<TextBlock>(window, "LongPercent").Text} | {Find<TextBlock>(window, "UpdatedText").Text} | {Find<TextBlock>(window, "ChatText").Text}");
+        Console.WriteLine($"     page 2: {Find<TextBlock>(Columns(window)[0], "ShortPercent").Text} / {Find<TextBlock>(Columns(window)[0], "LongPercent").Text} | {Find<TextBlock>(window, "UpdatedText").Text} | {Find<TextBlock>(Columns(window)[0], "ChatText").Text}");
         Check(Math.Abs(window.ActualHeight - height) < 1, "both pages keep the card's size");
         Render(window, System.IO.Path.Combine(pictures, "page-2.png"));
 
@@ -173,7 +266,7 @@ internal static partial class Program
         Console.WriteLine($"     codex: {codex?.FileName ?? "none"} | Codex app open: {CodexApp.IsOpen()}");
     }
 
-    private static void CheckProportions(MainWindow window, IntPtr handle, string pictures)
+    private static void CheckDragKeepsProportions(MainWindow window, IntPtr handle, string when)
     {
         var rect = WindowRect(handle);
         var dragged = new PixelRect(rect.Left, rect.Top, rect.Left + rect.Width * 8 / 5, rect.Bottom);
@@ -184,7 +277,7 @@ internal static partial class Program
             SendMessage(handle, WmSizing, AspectSizing.RightEdge, buffer);
             var fitted = Marshal.PtrToStructure<PixelRect>(buffer);
             var expected = (int)Math.Round(fitted.Width * (double)rect.Height / rect.Width);
-            Check(Math.Abs(fitted.Height - expected) <= 2, $"dragging the right edge grows the height too ({rect.Width}x{rect.Height} -> {fitted.Width}x{fitted.Height})");
+            Check(Math.Abs(fitted.Height - expected) <= 2, $"with {when}, dragging the right edge grows the height too ({rect.Width}x{rect.Height} -> {fitted.Width}x{fitted.Height})");
         }
         finally
         {

@@ -40,18 +40,18 @@ public partial class App : Application
 
         base.OnStartup(e);
         var providers = UsageProviders.Create();
-        var window = new MainWindow(providers);
-        MainWindow = window;
-        _trayIcon = new TrayIcon(window);
-        if (!startsHiddenWithApps) window.Show();
+        var cards = new CardSet(providers);
+        MainWindow = cards.Main;
+        _trayIcon = new TrayIcon(cards);
+        if (!startsHiddenWithApps) cards.ShowWithAssistant();
 
-        var follower = new AssistantFollower(() => providers.Any(provider => provider.IsInUse()), window.ShowWithAssistant, window.HideCard);
+        var follower = new AssistantFollower(() => providers.Any(provider => provider.IsInUse()), cards.ShowWithAssistant, cards.Hide);
         follower.Check();
         _appWatch.Tick += (_, _) => follower.Check();
         _appWatch.Start();
 
-        Listen(ShowSignalName, window.BringBack);
-        Listen(QuitSignalName, window.Quit);
+        Listen(ShowSignalName, cards.BringBack);
+        Listen(QuitSignalName, cards.Quit);
     }
 
     protected override void OnExit(ExitEventArgs e)

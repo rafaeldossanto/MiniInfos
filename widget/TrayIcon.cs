@@ -5,30 +5,30 @@ using Forms = System.Windows.Forms;
 namespace MiniInfos;
 
 /// <summary>
-/// The icon beside the clock: a click shows or hides the card, hovering reads the numbers
-/// even while the card is hidden, and its menu holds what the card's own menu does.
+/// The icon beside the clock: a click shows or hides the cards, hovering reads the main card's
+/// numbers even while it is hidden, and its menu holds what the card's own menu does.
 /// </summary>
 public sealed class TrayIcon : IDisposable
 {
     private const int MaxTipLength = 127;
     private static readonly Uri IconResource = new("pack://application:,,,/MiniInfos;component/MiniInfos.ico");
 
-    private readonly MainWindow _window;
+    private readonly CardSet _cards;
     private readonly Forms.NotifyIcon _icon;
     private readonly Forms.ToolStripMenuItem _toggleItem;
 
-    public TrayIcon(MainWindow window)
+    public TrayIcon(CardSet cards)
     {
-        _window = window;
+        _cards = cards;
         _toggleItem = new Forms.ToolStripMenuItem("Mostrar", null, (_, _) => Toggle());
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(_toggleItem);
-        menu.Items.Add("Atualizar agora", null, async (_, _) => await window.ForceRefreshAsync());
-        menu.Items.Add("Voltar pro canto", null, (_, _) => window.BackToCorner());
+        menu.Items.Add("Atualizar agora", null, async (_, _) => await cards.ForceRefreshAsync());
+        menu.Items.Add("Voltar pro canto", null, (_, _) => cards.Main.BackToCorner());
         menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Sair do MiniInfos", null, (_, _) => window.Quit());
-        menu.Opening += (_, _) => _toggleItem.Text = window.IsVisible ? "Esconder" : "Mostrar";
+        menu.Items.Add("Sair do MiniInfos", null, (_, _) => cards.Quit());
+        menu.Opening += (_, _) => _toggleItem.Text = cards.IsVisible ? "Esconder" : "Mostrar";
 
         _icon = new Forms.NotifyIcon
         {
@@ -41,12 +41,12 @@ public sealed class TrayIcon : IDisposable
         {
             if (e.Button == Forms.MouseButtons.Left) Toggle();
         };
-        window.SummaryChanged += ShowSummary;
+        cards.Main.SummaryChanged += ShowSummary;
     }
 
     public void Dispose()
     {
-        _window.SummaryChanged -= ShowSummary;
+        _cards.Main.SummaryChanged -= ShowSummary;
         _icon.Visible = false;
         _icon.Dispose();
     }
@@ -56,8 +56,8 @@ public sealed class TrayIcon : IDisposable
 
     private void Toggle()
     {
-        if (_window.IsVisible) _window.HideCard();
-        else _window.BringBack();
+        if (_cards.IsVisible) _cards.Hide();
+        else _cards.BringBack();
     }
 
     private static Drawing.Icon LoadIcon()
