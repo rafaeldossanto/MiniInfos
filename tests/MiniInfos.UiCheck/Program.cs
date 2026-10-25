@@ -66,6 +66,7 @@ internal static partial class Program
         var handle = new WindowInteropHelper(window).Handle;
 
         CheckEdges(handle);
+        RenderMenus(window, pictures);
         CheckTray(tray, summaries, window);
         CheckViews(window);
         CheckRefresh(window, summaries);
@@ -76,6 +77,27 @@ internal static partial class Program
         CheckDragKeepsProportions(window, handle, "one page");
 
         cards.Quit();
+    }
+
+    /// <summary>Popups have their own visuals: capture them as well as the card for theme review.</summary>
+    private static void RenderMenus(MainWindow window, string pictures)
+    {
+        var card = Find<Border>(window, "Card");
+        var menu = card.ContextMenu!;
+        menu.PlacementTarget = card;
+        menu.IsOpen = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        RenderElement(menu, System.IO.Path.Combine(pictures, "context-menu.png"));
+        menu.IsOpen = false;
+
+        var (openIn, _, _, _) = OpenPageMenu(Find<StackPanel>(window, "PageIcons"), 1);
+        openIn.IsSubmenuOpen = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        RenderElement((ContextMenu)openIn.Parent, System.IO.Path.Combine(pictures, "icon-menu.png"));
+        var popup = (Popup)openIn.Template.FindName("PART_Popup", openIn);
+        RenderElement((FrameworkElement)popup.Child, System.IO.Path.Combine(pictures, "icon-submenu.png"));
+        openIn.IsSubmenuOpen = false;
+        ((ContextMenu)openIn.Parent).IsOpen = false;
     }
 
     private static void CheckSplit(MainWindow window, IntPtr handle, string pictures)
@@ -331,7 +353,11 @@ internal static partial class Program
 
     private static void Render(Window window, string file)
     {
-        var content = (FrameworkElement)window.Content;
+        RenderElement((FrameworkElement)window.Content, file);
+    }
+
+    private static void RenderElement(FrameworkElement content, string file)
+    {
         var bitmap = new RenderTargetBitmap((int)content.ActualWidth, (int)content.ActualHeight, 96, 96, PixelFormats.Pbgra32);
         var backdrop = new DrawingVisual();
         using (var context = backdrop.RenderOpen())

@@ -444,7 +444,7 @@ public partial class MainWindow : Window
         openIn.Items.Add(new Separator());
         openIn.Items.Add(newWindow);
 
-        var menu = new ContextMenu();
+        var menu = new CardContextMenu();
         menu.Items.Add(openIn);
         menu.Opened += (_, _) =>
         {

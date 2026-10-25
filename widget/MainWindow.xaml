@@ -1,6 +1,7 @@
 <Window x:Class="MiniInfos.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MiniInfos"
         Title="MiniInfos"
         Width="264"
         SizeToContent="Height"
@@ -114,7 +115,7 @@
                 MouseLeftButtonDown="OnCardPressed"
                 PreviewMouseWheel="OnCardWheel">
             <Border.ContextMenu>
-                <ContextMenu>
+                <local:CardContextMenu>
                     <MenuItem Header="Atualizar agora" Click="OnRefresh" />
                     <Separator />
                     <MenuItem x:Name="TopmostItem" Header="Sempre por cima" IsCheckable="True" IsChecked="True"
@@ -124,7 +125,7 @@
                     <Separator />
                     <MenuItem x:Name="DismissItem" Click="OnDismiss" />
                     <MenuItem Header="Sair do MiniInfos" Click="OnQuit" />
-                </ContextMenu>
+                </local:CardContextMenu>
             </Border.ContextMenu>
 
             <StackPanel>
