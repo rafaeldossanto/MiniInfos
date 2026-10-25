@@ -58,6 +58,8 @@ Name: "{userstartup}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Parameters: "
 Filename: "{app}\MiniInfos.exe"; Description: "Abrir o MiniInfos agora"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
+; The startup shortcut, also when the settings window made it rather than the installer.
+Type: files; Name: "{userstartup}\{#AppName}.lnk"
 Type: filesandordirs; Name: "{localappdata}\MiniInfos"
 Type: filesandordirs; Name: "{%USERPROFILE}\.claude\miniinfos"
 

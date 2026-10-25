@@ -32,6 +32,7 @@ internal static partial class Program
     {
         var data = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MiniInfos.UiCheck-" + Guid.NewGuid().ToString("N"));
         Environment.SetEnvironmentVariable("MINIINFOS_DATA_DIR", data);
+        Environment.SetEnvironmentVariable("MINIINFOS_STARTUP_DIR", System.IO.Path.Combine(data, "startup"));
         var pictures = args.FirstOrDefault() ?? data;
         Directory.CreateDirectory(pictures);
 
@@ -51,8 +52,10 @@ internal static partial class Program
     private static void Run(string pictures)
     {
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        var preferences = Preferences.Load();
+        Themes.Follow(preferences);
         var providers = UsageProviders.Create();
-        var cards = new CardSet(providers);
+        var cards = new CardSet(providers, preferences);
         var window = cards.Main;
         var summaries = new List<string>();
         window.SummaryChanged += summaries.Add;
@@ -73,6 +76,7 @@ internal static partial class Program
         CheckPages(window, handle, providers.Count, pictures);
         CheckSplit(window, handle, pictures);
         CheckNewWindow(cards, pictures);
+        CheckSettings(cards, preferences, pictures);
         CheckApps();
         CheckDragKeepsProportions(window, handle, "one page");
 
@@ -170,6 +174,137 @@ internal static partial class Program
         Check(IconIsLit(mainIcons, 0) && !IconIsLit(mainIcons, 1), "and its page's icon goes dark in the main card");
     }
 
+    private static void CheckSettings(CardSet cards, Preferences preferences, string pictures)
+    {
+        var simple = ThemeKeys(Themes.Load(ThemeChoice.Simple));
+        Check(simple.Length > 0 && new[] { ThemeChoice.Light, ThemeChoice.Classic }
+            .All(theme => simple.SequenceEqual(ThemeKeys(Themes.Load(theme)))),
+            "all themes provide the same resources, including merged dictionaries");
+
+        var card = cards.Main;
+        var face = Find<Border>(card, "Card");
+        var gear = Find<Button>(card, "SettingsButton");
+        var at = gear.TranslatePoint(new Point(0, 0), face);
+        Check(at.X < 24 && at.Y + gear.ActualHeight > face.ActualHeight - 16,
+            $"the gear sits in the card's bottom-left corner ({at.X:0},{at.Y:0} in {face.ActualWidth:0}x{face.ActualHeight:0})");
+
+        gear.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        PumpUntil(() => cards.Settings is { IsVisible: true }, TimeSpan.FromSeconds(5));
+        var settings = cards.Settings;
+        Check(settings is { IsVisible: true } && settings.Card == card, "the gear opens Configurações for its card");
+        if (settings is null) return;
+
+        Pump(TimeSpan.FromMilliseconds(500));
+        gear.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(cards.Settings == settings, "pressed again, the same window comes forward");
+
+        var pages = Find<TabControl>(settings, "Pages");
+        var names = pages.Items.OfType<TabItem>().Select(page => page.Header as string).ToList();
+        Check(names.SequenceEqual(["Geral", "Aparência", "Sobre"]), $"with its pages ({string.Join(", ", names)})");
+        RenderPages(settings, pages, pictures, "dark");
+
+        var topmost = Find<CheckBox>(settings, "TopmostToggle");
+        topmost.IsChecked = false;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(!preferences.IsTopmost && !card.Topmost && !Find<MenuItem>(card, "TopmostItem").IsChecked && SharedSettings().Contains("\"IsTopmost\":false"),
+            "Sempre por cima off lets the card fall behind, unticks its menu item and is kept");
+        topmost.IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(card.Topmost && Find<MenuItem>(card, "TopmostItem").IsChecked, "back on, it stays in front again");
+
+        var follow = Find<CheckBox>(settings, "FollowToggle");
+        follow.IsChecked = false;
+        Check(!preferences.FollowsApps && SharedSettings().Contains("\"FollowsApps\":false"), "Acompanhar o Claude e o Codex off is kept");
+        follow.IsChecked = true;
+
+        var shortcut = System.IO.Path.Combine(Environment.GetEnvironmentVariable("MINIINFOS_STARTUP_DIR")!, "MiniInfos.lnk");
+        var startup = Find<CheckBox>(settings, "StartupToggle");
+        startup.IsChecked = true;
+        Check(File.Exists(shortcut) && startup.IsChecked == true, "Iniciar com o Windows makes the startup shortcut");
+        startup.IsChecked = false;
+        Check(!File.Exists(shortcut), "and off, takes it away");
+
+        pages.SelectedIndex = 1;
+        Find<RadioButton>(settings, "LightTheme").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(500));
+        Check(IsLight(face.Background) && IsLight(((Border)settings.Content).Background) && SharedSettings().Contains("\"Theme\":\"Light\""),
+            "Claro turns the card and the settings light, and is kept");
+        Render(card, System.IO.Path.Combine(pictures, "card-light.png"));
+        RenderPages(settings, pages, pictures, "light");
+        var menu = face.ContextMenu!;
+        menu.PlacementTarget = face;
+        menu.IsOpen = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(IsLight(((Border)menu.Template.FindName("MenuSurface", menu)).Background), "and its menu");
+        RenderElement(menu, System.IO.Path.Combine(pictures, "context-menu-light.png"));
+        menu.IsOpen = false;
+
+        pages.SelectedIndex = 1;
+        Find<RadioButton>(settings, "SimpleTheme").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(500));
+        Check(!IsLight(face.Background) && preferences.Theme == ThemeChoice.Simple, "Simples turns it dark again");
+
+        var simpleHeight = card.Height;
+        Find<RadioButton>(settings, "ClassicTheme").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(700));
+        var artwork = Find<Image>(card, "AthenaArtwork");
+        Check(preferences.Theme == ThemeChoice.Classic && artwork.Visibility == Visibility.Visible
+            && artwork.Source is not null && card.Height > simpleHeight,
+            "Clássico adds Athena and measures its header immediately");
+        Check(Preferences.Load().Theme == ThemeChoice.Classic, "the classic choice is kept for the next launch");
+        Render(card, System.IO.Path.Combine(pictures, "card-classic.png"));
+        Render(settings, System.IO.Path.Combine(pictures, "settings-classic.png"));
+
+        var icons = Find<StackPanel>(card, "PageIcons");
+        var (_, split, _, _) = OpenPageMenu(icons, 1);
+        Choose(split);
+        var artCenter = artwork.TranslatePoint(new Point(artwork.ActualWidth / 2, 0), face).X;
+        Check(Columns(card).Count == 2 && Math.Abs(artCenter - face.ActualWidth / 2) < 1,
+            "in split view Athena stays centered over the whole card");
+        Check(icons.Children.OfType<Button>().Count() == icons.Children.Count,
+            "the provider icons have no separator between them");
+        Render(card, System.IO.Path.Combine(pictures, "split-classic.png"));
+        var (_, _, single, _) = OpenPageMenu(icons, 0);
+        Choose(single);
+
+        Find<RadioButton>(settings, "SimpleTheme").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(700));
+        Check(artwork.Visibility == Visibility.Collapsed && Math.Abs(card.Height - simpleHeight) < 2,
+            "Simples removes the illustration and restores its compact height");
+
+        Find<RadioButton>(settings, "DetailedNumbers").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(card.IsDetailed && Find<RadioButton>(card, "DetailedView").IsChecked == true, "Números: Detalhado flips the card's own switch");
+        Find<RadioButton>(card, "CompactView").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(Find<RadioButton>(settings, "CompactNumbers").IsChecked == true, "and the card's switch shows in the settings");
+
+        Find<Button>(settings, "CloseButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(cards.Settings is null && !settings.IsVisible, "its close button closes it");
+    }
+
+    private static string[] ThemeKeys(ResourceDictionary resources) => resources.Keys.Cast<object>()
+        .Select(key => key.ToString()!)
+        .Concat(resources.MergedDictionaries.SelectMany(ThemeKeys))
+        .Distinct().Order().ToArray();
+
+    private static void RenderPages(SettingsWindow settings, TabControl pages, string pictures, string theme)
+    {
+        for (var page = 0; page < pages.Items.Count; page++)
+        {
+            pages.SelectedIndex = page;
+            Pump(TimeSpan.FromMilliseconds(300));
+            Render(settings, System.IO.Path.Combine(pictures, $"settings-{page + 1}-{theme}.png"));
+        }
+
+        pages.SelectedIndex = 0;
+        Pump(TimeSpan.FromMilliseconds(300));
+    }
+
+    private static bool IsLight(Brush brush) => brush is SolidColorBrush { Color.R: > 0xC0 };
+
     /// <summary>Opens a page icon's right-click menu as Windows would, and hands back its items.</summary>
     private static (MenuItem OpenIn, MenuItem Split, MenuItem Single, MenuItem NewWindow) OpenPageMenu(StackPanel icons, int page)
     {
@@ -219,6 +354,8 @@ internal static partial class Program
         Check(icon.Visible && icon.Icon is { Width: > 0 }, "the tray icon is up");
         Check(summaries.Count > 0 && icon.Text == summaries[^1], "hovering it reads the latest numbers");
         Check(Regex.IsMatch(icon.Text, @"Hoje [0-9]+(,[0-9])?[kMB]? tokens"), $"and their short form ({Line(icon.Text)})");
+        Check(icon.ContextMenuStrip!.Items.Cast<System.Windows.Forms.ToolStripItem>().Any(item => item.Text == "Configurações"),
+            "its menu opens Configurações");
 
         window.HideCard();
         var before = summaries.Count;
@@ -319,8 +456,9 @@ internal static partial class Program
         }
     }
 
-    private static string Settings() =>
-        File.ReadAllText(System.IO.Path.Combine(Environment.GetEnvironmentVariable("MINIINFOS_DATA_DIR")!, "window.json"));
+    private static string Settings() => File.ReadAllText(System.IO.Path.Combine(Data, "window.json"));
+
+    private static string SharedSettings() => File.ReadAllText(System.IO.Path.Combine(Data, "settings.json"));
 
     private static T Find<T>(FrameworkElement window, string name) => (T)window.FindName(name);
 

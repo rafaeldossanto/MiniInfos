@@ -26,6 +26,7 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add(_toggleItem);
         menu.Items.Add("Atualizar agora", null, async (_, _) => await cards.ForceRefreshAsync());
         menu.Items.Add("Voltar pro canto", null, (_, _) => cards.Main.BackToCorner());
+        menu.Items.Add("Configurações", null, (_, _) => cards.OpenSettings(cards.Main));
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Sair do MiniInfos", null, (_, _) => cards.Quit());
         menu.Opening += (_, _) => _toggleItem.Text = cards.IsVisible ? "Esconder" : "Mostrar";

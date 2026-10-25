@@ -22,6 +22,8 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
+Na engrenagem, em **Configurações → Aparência → Tema**, **Simples** usa o cartão escuro com barras azuis; **Clássico** usa tons de pedra e uma gravura de Atena no cabeçalho. Na visualização dividida, Atena fica centralizada sobre o cartão inteiro. Os ícones das IAs ficam juntos, sem separador. A escolha vale para todas as janelas e fica salva. As opções **Claro** e **Windows** também continuam disponíveis.
+
 Ele lê os registros locais a cada 3 segundos. Os limites da conta Codex são consultados em segundo plano a cada minuto, só enquanto a página do Codex está na tela, e a tela nunca espera por eles. O botão ↻, ao lado do ✕, força uma consulta na hora da página aberta (também em "Atualizar agora", no botão direito e no ícone da bandeja). Os % do Claude mudam quando algum chat do Claude Code recebe resposta, porque é dela que eles vêm.
 
 Arraste o quadrado pra onde quiser, em qualquer direção. Pra mudar o tamanho, puxe uma borda ou um canto: tudo cresce ou encolhe junto, na mesma proporção. A posição e o tamanho ficam salvos. Botão direito: "Sempre por cima", "Voltar pro canto", "Tamanho padrão", "Esconder" e "Sair do MiniInfos".
@@ -63,6 +65,8 @@ São duas partes:
 Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
 
 Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0 e OpenAI da 11.15.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
+
+Os temas ficam em `widget/Themes`, com recursos dinâmicos compartilhados pelo cartão, menus e configurações. Cada tema é um arquivo com os mesmos pincéis (`Simple.xaml`, `Classic.xaml`, `Light.xaml`), e `Design.xaml` guarda a fonte e o cabeçalho comuns a todos. A arte de Atena foi gerada para o MiniInfos. A fonte Manrope é distribuída com o app sob a licença SIL Open Font License, incluída em `widget/Assets/Fonts/OFL.txt`.
 
 O `codex` é procurado no PATH (instalação nativa, ou o `codex.cmd` do npm) e, se não estiver lá, na cópia que o app do Codex guarda em `%LOCALAPPDATA%\OpenAI\Codex\bin`. É o caso do app da Microsoft Store, que não põe o `codex` no PATH.
 

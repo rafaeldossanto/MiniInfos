@@ -3,19 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:MiniInfos"
         Title="MiniInfos"
-        Width="264"
+        Width="296"
         SizeToContent="Height"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="CanResize"
         ShowInTaskbar="False"
-        Topmost="True"
         ShowActivated="False"
         Opacity="0"
-        FontFamily="Segoe UI Variable Text, Segoe UI"
-        FontSize="12"
-        Foreground="#EDEDED"
+        FontFamily="{DynamicResource AppFont}"
+        FontSize="14"
+        Foreground="{DynamicResource PrimaryText}"
         PreviewKeyDown="OnPageKeyDown">
 
     <WindowChrome.WindowChrome>
@@ -34,7 +33,7 @@
         <Style x:Key="ViewSwitch" TargetType="RadioButton">
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="GroupName" Value="View" />
-            <Setter Property="Foreground" Value="{StaticResource DimText}" />
+            <Setter Property="Foreground" Value="{DynamicResource DimText}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -44,35 +43,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="#1FFFFFFF" />
+                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource Hover}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="#2EFFFFFF" />
-                                <Setter TargetName="Face" Property="BorderBrush" Value="#40FFFFFF" />
-                                <Setter Property="Foreground" Value="#EDEDED" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- The small glyph buttons of the header (refresh, hide), drawn with the Windows icon font. -->
-        <Style x:Key="HeaderButton" TargetType="Button">
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{StaticResource DimText}" />
-            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
-            <Setter Property="FontSize" Value="10" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Face" Width="20" Height="20" CornerRadius="5" Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="#26FFFFFF" />
-                                <Setter Property="Foreground" Value="#EDEDED" />
+                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource Selected}" />
+                                <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource SelectedBorder}" />
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -84,7 +60,7 @@
             <Setter Property="Width" Value="18" />
             <Setter Property="Height" Value="18" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{StaticResource DimText}" />
+            <Setter Property="Foreground" Value="{DynamicResource DimText}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -93,7 +69,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#EDEDED" />
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -105,12 +81,12 @@
 
     <Viewbox Stretch="Uniform">
         <Border x:Name="Card"
-                Width="264"
-                CornerRadius="12"
-                Background="#F21C1C1E"
-                BorderBrush="#2EFFFFFF"
+                Width="296"
+                CornerRadius="16"
+                Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource CardBorder}"
                 BorderThickness="1"
-                Padding="14,8,10,6"
+                Padding="0"
                 Focusable="True"
                 MouseLeftButtonDown="OnCardPressed"
                 PreviewMouseWheel="OnCardWheel">
@@ -118,10 +94,11 @@
                 <local:CardContextMenu>
                     <MenuItem Header="Atualizar agora" Click="OnRefresh" />
                     <Separator />
-                    <MenuItem x:Name="TopmostItem" Header="Sempre por cima" IsCheckable="True" IsChecked="True"
-                              Click="OnTopmostToggled" />
+                    <!-- Checked and unchecked through the shared settings, bound in code. -->
+                    <MenuItem x:Name="TopmostItem" Header="Sempre por cima" IsCheckable="True" />
                     <MenuItem Header="Voltar pro canto" Click="OnBackToCorner" />
                     <MenuItem Header="Tamanho padrão" Click="OnDefaultSize" />
+                    <MenuItem Header="Configurações" Click="OnSettings" />
                     <Separator />
                     <MenuItem x:Name="DismissItem" Click="OnDismiss" />
                     <MenuItem Header="Sair do MiniInfos" Click="OnQuit" />
@@ -129,15 +106,49 @@
             </Border.ContextMenu>
 
             <StackPanel>
-                <Grid Margin="0,0,0,8">
+                <Grid x:Name="HeaderRegion" Height="{DynamicResource HeaderHeight}">
+                    <!-- One centered illustration for the whole card, including split view. -->
+                    <Image x:Name="AthenaArtwork" Source="{DynamicResource HeaderArtwork}"
+                           Visibility="{DynamicResource HeaderArtworkVisibility}"
+                           Width="360" Height="120" Stretch="Uniform"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                        <Image.OpacityMask>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Offset="0" Color="#00FFFFFF" />
+                                <GradientStop Offset="0.12" Color="White" />
+                                <GradientStop Offset="0.88" Color="White" />
+                                <GradientStop Offset="1" Color="#00FFFFFF" />
+                            </LinearGradientBrush>
+                        </Image.OpacityMask>
+                    </Image>
+                    <!-- A feathered scrim has no rectangular blur boundary behind the controls. -->
+                    <Ellipse Width="120" Height="80" HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-12,-12,0" IsHitTestVisible="False"
+                             Visibility="{DynamicResource HeaderArtworkVisibility}">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Offset="0" Color="#D91F1F1F" />
+                                <GradientStop Offset="0.45" Color="#801F1F1F" />
+                                <GradientStop Offset="1" Color="#001F1F1F" />
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <Grid Margin="16,12" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="MiniInfos" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <TextBlock x:Name="UpdatedText" Grid.Column="1" Style="{StaticResource Caption}" Margin="8,0,0,0"
+                    <TextBlock Text="MiniInfos" FontWeight="SemiBold" FontSize="{DynamicResource HeaderTitleSize}" VerticalAlignment="Center" />
+                    <TextBlock x:Name="UpdatedText" Grid.Column="{DynamicResource HeaderNoteColumn}"
+                               Grid.Row="{DynamicResource HeaderNoteRow}" Grid.ColumnSpan="{DynamicResource HeaderNoteSpan}"
+                               Style="{StaticResource Caption}" Margin="{DynamicResource HeaderNoteMargin}"
+                               MaxWidth="{DynamicResource HeaderNoteWidth}" HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
                     <Button x:Name="RefreshButton" Grid.Column="2" Style="{StaticResource HeaderButton}" Click="OnRefresh">
                         <TextBlock Text="&#xE72C;" RenderTransformOrigin="0.5,0.5">
@@ -149,14 +160,22 @@
                     <Button x:Name="DismissButton" Grid.Column="3" Style="{StaticResource HeaderButton}" Click="OnDismiss">
                         <TextBlock Text="&#xE711;" />
                     </Button>
+                    </Grid>
+                    <Border Height="1" Background="{DynamicResource Divider}" VerticalAlignment="Bottom" />
                 </Grid>
 
-                <StackPanel Margin="0,0,4,0">
+                <StackPanel Margin="16,12,16,12">
                     <!-- One PageView per page on screen: one, or two side by side with a line between. -->
                     <StackPanel x:Name="Columns" Orientation="Horizontal" />
 
-                    <Grid Margin="-4,8,-4,0">
-                        <!-- Monochrome provider marks, centered in the card; white marks the selected page. -->
+                    <Grid Margin="0,12,0,0">
+                        <!-- The gear, under the name: the settings window. -->
+                        <Button x:Name="SettingsButton" Style="{StaticResource HeaderButton}" FontSize="12"
+                                HorizontalAlignment="Left" Click="OnSettings" ToolTip="Configurações">
+                            <TextBlock Text="&#xE713;" />
+                        </Button>
+
+                        <!-- Monochrome provider marks, centered in the card; the selected page's is lit. -->
                         <StackPanel x:Name="Pager" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Button x:Name="PreviousPageButton" Style="{StaticResource PageArrow}" Click="OnPreviousPage" ToolTip="Página anterior">
                                 <Path Data="M5,0 L1,4 L5,8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"

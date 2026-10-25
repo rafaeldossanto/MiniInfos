@@ -9,9 +9,6 @@ public partial class App : Application
     private const string ShowSignalName = "MiniInfos.Show";
     private const string QuitSignalName = "MiniInfos.Quit";
 
-    /// <summary>Legacy startup flag: hidden until Claude or Codex opens.</summary>
-    private const string WithClaudeArgument = "--with-claude";
-
     /// <summary>Ends the one that runs, as its "Sair" does: what the installer asks before it replaces the files.</summary>
     private const string QuitArgument = "--quit";
 
@@ -24,7 +21,8 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        var startsHiddenWithApps = e.Args.Contains(WithClaudeArgument);
+        // The startup shortcut's flag: hidden until Claude or Codex opens.
+        var startsHiddenWithApps = e.Args.Contains(StartupShortcut.Arguments);
         var quits = e.Args.Contains(QuitArgument);
 
         _singleInstance = new Mutex(initiallyOwned: true, SingleInstanceName, out var isFirstInstance);
@@ -39,13 +37,24 @@ public partial class App : Application
         }
 
         base.OnStartup(e);
+        var preferences = Preferences.Load();
+        Themes.Follow(preferences);
         var providers = UsageProviders.Create();
-        var cards = new CardSet(providers);
+        var cards = new CardSet(providers, preferences);
         MainWindow = cards.Main;
         _trayIcon = new TrayIcon(cards);
-        if (!startsHiddenWithApps) cards.ShowWithAssistant();
 
-        var follower = new AssistantFollower(() => providers.Any(provider => provider.IsInUse()), cards.ShowWithAssistant, cards.Hide);
+        // Not following the apps, nothing would ever show a card started hidden: it shows now.
+        if (!startsHiddenWithApps || !preferences.FollowsApps) cards.ShowWithAssistant();
+
+        var follower = new AssistantFollower(() => providers.Any(provider => provider.IsInUse()), cards.ShowWithAssistant, cards.Hide)
+        {
+            IsEnabled = preferences.FollowsApps,
+        };
+        preferences.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName == nameof(Preferences.FollowsApps)) follower.IsEnabled = preferences.FollowsApps;
+        };
         follower.Check();
         _appWatch.Tick += (_, _) => follower.Check();
         _appWatch.Start();

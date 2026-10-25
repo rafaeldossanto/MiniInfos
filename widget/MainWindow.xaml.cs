@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -40,12 +41,11 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// The card's width at scale 1 with one page; each page beside it adds a column and its gap. A
-    /// column is what one page leaves inside the card: 264, less the border (1+1), the padding (14+10)
-    /// and the columns' right margin (4).
+    /// column is what one page leaves inside the card: 296, less the border (1+1) and padding (16+16).
     /// </summary>
-    private const double SinglePageWidth = 264;
-    private const double ColumnWidth = 234;
-    private const double ColumnGap = 21;
+    private const double SinglePageWidth = 296;
+    private const double ColumnWidth = 262;
+    private const double ColumnGap = 25;
 
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan SpinTurn = TimeSpan.FromMilliseconds(800);
@@ -53,9 +53,6 @@ public partial class MainWindow : Window
 
     /// <summary>A touchpad swipe sends a burst of sideways wheel steps: after a page turns, the rest of the burst waits this long.</summary>
     private static readonly TimeSpan SwipeSettles = TimeSpan.FromMilliseconds(450);
-
-    private static readonly Brush SelectedPageIcon = Frozen(Color.FromRgb(0xED, 0xED, 0xED));
-    private static readonly Brush OtherPageIcon = Frozen(Color.FromRgb(0x55, 0x56, 0x5A));
 
     private readonly IReadOnlyList<IUsageProvider> _providers;
     private readonly CardStore _store;
@@ -91,6 +88,19 @@ public partial class MainWindow : Window
     /// <summary>This card put other pages on screen.</summary>
     public event Action? PagesChanged;
 
+    /// <summary>The gear, or "Configurações" in the card's menu: whoever holds the cards opens the settings window for this one.</summary>
+    public event Action<MainWindow>? SettingsRequested;
+
+    /// <summary>The card switched between Resumido and Detalhado.</summary>
+    public event Action? ViewChanged;
+
+    /// <summary>Whole numbers rolling up (Detalhado), or the short 1,4B form (Resumido); set, it flips the card's own switch.</summary>
+    public bool IsDetailed
+    {
+        get => _isDetailed;
+        set => (value ? DetailedView : CompactView).IsChecked = true;
+    }
+
     /// <summary>The pages this card has on screen, by their place in the provider list.</summary>
     public IReadOnlyList<int> ShownPages => _selection.Shown;
 
@@ -105,8 +115,9 @@ public partial class MainWindow : Window
     }
 
     /// <param name="providers">One page each, in this order.</param>
+    /// <param name="preferences">What every card shares: this one stays on top while they say so.</param>
     /// <param name="store">Where this card keeps its settings; the main card's when left out.</param>
-    public MainWindow(IReadOnlyList<IUsageProvider> providers, CardStore? store = null, CardKind kind = CardKind.Main)
+    public MainWindow(IReadOnlyList<IUsageProvider> providers, Preferences preferences, CardStore? store = null, CardKind kind = CardKind.Main)
     {
         if (providers.Count == 0) throw new ArgumentException("The card needs a provider to show.", nameof(providers));
 
@@ -114,6 +125,11 @@ public partial class MainWindow : Window
         _store = store ?? CardStore.Main;
         _kind = kind;
         InitializeComponent();
+        Card.SizeChanged += (_, e) => Card.Clip = new RectangleGeometry(new Rect(e.NewSize), 16, 16);
+        Themes.Changed += OnThemeChanged;
+        Closed += (_, _) => Themes.Changed -= OnThemeChanged;
+        SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
+        TopmostItem.SetBinding(MenuItem.IsCheckedProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences, Mode = BindingMode.TwoWay });
 
         var settings = _store.Load();
         _selection = PageSelection.Restore(IndexOf(settings?.Page), IndexOf(settings?.BesidePage), providers.Count);
@@ -195,6 +211,14 @@ public partial class MainWindow : Window
     {
         SaveSettings();
         Hide();
+    }
+
+    /// <summary>Back to the size it was made at, moved to the corner if that size no longer fits where it is.</summary>
+    public void ResetSize()
+    {
+        Resize(1);
+        if (!IsOnScreen(Left, Top)) Place(saved: null);
+        SaveSettings();
     }
 
     public void BackToCorner()
@@ -345,16 +369,7 @@ public partial class MainWindow : Window
         Columns.Children.Clear();
         for (var column = 0; column < _columns.Count; column++)
         {
-            if (column > 0)
-            {
-                Columns.Children.Add(new Border
-                {
-                    Width = 1,
-                    Margin = new Thickness((ColumnGap - 1) / 2, 0, (ColumnGap - 1) / 2, 0),
-                    Background = (Brush)FindResource("Divider"),
-                });
-            }
-
+            if (column > 0) Columns.Children.Add(ColumnDivider());
             Columns.Children.Add(_columns[column]);
         }
 
@@ -393,6 +408,26 @@ public partial class MainWindow : Window
         MinHeight = _designHeight * MinScale;
         MaxWidth = _designWidth * MaxScale;
         MaxHeight = _designHeight * MaxScale;
+    }
+
+    private void OnThemeChanged()
+    {
+        if (_designHeight <= 0) return;
+        var scale = Width / _designWidth;
+        Dispatcher.InvokeAsync(() =>
+        {
+            if (!IsLoaded || _isQuitting) return;
+            Card.InvalidateMeasure();
+            FitColumns(scale);
+        }, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>The line between two columns, in the theme's divider color.</summary>
+    private static Border ColumnDivider()
+    {
+        var divider = new Border { Width = 1, Margin = new Thickness((ColumnGap - 1) / 2, 0, (ColumnGap - 1) / 2, 0) };
+        divider.SetResourceReference(Border.BackgroundProperty, "Divider");
+        return divider;
     }
 
     private void BuildPageIcons()
@@ -460,7 +495,7 @@ public partial class MainWindow : Window
         for (var index = 0; index < PageIcons.Children.Count; index++)
         {
             var icon = (Path)((Button)PageIcons.Children[index]).Content;
-            icon.Fill = _selection.Shows(index) || _pagesElsewhere.Contains(index) ? SelectedPageIcon : OtherPageIcon;
+            icon.SetResourceReference(Shape.FillProperty, _selection.Shows(index) || _pagesElsewhere.Contains(index) ? "PrimaryText" : "IconOther");
         }
     }
 
@@ -590,19 +625,15 @@ public partial class MainWindow : Window
     {
         _isDetailed = DetailedView.IsChecked == true;
         SaveSettings();
+        ViewChanged?.Invoke();
         _ = RefreshAsync();
     }
 
-    private void OnTopmostToggled(object sender, RoutedEventArgs e) => Topmost = TopmostItem.IsChecked;
-
     private void OnBackToCorner(object sender, RoutedEventArgs e) => BackToCorner();
 
-    private void OnDefaultSize(object sender, RoutedEventArgs e)
-    {
-        Resize(1);
-        if (!IsOnScreen(Left, Top)) Place(saved: null);
-        SaveSettings();
-    }
+    private void OnDefaultSize(object sender, RoutedEventArgs e) => ResetSize();
+
+    private void OnSettings(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke(this);
 
     private async void OnRefresh(object sender, RoutedEventArgs e) => await ForceRefreshAsync();
 
@@ -617,12 +648,5 @@ public partial class MainWindow : Window
     {
         if (QuitRequested is { } quit) quit();
         else Quit();
-    }
-
-    private static Brush Frozen(Color color)
-    {
-        var brush = new SolidColorBrush(color);
-        brush.Freeze();
-        return brush;
     }
 }

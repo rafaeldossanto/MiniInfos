@@ -4,24 +4,30 @@ namespace MiniInfos;
 
 /// <summary>
 /// The cards on screen: the main one, whose numbers the tray icon reads, and those opened beside it
-/// with "Nova janela", which come back with the app. Showing, hiding and quitting go to them all.
+/// with "Nova janela", which come back with the app. Showing, hiding and quitting go to them all, and
+/// they share one settings window.
 /// </summary>
 public sealed class CardSet
 {
     private readonly IReadOnlyList<IUsageProvider> _providers;
+    private readonly Preferences _preferences;
     private readonly List<MainWindow> _extras = [];
 
-    public CardSet(IReadOnlyList<IUsageProvider> providers)
+    public CardSet(IReadOnlyList<IUsageProvider> providers, Preferences preferences)
     {
         _providers = providers;
-        Main = Adopt(new MainWindow(providers));
-        foreach (var store in CardStore.Extras()) _extras.Add(Adopt(new MainWindow(providers, store, CardKind.Extra)));
+        _preferences = preferences;
+        Main = Adopt(new MainWindow(providers, preferences));
+        foreach (var store in CardStore.Extras()) _extras.Add(Adopt(new MainWindow(providers, preferences, store, CardKind.Extra)));
         LightOpenPages();
     }
 
     public MainWindow Main { get; }
 
     public IReadOnlyList<MainWindow> Extras => _extras;
+
+    /// <summary>The settings window, while it is open.</summary>
+    public SettingsWindow? Settings { get; private set; }
 
     public bool IsVisible => All.Any(card => card.IsVisible);
 
@@ -47,6 +53,33 @@ public sealed class CardSet
 
     public Task ForceRefreshAsync() => Task.WhenAll(All.Select(card => card.ForceRefreshAsync()));
 
+    /// <summary>
+    /// Opens the settings for a card, shown first since the window stays above it. One window at a
+    /// time: asked again for the same card, it comes to the front; for another, it reopens for that one.
+    /// </summary>
+    public void OpenSettings(MainWindow card)
+    {
+        if (Settings is { } open)
+        {
+            if (open.Card == card)
+            {
+                open.Activate();
+                return;
+            }
+
+            open.Close();
+        }
+
+        card.BringBack();
+        var settings = new SettingsWindow(_preferences, StartupShortcut.Default, card, Quit);
+        settings.Closed += (_, _) =>
+        {
+            if (Settings == settings) Settings = null;
+        };
+        Settings = settings;
+        settings.Show();
+    }
+
     /// <summary>Quits the app with every card saved as it is, so the extras come back next time.</summary>
     public void Quit()
     {
@@ -58,6 +91,7 @@ public sealed class CardSet
     {
         card.NewWindowRequested += OpenNew;
         card.QuitRequested += Quit;
+        card.SettingsRequested += OpenSettings;
         card.PagesChanged += LightOpenPages;
         card.IsVisibleChanged += (_, _) => LightOpenPages();
         card.Dismissed += closed =>
@@ -70,7 +104,7 @@ public sealed class CardSet
 
     private void OpenNew(MainWindow from, string providerId)
     {
-        var card = Adopt(new MainWindow(_providers, CardStore.NewExtra(from.SettingsForNewCard(providerId)), CardKind.Extra));
+        var card = Adopt(new MainWindow(_providers, _preferences, CardStore.NewExtra(from.SettingsForNewCard(providerId)), CardKind.Extra));
         _extras.Add(card);
         card.BringBack();
         LightOpenPages();

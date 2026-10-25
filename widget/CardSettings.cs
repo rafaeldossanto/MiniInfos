@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text.Json;
 
 namespace MiniInfos;
 
@@ -22,9 +21,9 @@ public sealed record CardSettings(
 /// </summary>
 public sealed class CardStore
 {
-    private readonly string _path;
+    private readonly JsonFile<CardSettings> _file;
 
-    private CardStore(string path) => _path = path;
+    private CardStore(string path) => _file = new JsonFile<CardSettings>(path);
 
     public static CardStore Main { get; } = new(Path.Combine(AppPaths.Data, "window.json"));
 
@@ -44,39 +43,10 @@ public sealed class CardStore
         return store;
     }
 
-    public CardSettings? Load()
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<CardSettings>(File.ReadAllText(_path));
-        }
-        catch (Exception exception) when (exception is IOException or JsonException or UnauthorizedAccessException)
-        {
-            return null;
-        }
-    }
+    public CardSettings? Load() => _file.Load();
 
-    public void Save(CardSettings settings)
-    {
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
-            File.WriteAllText(_path, JsonSerializer.Serialize(settings));
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-        }
-    }
+    public void Save(CardSettings settings) => _file.Save(settings);
 
     /// <summary>Drops a card that was closed for good: it does not come back.</summary>
-    public void Forget()
-    {
-        try
-        {
-            File.Delete(_path);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-        }
-    }
+    public void Forget() => _file.Delete();
 }
