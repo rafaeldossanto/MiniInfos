@@ -3,12 +3,13 @@ using System.Text.Json;
 
 namespace MiniInfos;
 
-/// <summary>Where the card was left, how big, and which view it shows.</summary>
+/// <summary>Where the card was left, how big, and what it shows.</summary>
 /// <param name="Scale">The card's size over its design size.</param>
 /// <param name="IsDetailed">Whole numbers rolling up, instead of the short 1,4B form.</param>
-public sealed record CardSettings(double Left, double Top, double Scale = 1, bool IsDetailed = false)
+/// <param name="Page">The id of the provider whose page was on screen (<see cref="IUsageProvider.Id"/>).</param>
+public sealed record CardSettings(double Left, double Top, double Scale = 1, bool IsDetailed = false, string? Page = null)
 {
-    private static readonly string StorePath = Path.Combine(ClaudePaths.AppData, "window.json");
+    private static readonly string StorePath = Path.Combine(AppPaths.Data, "window.json");
 
     public static CardSettings? Load()
     {
@@ -26,7 +27,7 @@ public sealed record CardSettings(double Left, double Top, double Scale = 1, boo
     {
         try
         {
-            Directory.CreateDirectory(ClaudePaths.AppData);
+            Directory.CreateDirectory(AppPaths.Data);
             File.WriteAllText(StorePath, JsonSerializer.Serialize(this));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

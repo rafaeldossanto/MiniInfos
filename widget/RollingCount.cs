@@ -42,6 +42,12 @@ public sealed class RollingCount(TextBlock text)
         Render();
     }
 
+    public void Reset()
+    {
+        StopRolling();
+        _hasValue = false;
+    }
+
     private void StartRolling()
     {
         if (_isRolling) return;

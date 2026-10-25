@@ -12,6 +12,10 @@ $root = Split-Path $PSScriptRoot
 $out = Join-Path $PSScriptRoot 'out'
 $publisher = if ($env:MINIINFOS_PUBLISHER) { $env:MINIINFOS_PUBLISHER } else { 'MiniInfos' }
 
+# The one version: the project file's, which the app also reports.
+$version = ([xml](Get-Content "$root\widget\MiniInfos.csproj" -Raw)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+if (-not $version) { throw 'widget\MiniInfos.csproj has no <Version>' }
+
 if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 
 dotnet publish "$root\widget" -c Release -r win-x64 --self-contained true -o "$out\app" -nologo
@@ -31,5 +35,5 @@ foreach ($manifest in @(
     [IO.File]::WriteAllText($manifest.Path, ($json | ConvertTo-Json -Depth 8), (New-Object System.Text.UTF8Encoding $false))
 }
 
-& $InnoCompiler "/DAppPublisher=$publisher" "$PSScriptRoot\MiniInfos.iss"
+& $InnoCompiler "/DAppPublisher=$publisher" "/DAppVersion=$version" "$PSScriptRoot\MiniInfos.iss"
 if ($LASTEXITCODE -ne 0) { throw 'Inno Setup failed' }

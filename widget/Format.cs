@@ -22,6 +22,18 @@ public static class Format
 
     public static string Percent(double value) => $"{Math.Round(value).ToString(PtBr)}%";
 
+    /// <summary>How a page names a plan window by its length: "Janela 5h", "Semanal".</summary>
+    public static string WindowLabel(TimeSpan length) =>
+        length >= TimeSpan.FromDays(7) ? "Semanal"
+        : length.TotalHours >= 1 ? $"Janela {length.TotalHours.ToString("0", PtBr)}h"
+        : $"Janela {length.TotalMinutes.ToString("0", PtBr)}min";
+
+    /// <summary>The stretch a window with no reading counts back over: "últimas 5h", "últimos 7 dias".</summary>
+    public static string WindowSpan(TimeSpan length) =>
+        length.TotalDays >= 2 ? $"últimos {length.TotalDays.ToString("0", PtBr)} dias"
+        : length.TotalHours >= 1 ? $"últimas {length.TotalHours.ToString("0", PtBr)}h"
+        : $"últimos {length.TotalMinutes.ToString("0", PtBr)}min";
+
     public static string Cost(double usd) => $"US$ {usd.ToString("0.00", PtBr)}";
 
     public static string Reset(DateTimeOffset resetsAt, DateTimeOffset now)

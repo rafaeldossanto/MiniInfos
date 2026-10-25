@@ -1,7 +1,10 @@
 ﻿; The MiniInfos installer: build it with build.ps1, which first lays the app and the mod in out\.
 
 #define AppName "MiniInfos"
-#define AppVersion "1.0.0"
+; The version lives in widget\MiniInfos.csproj alone: build.ps1 passes it in.
+#ifndef AppVersion
+  #error Build with build.ps1, which passes the version from widget\MiniInfos.csproj.
+#endif
 #define Source "out"
 ; Who "Adicionar ou remover programas" names: build.ps1 passes MINIINFOS_PUBLISHER when it is set.
 #ifndef AppPublisher
@@ -13,7 +16,7 @@ AppId={{8E3C1F2A-6B5D-4C7E-9A1F-2D4B6E8C0A13}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-AppComments=Limites do plano do Claude e tokens de todos os chats
+AppComments=Limites e tokens do Claude e do Codex
 ; Per user, no administrator: %LOCALAPPDATA%\Programs\MiniInfos, where /miniinfos looks for it.
 PrivilegesRequired=lowest
 DefaultDirName={autopf}\{#AppName}
@@ -36,11 +39,11 @@ CloseApplications=no
 Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [Tasks]
-Name: "withclaude"; Description: "Abrir junto com o Claude (inicia com o Windows escondido e aparece quando o Claude abre: app, terminal ou editor)"
+Name: "withclaude"; Description: "Abrir junto com Claude ou Codex (inicia com o Windows escondido)"
 Name: "claudemod"; Description: "Instalar o mod nos chats do Claude Code (limites de 5h e semanal, chat atual e o comando /miniinfos)"
 
 [InstallDelete]
-; A reinstall with "Abrir junto com o Claude" unticked takes the old startup entry away.
+; A reinstall with the startup option unticked takes the old entry away.
 Type: files; Name: "{userstartup}\{#AppName}.lnk"
 
 [Files]
@@ -48,7 +51,7 @@ Source: "{#Source}\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "{#Source}\claude-plugin\*"; DestDir: "{app}\claude-plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{userprograms}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Comment: "Limites do plano do Claude e tokens de todos os chats"
+Name: "{userprograms}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Comment: "Limites e tokens do Claude e do Codex"
 Name: "{userstartup}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Parameters: "--with-claude"; Tasks: withclaude
 
 [Run]
