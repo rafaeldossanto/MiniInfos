@@ -16,6 +16,7 @@ public sealed class CardSet
         _providers = providers;
         Main = Adopt(new MainWindow(providers));
         foreach (var store in CardStore.Extras()) _extras.Add(Adopt(new MainWindow(providers, store, CardKind.Extra)));
+        LightOpenPages();
     }
 
     public MainWindow Main { get; }
@@ -57,7 +58,13 @@ public sealed class CardSet
     {
         card.NewWindowRequested += OpenNew;
         card.QuitRequested += Quit;
-        card.Dismissed += closed => _extras.Remove(closed);
+        card.PagesChanged += LightOpenPages;
+        card.IsVisibleChanged += (_, _) => LightOpenPages();
+        card.Dismissed += closed =>
+        {
+            _extras.Remove(closed);
+            LightOpenPages();
+        };
         return card;
     }
 
@@ -66,5 +73,19 @@ public sealed class CardSet
         var card = Adopt(new MainWindow(_providers, CardStore.NewExtra(from.SettingsForNewCard(providerId)), CardKind.Extra));
         _extras.Add(card);
         card.BringBack();
+        LightOpenPages();
+    }
+
+    /// <summary>
+    /// Every card's pager lights the pages open on screen, in it or in another visible card: two cards
+    /// side by side read as one split card. A hidden card's pages are not on screen and don't count.
+    /// </summary>
+    private void LightOpenPages()
+    {
+        foreach (var card in All)
+        {
+            var elsewhere = All.Where(other => other != card && other.IsVisible).SelectMany(other => other.ShownPages).ToHashSet();
+            card.LightPagesShownElsewhere(elsewhere);
+        }
     }
 }

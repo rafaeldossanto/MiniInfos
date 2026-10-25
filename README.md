@@ -5,7 +5,7 @@ Um quadradinho flutuante, sempre por cima das outras janelas, com uma página pa
 Botão direito num ícone, **Abrir em**, como no app do Claude:
 
 - **Visualização dividida:** o quadrado mostra as duas páginas lado a lado, com os dois ícones acesos, e fica com o dobro da largura. Cada coluna diz quando os seus limites foram atualizados, e o ↻ atualiza as duas. **Visualização única** (no mesmo menu), ou um clique simples num ícone, volta pra uma página.
-- **Nova janela:** abre outro quadrado só com aquela página, com posição e tamanho próprios. Ele volta junto quando o MiniInfos abre de novo, aparece e some junto com o principal, e o ✕ dele fecha de vez. A bandeja mostra os números do quadrado principal.
+- **Nova janela:** abre outro quadrado só com aquela página, com posição e tamanho próprios. Os ícones acesos mostram as páginas abertas em qualquer quadrado visível, então dois quadrados lado a lado acendem os dois ícones, como na visualização dividida. Ele volta junto quando o MiniInfos abre de novo, aparece e some junto com o principal, e o ✕ dele fecha de vez. A bandeja mostra os números do quadrado principal.
 
 Na página do Claude:
 

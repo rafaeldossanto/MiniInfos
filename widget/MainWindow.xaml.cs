@@ -63,6 +63,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timer = new() { Interval = RefreshEvery };
     private readonly List<PageView> _columns = [];
     private PageSelection _selection;
+    private IReadOnlySet<int> _pagesElsewhere = new HashSet<int>();
     private double _designWidth = SinglePageWidth;
     private double _designHeight;
     private Task? _refresh;
@@ -86,6 +87,22 @@ public partial class MainWindow : Window
 
     /// <summary>An extra card closed for good.</summary>
     public event Action<MainWindow>? Dismissed;
+
+    /// <summary>This card put other pages on screen.</summary>
+    public event Action? PagesChanged;
+
+    /// <summary>The pages this card has on screen, by their place in the provider list.</summary>
+    public IReadOnlyList<int> ShownPages => _selection.Shown;
+
+    /// <summary>
+    /// The pages other cards have on screen: their icons light here too, so every card's pager says
+    /// which pages are open, as one split card's does.
+    /// </summary>
+    public void LightPagesShownElsewhere(IReadOnlySet<int> pages)
+    {
+        _pagesElsewhere = pages;
+        UpdatePageIcons();
+    }
 
     /// <param name="providers">One page each, in this order.</param>
     /// <param name="store">Where this card keeps its settings; the main card's when left out.</param>
@@ -311,6 +328,7 @@ public partial class MainWindow : Window
 
         UpdatePageIcons();
         SaveSettings();
+        PagesChanged?.Invoke();
         _ = RefreshAsync();
     }
 
@@ -442,7 +460,7 @@ public partial class MainWindow : Window
         for (var index = 0; index < PageIcons.Children.Count; index++)
         {
             var icon = (Path)((Button)PageIcons.Children[index]).Content;
-            icon.Fill = _selection.Shows(index) ? SelectedPageIcon : OtherPageIcon;
+            icon.Fill = _selection.Shows(index) || _pagesElsewhere.Contains(index) ? SelectedPageIcon : OtherPageIcon;
         }
     }
 

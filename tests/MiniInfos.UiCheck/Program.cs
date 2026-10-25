@@ -122,7 +122,18 @@ internal static partial class Program
         Check(Find<TextBlock>(Columns(extra)[0], "PageTitle").Text == "Codex (GPT)", "showing the page it was opened from");
         Check(Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Count() == 1, "and kept, so it comes back with the app");
         Check((Find<Button>(extra, "DismissButton").ToolTip as string) == "Fechar esta janela", "its ✕ closes it");
+        var mainIcons = Find<StackPanel>(cards.Main, "PageIcons");
+        var extraIcons = Find<StackPanel>(extra, "PageIcons");
+        Check(IconIsLit(mainIcons, 0) && IconIsLit(mainIcons, 1) && IconIsLit(extraIcons, 0) && IconIsLit(extraIcons, 1),
+            "with Claude in one card and Codex in the other, both pagers light both icons");
         Render(extra, System.IO.Path.Combine(pictures, "new-window.png"));
+
+        ((Button)extraIcons.Children[0]).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Pump(TimeSpan.FromSeconds(1));
+        Check(!IconIsLit(mainIcons, 1) && IconIsLit(extraIcons, 0) && !IconIsLit(extraIcons, 1),
+            "when both cards show Claude, Codex's icon goes dark in both");
+        ((Button)extraIcons.Children[1]).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Pump(TimeSpan.FromSeconds(1));
 
         cards.Hide();
         Check(!extra.IsVisible && !cards.Main.IsVisible, "hiding the cards hides it too");
@@ -134,6 +145,7 @@ internal static partial class Program
         Pump(TimeSpan.FromSeconds(1));
         Check(cards.Extras.Count == 0 && !Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Any(),
             "closing it forgets it for good");
+        Check(IconIsLit(mainIcons, 0) && !IconIsLit(mainIcons, 1), "and its page's icon goes dark in the main card");
     }
 
     /// <summary>Opens a page icon's right-click menu as Windows would, and hands back its items.</summary>
