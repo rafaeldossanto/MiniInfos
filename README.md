@@ -206,21 +206,56 @@ Os chats abertos pegam a versão nova quando reiniciam.
 
 ## Testes
 
-A lógica (livros-caixa, leitura dos registros, onde achar o `codex`, os limites do Codex, os textos e as contas da janela):
+A validação cotidiana seleciona os domínios afetados pelos arquivos alterados, comparando o diretório de trabalho com `HEAD`:
 
-```bash
-dotnet test tests/MiniInfos.Tests
+```powershell
+./tests/run.ps1
 ```
 
-Esses testes e o build de Release também rodam sozinhos no GitHub (`.github/workflows/tests.yml`) a cada push na `dev` ou na `main` e em cada pull request. Os dois abaixo ficam só na sua máquina, porque precisam da área de trabalho, dos registros do Claude e do Codex, e do Claude Code.
+O mapa fica em `tests/domains.psd1` e é usado tanto localmente quanto no CI. Ele inclui consumidores de componentes compartilhados: uma mudança em `JsonlTail`, por exemplo, seleciona armazenamento, Claude e Codex; uma mudança em `PetInteraction` seleciona somente o mascote. Documentação não seleciona testes. Código sem regra, bootstrap e alterações do projeto selecionam a regressão completa, evitando ignorar uma funcionalidade nova por engano.
 
-A janela de verdade: abre o quadrado por uns 30 segundos, com os dados numa pasta temporária, confere bordas, bandeja, modos, ↻, páginas e o Codex, e salva um print de cada página na pasta que você indicar:
+Para conferir a seleção ou informar um escopo conhecido:
 
-```bash
-dotnet run --project tests/MiniInfos.UiCheck -- prints
+```powershell
+./tests/run.ps1 -Plan
+./tests/run.ps1 -Domain Mascot
+./tests/run.ps1 -Domain Claude,Codex
+./tests/run.ps1 -Base origin/dev -Plan
 ```
 
-O mod:
+A opção `-Base` compara o estado atual com outro commit ou branch. A seleção considera arquivos novos e ambos os caminhos de arquivos movidos. O escopo manual testa exatamente os domínios informados; para código compartilhado, prefira a seleção automática ou informe todos os consumidores afetados.
+
+Acrescente `-Ui` para conferir interação ou apresentação visual. Os cenários focados usam dados simulados, não leem históricos e não consultam contas. Um cenário de mascote não executa a bateria de temas ou fontes:
+
+```powershell
+./tests/run.ps1 -Domain Mascot -Ui
+./tests/run.ps1 -Domain Themes -Ui
+```
+
+`MiniInfos.UiCheck` separa cartões, configurações, temas, fontes, mascote, atualizações e integração com provedores. A saída do runner mostra somente falhas e resumos por cenário. Para investigar detalhes ou salvar imagens numa pasta específica, execute o cenário diretamente:
+
+```powershell
+dotnet run --project tests/MiniInfos.UiCheck -c Release -- prints --suite Mascot
+```
+
+Os arquivos dos cenários ficam em pastas próprias dentro de `tests/MiniInfos.UiCheck`; `Support` concentra a preparação e os auxiliares compartilhados. Os dados e atalhos dos testes ficam isolados em uma pasta temporária. Para consultar contas e registros reais, use `--suite Providers`; esse cenário e a execução completa mantêm a integração local, incluindo a verificação de um app Claude aberto.
+
+A regressão completa fica disponível para mudanças transversais e entregas:
+
+```powershell
+./tests/run.ps1 -All
+./tests/run.ps1 -All -Ui
+```
+
+O `dotnet test` compila o aplicativo antes de executar a seleção: todos os arquivos ainda precisam compilar, mesmo quando somente um domínio é testado. No GitHub (`.github/workflows/tests.yml`), a `dev` e os PRs usam a seleção por arquivos; a `main` executa todos os testes de unidade. Os testes visuais ficam locais porque abrem janelas reais.
+
+Ao alterar o mapa ou o executor, valide também a seleção:
+
+```powershell
+./tests/TestSelection.Tests.ps1
+```
+
+Quando o mod mudar, o runner informa a necessidade de executar seu teste no ambiente do Claude Code:
 
 ```bash
 claude plugin test mod
