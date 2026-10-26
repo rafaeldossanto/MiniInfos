@@ -123,21 +123,7 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem x:Name="PetPage" Header="Mascote">
-                    <TabItem.Tag>
-                        <Viewbox Width="14" Height="14" IsHitTestVisible="False">
-                            <Canvas Width="24" Height="24">
-                                <Ellipse Canvas.Left="2" Canvas.Top="2" Width="20" Height="20" StrokeThickness="1.5"
-                                         Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}" />
-                                <Ellipse Canvas.Left="6" Canvas.Top="7" Width="5" Height="7"
-                                         Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}" />
-                                <Ellipse Canvas.Left="13" Canvas.Top="7" Width="5" Height="7"
-                                         Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}" />
-                                <Ellipse Canvas.Left="8.3" Canvas.Top="7.4" Width="2.3" Height="3.4" Fill="{DynamicResource CardBackground}" />
-                                <Ellipse Canvas.Left="15.3" Canvas.Top="7.4" Width="2.3" Height="3.4" Fill="{DynamicResource CardBackground}" />
-                            </Canvas>
-                        </Viewbox>
-                    </TabItem.Tag>
+                <TabItem x:Name="PetPage" Header="Mascote" Tag="&#xE734;">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
