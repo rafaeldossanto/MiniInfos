@@ -40,4 +40,13 @@ public static class PackageImages
         catch (Exception e) when (e is NotSupportedException or FileFormatException or ArgumentException or InvalidOperationException)
         { throw new PackageException("Não foi possível decodificar a imagem PNG.", e); }
     }
+
+    public static byte[] Encode(BitmapSource bitmap)
+    {
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
+    }
 }

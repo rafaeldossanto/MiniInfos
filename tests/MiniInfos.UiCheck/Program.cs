@@ -48,13 +48,16 @@ internal static partial class Program
     private static void Run(string pictures, CheckOptions options)
     {
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        // The app's UI thread always has its dispatcher's context, so an awaited click handler comes back to it. The checks
+        // run between pumps, where WPF leaves none: without this, a suite run alone (Updates) resumed on the thread pool.
+        SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
         var preferences = Preferences.Load();
         ThemeManager.Follow(preferences);
         AppFonts.Follow(preferences);
         var live = options.Includes("Providers");
         IReadOnlyList<IUsageProvider> providers = live ? UsageProviders.Create()
             : [new SampleProvider("claude", "Claude"), new SampleProvider("codex", "Codex (GPT)")];
-        var cards = new CardSet(providers, preferences);
+        var cards = new CardSet(providers, preferences, EmptyCatalog());
         var window = cards.Main;
         var summaries = new List<string>();
         window.SummaryChanged += summaries.Add;

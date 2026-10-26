@@ -84,19 +84,45 @@ internal static partial class Program
             Check(cards.Pet is { IsVisible: true } pet && pet.Title.StartsWith("Companheiro da comunidade")
                 && Find<TextBlock>(settings, "PetName").Text == "Companheiro da comunidade",
                 "the selected package supplies the desktop mascot and settings preview");
+            var library = Find<WrapPanel>(settings, "CommunityPetChoices");
+            var choice = library.Children.OfType<RadioButton>().Single(button => (string)button.Tag == petId);
+            PumpUntil(() => choice.Content is Image { Source: not null }, TimeSpan.FromSeconds(5));
+            Check(choice.IsChecked == true && choice.Content is Image { Source: BitmapSource { IsFrozen: true, PixelWidth: <= 128 } }
+                && System.Windows.Automation.AutomationProperties.GetName(choice) == "Companheiro da comunidade",
+                "installed mascots appear as lightweight selectable previews with accessible names");
+            Find<RadioButton>(settings, "AthenaPet").IsChecked = true;
+            choice.IsChecked = true;
+            Check(preferences.PetId == petId && Preferences.Load().PetId == petId
+                && cards.Pet?.Title.StartsWith("Companheiro da comunidade") == true,
+                "clicking a library thumbnail switches and saves the desktop mascot");
+            Check(choice.Opacity == 1 && library.Children.OfType<RadioButton>()
+                .Where(button => button != choice).All(button => button.Opacity < choice.Opacity),
+                $"the selected mascot stays fully visible while other tiles are dimmed ({choice.Opacity:0.00} selected)");
+            var choices = library.Children.Count;
+            settings.RefreshCommunity();
+            settings.RefreshCommunity();
+            Check(library.Children.Count == choices && library.Children.OfType<RadioButton>()
+                .Single(button => (string)button.Tag == petId).IsChecked == true,
+                "refreshing the installed library preserves selection without duplicating tiles");
             settings.ShowPetPage();
-            Pump(TimeSpan.FromMilliseconds(300));
+            PumpUntil(() => Find<Image>(settings, "PetPreview").Source is not null
+                && library.Children.OfType<RadioButton>().All(button => button.Content is Image { Source: not null }),
+                TimeSpan.FromSeconds(5));
             Render(settings, System.IO.Path.Combine(pictures, "community-mascots.png"));
             CheckPetInteractions(cards.Pet!, pictures);
             Find<Button>(settings, "RemovePetPackage").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             Pump(TimeSpan.FromMilliseconds(350));
             Check(preferences.PetId is null && cards.Pet?.Title.StartsWith("Coruja de Atena") == true,
                 "removing a custom mascot restores Athena without disabling the companion");
+            Check(!library.Children.OfType<RadioButton>().Any(button => (string)button.Tag == petId)
+                && Find<RadioButton>(settings, "AthenaPet").IsChecked == true,
+                "removal updates the gallery and highlights the built-in mascot");
             var bad = System.IO.Path.Combine(pictures, "invalid-package.miniinfos");
             File.WriteAllText(bad, "invalid zip");
             Complete(settings.ImportPackageAsync(bad, PackageKind.Theme));
             Check(preferences.CommunityThemeId is null && Find<TextBlock>(settings, "ThemePackageStatus").Text.Contains("pacote"),
                 "an invalid package shows a useful error and preserves the active appearance");
+            CheckCatalog(cards, preferences, pictures);
 
             bool SameSilhouette(PetState state, int index)
             {

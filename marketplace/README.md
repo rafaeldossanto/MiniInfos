@@ -1,5 +1,7 @@
 # Pacotes da comunidade
 
+Este guia é para quem cria temas e mascotes. Para usar o aplicativo, baixe o `MiniInfos-Setup.exe` da última versão, como explicado no [README principal](../README.md). A release `catalog` é usada pelo app e não contém o instalador.
+
 O MiniInfos aceita temas e mascotes criados por outras pessoas. Um pacote é um arquivo `.miniinfos` ou `.zip`, contendo `manifest.json` na raiz e seus arquivos PNG. O formato é público e versionado; instalar um novo visual não exige recompilar o aplicativo.
 
 ## Usar e compartilhar
@@ -13,6 +15,21 @@ Os pacotes instalados ficam em `%LOCALAPPDATA%\MiniInfos\packages\themes` e `mas
 
 A distribuição funciona por arquivos compartilháveis: autores podem publicá-los nos seus próprios repositórios, páginas ou comunidades. O MiniInfos importa os arquivos escolhidos pelo usuário.
 
+O catálogo público fica neste mesmo repositório, em `marketplace/packages/`. A página **Comunidade** do aplicativo consulta a publicação de tag fixa `catalog`, que é um pré-lançamento e nunca substitui a release latest do app.
+
+## Publicar no catálogo
+
+1. Crie e teste seu pacote seguindo o [guia do formato abaixo](#criar-seu-primeiro-pacote). Use arte própria ou que você tenha permissão para redistribuir; mantenha os créditos e cumpra a licença das fontes usadas.
+2. Faça um fork deste repositório e adicione `marketplace/packages/<id>/`, com `manifest.json`, PNGs e, se necessário, créditos em `README.md` ou um arquivo de licença. O nome da pasta precisa ser igual ao ID do manifesto.
+3. Preencha autor, versão e uma licença real. `UNLICENSED` é apenas o marcador do modelo. Um pacote tem até 8 MB compactado; IDs são únicos entre temas e mascotes.
+4. Rode `validate` com a [ferramenta do catálogo](#ferramenta-do-catálogo), importe o `.miniinfos` no MiniInfos e confira o resultado.
+5. Abra um pull request. O CI compila o validador do mesmo commit, valida os pacotes alterados e confere que as versões aumentaram em relação à publicação atual. Para atualizar um pacote, mantenha seu ID e aumente a versão.
+6. Aguarde a revisão do mantenedor. Após o merge na `main`, o CI gera os pacotes, as prévias e o índice e atualiza a release `catalog`. Os usuários baixam apenas as prévias visíveis e os pacotes que escolherem.
+
+Para pedir remoção, abra uma issue identificando o ID do pacote e o motivo, com informações de autoria ou licença quando aplicável. Um PR que remova a pasta também passa por revisão. Depois do merge, os assets removidos saem do catálogo; instalações locais existentes permanecem no computador do usuário.
+
+Contribuições apenas em `marketplace/` executam as checagens da ferramenta do catálogo e não a bateria de testes do aplicativo. Não é necessário criar outro repositório nem manter um servidor.
+
 ## Criar seu primeiro pacote
 
 1. Selecione um tema embutido ou a Coruja de Atena e clique em **Exportar** na página correspondente.
@@ -23,7 +40,7 @@ A distribuição funciona por arquivos compartilháveis: autores podem publicá-
 6. Importe o resultado no MiniInfos e confira todas as animações e interações antes de compartilhar.
 
 ```powershell
-./community/pack.ps1 -Source C:\meus-pacotes\corujinha -Output C:\meus-pacotes\corujinha.miniinfos
+./marketplace/pack.ps1 -Source C:\meus-pacotes\corujinha -Output C:\meus-pacotes\corujinha.miniinfos
 ```
 
 O modelo usa `UNLICENSED` como marcador. Preencha a autoria e a licença do seu pacote antes de publicá-lo, inclusive a identificação das ilustrações que utilizar. O MiniInfos exibe autor, versão e licença no tooltip da opção instalada.
@@ -154,3 +171,19 @@ Ao soltar, o MiniInfos aplica uma queda curta perto do cursor, conservando a pos
 - Uma atualização usa o mesmo ID e substitui o pacote validado anterior. Uma importação inválida preserva a instalação existente.
 
 Para ampliar o contrato no futuro, incremente `schemaVersion` e mantenha uma leitura compatível com os pacotes anteriores. Adicionar novos estados, propriedades ou recursos deve acompanhar documentação, validação e testes do domínio `Community` e de seus consumidores.
+
+## Ferramenta do catálogo
+
+`tools/MiniInfos.Catalog` valida pastas de pacotes e prepara os arquivos de um catálogo público, sem fazer upload. A ferramenta usa Windows e .NET 10 e compartilha o validador, a compactação e o gerador de prévias do aplicativo.
+
+Cada pacote-fonte fica em `packages/<id>/`, com `manifest.json` e seus arquivos. A pasta precisa ter o mesmo nome do ID. A licença deve estar preenchida e ser diferente de `UNLICENSED`, e o arquivo compactado precisa ter até 8 MB.
+
+```powershell
+dotnet run --project tools/MiniInfos.Catalog -c Release -- validate C:\catalogo\packages\autor.mascote
+dotnet run --project tools/MiniInfos.Catalog -c Release -- build C:\catalogo\packages C:\catalogo\saida
+dotnet run --project tools/MiniInfos.Catalog -c Release -- build C:\catalogo\packages C:\catalogo\saida --previous C:\catalogo\anterior\index.json
+```
+
+`validate` retorna código diferente de zero e uma mensagem em português se encontrar um problema. `build` gera um `.miniinfos` e uma prévia PNG de 128 × 128 por pacote, além de `index.json`. Os arquivos do ZIP são ordenados e têm datas fixas: os mesmos conteúdos geram o mesmo SHA-256. O índice registra a data da geração e inclui os tamanhos e SHA-256 de pacotes e prévias. Seu contrato está em [catalog.schema.json](catalog.schema.json); o formato inicial usa `schemaVersion: 1`, até 2000 entradas e no máximo 1 MB.
+
+Com `--previous`, todo pacote já presente no índice anterior precisa ter uma versão maior, comparada como versão numérica. O comando recusa a mesma versão ou uma menor antes de escrever a saída. A pasta de saída precisa ficar fora da árvore dos pacotes-fonte. A ferramenta não entra no instalador.

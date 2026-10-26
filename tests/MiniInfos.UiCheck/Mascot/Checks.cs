@@ -6,6 +6,13 @@ internal static partial class Program
     {
         Check(cards.Pet is null && !preferences.PetEnabled, "the desktop pet is optional and stays unloaded while disabled");
         settings.ShowPetPage();
+        Pump(TimeSpan.FromMilliseconds(100));
+        var add = Find<Button>(settings, "AddPetPackage");
+        var athena = Find<RadioButton>(settings, "AthenaPet");
+        var athenaPosition = athena.TranslatePoint(new Point(), add);
+        Check(Math.Abs(add.ActualWidth - add.ActualHeight) < 1 && add.ActualWidth >= 48
+            && athenaPosition.X >= add.ActualWidth && Math.Abs(athenaPosition.Y) < 1,
+            "the square add tile precedes selectable mascot previews on the same row");
         Find<CheckBox>(settings, "PetToggle").IsChecked = true;
         Pump(TimeSpan.FromMilliseconds(500));
         var pet = cards.Pet;
@@ -71,7 +78,9 @@ internal static partial class Program
         var started = (long)typeof(PetWindow).GetField("_startedAt", flags)!.GetValue(pet)!;
         var sprite = Find<Image>(pet, "Sprite");
         var player = (PetAnimationPlayer)typeof(PetWindow).GetField("_player", flags)!.GetValue(pet)!;
+        var paint = typeof(PetWindow).GetMethod("Paint", flags)!;
         TimeSpan Now() => Stopwatch.GetElapsedTime(started);
+        void PaintAt(TimeSpan at) => paint.Invoke(pet, [at]);
         Point VisibleCenter()
         {
             var bounds = PetPixels.Bounds(player.Pixels.Span, PetFrame.CanvasSize);
@@ -79,7 +88,7 @@ internal static partial class Program
                 (bounds.Top + bounds.Height / 2) / PetFrame.CanvasSize * sprite.Height);
             return pet.PointToScreen(sprite.RenderTransform.Transform(local));
         }
-        void Press(Point canvas)
+        TimeSpan Press(Point canvas)
         {
             var local = new Point(canvas.X / PetFrame.CanvasSize * sprite.Width, canvas.Y / PetFrame.CanvasSize * sprite.Height);
             var screen = pet.PointToScreen(sprite.RenderTransform.Transform(local));
@@ -87,7 +96,9 @@ internal static partial class Program
             var wasDropping = pet.IsDropping;
             typeof(PetWindow).GetMethod("ClearDrop", flags)!.Invoke(pet, null);
             typeof(PetWindow).GetField("_suspendedDrop", flags)!.SetValue(pet, wasDropping);
-            interaction.Press(canvas, screen, Now());
+            var at = Now();
+            interaction.Press(canvas, screen, at);
+            return at;
         }
         void Release() => pet.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
             { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
@@ -115,6 +126,7 @@ internal static partial class Program
             Press(part);
             interaction.Move(interaction.PointerScreen + new Vector(30, 5), Now());
             Pump(TimeSpan.FromMilliseconds(420));
+            PaintAt(Now());
             var hold = interaction.HoldAt(Now());
             Check(pet.State == expected && hold is not null, $"grabbing the {name} selects its hanging pose");
             if (hold is { } grip)
@@ -149,6 +161,8 @@ internal static partial class Program
             var phase = orbit.Elapsed.TotalSeconds * Math.Tau / 0.6;
             interaction.Move(center + new Vector(70 * Math.Cos(phase), 70 * Math.Sin(phase)), Now());
             Pump(TimeSpan.FromMilliseconds(16));
+            // A message pump need not include a composition frame; paint before sampling its screen pivot.
+            PaintAt(Now());
             if (interaction.HoldAt(Now()) is not { } hold) continue;
             minimum = Math.Min(minimum, hold.Angle);
             maximum = Math.Max(maximum, hold.Angle);
@@ -172,10 +186,9 @@ internal static partial class Program
         Release();
         Pump(TimeSpan.FromMilliseconds(80));
         var caught = VisibleCenter();
-        Press(new Point(160, 100));
-        // The next frame, painted at once: pumping for it could outlast the 220 ms after which a press becomes a grip
-        // on a busy machine, and a grip rightly moves the pet.
-        typeof(PetWindow).GetMethod("Paint", flags)!.Invoke(pet, [Now()]);
+        var caughtAt = Press(new Point(160, 100));
+        // Sample the exact press instant instead of waiting past the hold threshold on a busy machine.
+        PaintAt(caughtAt);
         var drift = (VisibleCenter() - caught).Length;
         Check(!pet.IsDropping && !interaction.IsHeld && drift < 3,
             $"catching the pet during a fall pauses it at its visible position ({drift:0.0} px{(pet.IsDropping ? ", still falling" : "")})");

@@ -5,6 +5,7 @@ using MiniInfos.Infrastructure.Windows;
 using MiniInfos.Mascot;
 using MiniInfos.Providers;
 using MiniInfos.Settings;
+using MiniInfos.Community.Catalog;
 
 namespace MiniInfos.UI.Windows;
 
@@ -22,13 +23,15 @@ public sealed class CardSet
     private readonly Preferences _preferences;
     private readonly List<MainWindow> _extras = [];
     private readonly DesktopPet _pet;
+    private readonly CatalogBrowser? _catalog;
     private readonly DispatcherTimer _installWatch = new() { Interval = CheckInstallsEvery };
 
     /// <param name="providers">Every provider: each card pages through those whose app is installed.</param>
-    public CardSet(IReadOnlyList<IUsageProvider> providers, Preferences preferences)
+    public CardSet(IReadOnlyList<IUsageProvider> providers, Preferences preferences, CatalogBrowser? catalog = null)
     {
         _providers = new InstalledProviders(providers);
         _preferences = preferences;
+        _catalog = catalog;
         Main = Adopt(new MainWindow(_providers.Shown, preferences));
         _pet = new DesktopPet(preferences, BringBack, OpenPetSettings, Quit);
         Main.UsageRead += _pet.Observe;
@@ -100,7 +103,7 @@ public sealed class CardSet
         }
 
         card.BringBack();
-        var settings = new SettingsWindow(_preferences, StartupShortcut.Default, card, Quit);
+        var settings = new SettingsWindow(_preferences, StartupShortcut.Default, card, Quit, _catalog);
         settings.Closed += (_, _) =>
         {
             if (Settings == settings) Settings = null;

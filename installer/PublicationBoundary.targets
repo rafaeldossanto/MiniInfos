@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <MiniInfosMarketplaceRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\marketplace\'))</MiniInfosMarketplaceRoot>
+    <MiniInfosToolsRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\tools\'))</MiniInfosToolsRoot>
+  </PropertyGroup>
+  <Target Name="CheckMiniInfosPublicationBoundary" BeforeTargets="CopyFilesToPublishDirectory">
+    <Error Condition="$([System.String]::Copy('%(ResolvedFileToPublish.FullPath)').StartsWith('$(MiniInfosMarketplaceRoot)', System.StringComparison.OrdinalIgnoreCase)) Or $([System.String]::Copy('%(ResolvedFileToPublish.FullPath)').StartsWith('$(MiniInfosToolsRoot)', System.StringComparison.OrdinalIgnoreCase))"
+           Text="O instalador não pode publicar arquivos originados de marketplace/ ou tools/: %(ResolvedFileToPublish.Identity)" />
+  </Target>
+</Project>

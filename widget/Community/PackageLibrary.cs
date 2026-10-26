@@ -6,12 +6,14 @@ using MiniInfos.Infrastructure.Storage;
 namespace MiniInfos.Community;
 
 /// <summary>Installs data-only packages atomically. The library never loads community code or XAML.</summary>
-public sealed class PackageLibrary(string root)
+public sealed class PackageLibrary(string root, MascotPreviewCache? previews = null)
 {
     private const long MaxBytes = 64 * 1024 * 1024;
     private const int MaxFiles = 128;
-    public static PackageLibrary Shared { get; } = new(Path.Combine(AppPaths.Data, "packages"));
+    public static PackageLibrary Shared { get; } = new(Path.Combine(AppPaths.Data, "packages"),
+        new MascotPreviewCache(Path.Combine(AppPaths.Data, "previews", "mascots")));
     public string Root { get; } = Path.GetFullPath(root);
+    public MascotPreviewCache Previews { get; } = previews ?? new(Path.Combine(Path.GetFullPath(root), ".previews", "mascots"));
     private readonly Lock _gate = new();
 
     public IReadOnlyList<InstalledPackage> List(PackageKind kind)
@@ -27,7 +29,7 @@ public sealed class PackageLibrary(string root)
             {
                 try
                 {
-                    var package = Read(directory);
+                    var package = ReadSource(directory);
                     if (package.Manifest.Kind == kind && Path.GetFileName(directory) == package.Id) packages.Add(package);
                 }
                 catch (Exception e) when (e is PackageException or IOException or UnauthorizedAccessException) { }
@@ -46,14 +48,14 @@ public sealed class PackageLibrary(string root)
                 PackageValidation.Id(id);
                 var folder = Location(kind, id);
                 if (!Directory.Exists(folder)) return null;
-                var package = Read(folder);
+                var package = ReadSource(folder);
                 return package.Id == id && package.Manifest.Kind == kind ? package : null;
             }
             catch (Exception e) when (e is PackageException or IOException or UnauthorizedAccessException) { return null; }
         }
     }
 
-    public InstalledPackage Install(string archive, PackageKind expectedKind)
+    public InstalledPackage Install(string archive, PackageKind expectedKind, string? expectedId = null, string? expectedVersion = null)
     {
         lock (_gate)
         {
@@ -65,9 +67,11 @@ public sealed class PackageLibrary(string root)
             try
             {
                 Extract(archive, staging);
-                var package = Read(staging, decodeImages: true);
+                var package = ReadSource(staging, decodeImages: true);
                 if (package.Manifest.Kind != expectedKind) throw new PackageException(expectedKind == PackageKind.Theme
                     ? "Este é um pacote de mascote. Adicione-o na página Mascote." : "Este é um pacote de tema. Adicione-o na página Aparência.");
+                if ((expectedId is not null && package.Id != expectedId) || (expectedVersion is not null && package.Manifest.Version != expectedVersion))
+                    throw new PackageException("A identificação ou versão do pacote difere do catálogo.");
                 var destination = Location(expectedKind, package.Id);
                 Directory.CreateDirectory(KindFolder(expectedKind));
                 if (Directory.Exists(destination))
@@ -82,7 +86,9 @@ public sealed class PackageLibrary(string root)
                     throw;
                 }
                 committed = true;
-                return new(package.Manifest, destination);
+                var installed = new InstalledPackage(package.Manifest, destination);
+                if (expectedKind == PackageKind.Mascot) Previews.Refresh(installed);
+                return installed;
             }
             catch (Exception e) when (e is InvalidDataException or JsonException)
             { throw new PackageException("Não foi possível ler o pacote. Confira o ZIP e seu manifest.json.", e); }
@@ -96,7 +102,13 @@ public sealed class PackageLibrary(string root)
 
     public void Remove(PackageKind kind, string id)
     {
-        lock (_gate) { PackageValidation.Id(id); DeleteOwned(Location(kind, id)); }
+        lock (_gate)
+        {
+            PackageValidation.Id(id);
+            var package = kind == PackageKind.Mascot ? Find(kind, id) : null;
+            DeleteOwned(Location(kind, id));
+            if (package is not null) Previews.Remove(package);
+        }
     }
 
     public void Export(PackageKind kind, string id, string output)
@@ -130,9 +142,10 @@ public sealed class PackageLibrary(string root)
         try
         {
             using (var zip = ZipFile.Open(temporary, ZipArchiveMode.Create))
-                foreach (var (name, bytes) in files)
+                foreach (var (name, bytes) in files.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
                     var entry = zip.CreateEntry(PackageFiles.Relative(name), CompressionLevel.Optimal);
+                    entry.LastWriteTime = new DateTimeOffset(1980, 1, 1, 0, 0, 0, TimeSpan.Zero);
                     using var stream = entry.Open();
                     stream.Write(bytes);
                 }
@@ -171,7 +184,7 @@ public sealed class PackageLibrary(string root)
         }
     }
 
-    private static InstalledPackage Read(string folder, bool decodeImages = false)
+    public static InstalledPackage ReadSource(string folder, bool decodeImages = false)
     {
         try
         {

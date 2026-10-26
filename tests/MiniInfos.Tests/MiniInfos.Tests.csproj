@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\widget\MiniInfos.csproj" />
+    <ProjectReference Include="..\..\tools\MiniInfos.Catalog\MiniInfos.Catalog.csproj" />
   </ItemGroup>
 
 </Project>

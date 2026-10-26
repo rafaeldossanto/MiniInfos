@@ -1,0 +1,47 @@
+name: Publicar instalador
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/marketplace/packages/
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Conferir a tag e o isolamento do instalador
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content widget/MiniInfos.csproj -Raw)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw 'A tag precisa ser v seguida da versão do aplicativo.' }
+          ./tests/Packaging.Tests.ps1
+      - name: Gerar o instalador
+        shell: pwsh
+        run: |
+          $compiler = "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
+          if (-not (Test-Path -LiteralPath $compiler)) {
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'Não foi possível instalar o Inno Setup.' }
+          }
+          ./installer/build.ps1 -InnoCompiler $compiler
+      # A draft is invisible to the update banner: it is reviewed, then published with
+      # gh release edit <tag> --draft=false --latest
+      - name: Criar a release como rascunho, somente com o instalador
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME installer/dist/MiniInfos-Setup.exe --draft --title "MiniInfos $env:GITHUB_REF_NAME" --generate-notes
+          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível criar o rascunho da release.' }
+          $assets = @(gh release view $env:GITHUB_REF_NAME --json assets --jq '.assets[].name')
+          if ($LASTEXITCODE -ne 0 -or $assets.Count -ne 1 -or $assets[0] -ne 'MiniInfos-Setup.exe') { throw 'A release do app precisa conter somente MiniInfos-Setup.exe.' }

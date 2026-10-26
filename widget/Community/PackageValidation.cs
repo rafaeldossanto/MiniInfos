@@ -26,7 +26,7 @@ public static partial class PackageValidation
         Text(manifest.Author, "autor", 80);
         Text(manifest.License, "licença", 100);
         if (manifest.Description?.Length > 600) throw new PackageException("A descrição deve ter até 600 caracteres.");
-        if (!Version.TryParse(manifest.Version, out _) || manifest.Version.Length > 40) throw new PackageException("Informe uma versão como 1.0.0.");
+        ParseVersion(manifest.Version);
         if (manifest.Kind == PackageKind.Theme)
         {
             if (manifest.Theme is not { } theme || manifest.Mascot is not null) throw new PackageException("O pacote de tema precisa de uma definição theme.");
@@ -73,10 +73,17 @@ public static partial class PackageValidation
     private static bool Point(PetPoint? point) => point is not null && double.IsFinite(point.X) && double.IsFinite(point.Y)
         && point.X is >= 0 and <= 320 && point.Y is >= 0 and <= 320;
 
-    private static void Text(string? value, string name, int maximum)
+    public static void Text(string? value, string name, int maximum)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length > maximum || value.Any(char.IsControl))
             throw new PackageException($"Informe {name} com até {maximum} caracteres.");
+    }
+
+    public static Version ParseVersion(string? value)
+    {
+        if (!Version.TryParse(value, out var version) || value!.Length > 40)
+            throw new PackageException("Informe uma versão como 1.0.0.");
+        return version;
     }
 
     private static (int Width, int Height) Image(string folder, string relative, bool decode)

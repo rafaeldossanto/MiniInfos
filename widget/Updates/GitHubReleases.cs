@@ -1,7 +1,7 @@
 using System.Net.Http;
-using System.Text.Json.Serialization;
+using System.IO;
 using System.Text.Json;
-using MiniInfos.Infrastructure;
+using MiniInfos.Infrastructure.Network;
 
 namespace MiniInfos.Updates;
 
@@ -14,29 +14,18 @@ public sealed class GitHubReleases(HttpClient http) : IUpdateSource
     /// <summary>The asset each release carries, built by installer\build.ps1.</summary>
     public const string InstallerName = "MiniInfos-Setup.exe";
 
-    private const long RepositoryId = 1432597159;
     private const string DigestPrefix = "sha256:";
-    private static readonly Uri Latest = new($"https://api.github.com/repositories/{RepositoryId}/releases/latest");
 
     /// <summary>One client for the app: GitHub asks every caller to say who it is.</summary>
-    public static HttpClient CreateClient()
-    {
-        var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd($"MiniInfos/{AppInfo.Version}");
-        return client;
-    }
+    public static HttpClient CreateClient() => GitHubReleaseClient.CreateClient();
 
     public async Task<AvailableUpdate?> NewerThanAsync(Version current, CancellationToken cancellation)
     {
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, Latest);
-            request.Headers.Accept.ParseAdd("application/vnd.github+json");
-            using var response = await http.SendAsync(request, cancellation);
-            if (!response.IsSuccessStatusCode) return null;
-            return Parse(await response.Content.ReadAsStringAsync(cancellation), current);
+            return FromRelease(await new GitHubReleaseClient(http).LatestAsync(GitHubRepository.Id, cancellation), current);
         }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException)
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException or IOException or InvalidDataException)
         {
             return null;
         }
@@ -46,9 +35,10 @@ public sealed class GitHubReleases(HttpClient http) : IUpdateSource
     /// A release as GitHub describes it, kept only when it is newer, published, and carries the installer
     /// on github.com with the digest it must match.
     /// </summary>
-    public static AvailableUpdate? Parse(string json, Version current)
+    public static AvailableUpdate? Parse(string json, Version current) => FromRelease(GitHubReleaseClient.Parse(json), current);
+
+    private static AvailableUpdate? FromRelease(GitHubRelease? release, Version current)
     {
-        var release = JsonSerializer.Deserialize<Release>(json);
         if (release is null || release.Draft || release.Prerelease) return null;
         if (!Version.TryParse(release.Tag?.TrimStart('v', 'V'), out var version) || Comparable(version) <= Comparable(current)) return null;
 
@@ -62,14 +52,4 @@ public sealed class GitHubReleases(HttpClient http) : IUpdateSource
     /// <summary>"1.4" and "1.4.0" are the same version.</summary>
     private static Version Comparable(Version version) => new(version.Major, version.Minor, Math.Max(0, version.Build));
 
-    private sealed record Release(
-        [property: JsonPropertyName("tag_name")] string? Tag,
-        [property: JsonPropertyName("draft")] bool Draft,
-        [property: JsonPropertyName("prerelease")] bool Prerelease,
-        [property: JsonPropertyName("assets")] IReadOnlyList<Asset>? Assets);
-
-    private sealed record Asset(
-        [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("browser_download_url")] string? Url,
-        [property: JsonPropertyName("digest")] string? Digest);
 }

@@ -66,9 +66,9 @@ public sealed class PackageValidationTests : IDisposable
     public void PublishedOceanExampleFollowsTheRuntimeContract()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "community", "examples"))) directory = directory.Parent;
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "marketplace", "examples"))) directory = directory.Parent;
         Assert.NotNull(directory);
-        var folder = Path.Combine(directory.FullName, "community", "examples", "ocean");
+        var folder = Path.Combine(directory.FullName, "marketplace", "examples", "ocean");
         var manifest = JsonSerializer.Deserialize<PackageManifest>(File.ReadAllText(Path.Combine(folder, "manifest.json")), PackageManifest.Json)!;
         PackageValidation.Validate(manifest, folder);
         Assert.Equal(PackageKind.Theme, manifest.Kind);

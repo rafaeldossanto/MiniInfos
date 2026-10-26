@@ -1,6 +1,8 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Win32;
 using MiniInfos.Community;
 using MiniInfos.Mascot;
@@ -12,9 +14,13 @@ public partial class SettingsWindow
 {
     private bool _showingCommunity;
     private bool _packageBusy;
+    private bool _communityClosed;
+    private int _petLibraryRevision;
+    private int _petPreviewRevision;
 
     private void InitializeCommunity()
     {
+        Closed += (_, _) => _communityClosed = true;
         if (_preferences.CommunityThemeId is { } theme && PackageLibrary.Shared.Find(PackageKind.Theme, theme) is null)
             _preferences.CommunityThemeId = null;
         if (_preferences.PetId is { } pet && PackageLibrary.Shared.Find(PackageKind.Mascot, pet) is null)
@@ -26,6 +32,7 @@ public partial class SettingsWindow
 
     public void RefreshCommunity()
     {
+        _petLibraryRevision++;
         _showingCommunity = true;
         try
         {
@@ -38,15 +45,25 @@ public partial class SettingsWindow
 
     private void BuildPackageChoices(Panel panel, PackageKind kind)
     {
+        var mascot = kind == PackageKind.Mascot;
         panel.Children.Clear();
+        if (mascot)
+        {
+            panel.Children.Add(AddPetPackage);
+            AthenaPet.Content = PetThumbnail(null);
+            panel.Children.Add(AthenaPet);
+        }
         foreach (var package in PackageLibrary.Shared.List(kind))
         {
             var button = new RadioButton
             {
-                Content = package.Name, Tag = package.Id, GroupName = kind == PackageKind.Theme ? "Theme" : "MascotChoice",
-                Style = (Style)FindResource("Segment"), ToolTip = package.Attribution,
-                Margin = new Thickness(0, 0, 4, 4),
+                Content = mascot ? PetThumbnail(package) : package.Name,
+                Tag = package.Id, GroupName = mascot ? "MascotChoice" : "Theme",
+                Style = (Style)FindResource(mascot ? "PetLibraryChoice" : "Segment"),
+                ToolTip = mascot ? $"{package.Name}\n{package.Attribution}" : package.Attribution,
             };
+            if (!mascot) button.Margin = new Thickness(0, 0, 4, 4);
+            AutomationProperties.SetName(button, package.Name);
             button.Checked += (_, _) =>
             {
                 if (_showingCommunity) return;
@@ -55,6 +72,24 @@ public partial class SettingsWindow
             };
             panel.Children.Add(button);
         }
+    }
+
+    private Image PetThumbnail(InstalledPackage? package)
+    {
+        var image = new Image { Width = 52, Height = 52 };
+        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+        _ = LoadPetImageAsync(image, package, _petLibraryRevision, selected: false);
+        return image;
+    }
+
+    private async Task LoadPetImageAsync(Image image, InstalledPackage? package, int revision, bool selected)
+    {
+        var source = await PackageLibrary.Shared.Previews.GetAsync(package).ConfigureAwait(false);
+        if (Dispatcher.HasShutdownStarted) return;
+        await Dispatcher.InvokeAsync(() =>
+        {
+            if (!_communityClosed && revision == (selected ? _petPreviewRevision : _petLibraryRevision)) image.Source = source;
+        });
     }
 
     private void ShowCommunitySelection()
@@ -68,9 +103,10 @@ public partial class SettingsWindow
 
     private void ShowPetPreview()
     {
-        var appearance = PetAppearances.Load(_preferences.PetId);
-        PetPreview.Source = appearance.Frame(PetState.Idle, 0).Source;
-        PetName.Text = appearance.Name;
+        var package = PackageLibrary.Shared.Find(PackageKind.Mascot, _preferences.PetId);
+        PetName.Text = package?.Name ?? PetAppearances.Athena.Name;
+        PetPreview.Source = null;
+        _ = LoadPetImageAsync(PetPreview, package, ++_petPreviewRevision, selected: true);
     }
 
     private void OnAthenaChosen(object sender, RoutedEventArgs e)
@@ -98,19 +134,24 @@ public partial class SettingsWindow
         await PackageAction(kind, async () =>
         {
             var package = await Task.Run(() => PackageLibrary.Shared.Install(file, kind));
-            RefreshCommunity();
-            if (kind == PackageKind.Theme)
-            {
-                if (_preferences.CommunityThemeId == package.Id) _preferences.RefreshTheme();
-                else _preferences.CommunityThemeId = package.Id;
-            }
-            else
-            {
-                if (_preferences.PetId == package.Id) _preferences.RefreshPet();
-                else _preferences.PetId = package.Id;
-            }
+            SelectPackage(package);
             Status(kind).Text = $"{package.Name} instalado · {package.Attribution}";
         });
+    }
+
+    private void SelectPackage(InstalledPackage package)
+    {
+        RefreshCommunity();
+        if (package.Manifest.Kind == PackageKind.Theme)
+        {
+            if (_preferences.CommunityThemeId == package.Id) _preferences.RefreshTheme();
+            else _preferences.CommunityThemeId = package.Id;
+        }
+        else
+        {
+            if (_preferences.PetId == package.Id) _preferences.RefreshPet();
+            else _preferences.PetId = package.Id;
+        }
     }
 
     private async void OnExportTheme(object sender, RoutedEventArgs e) => await ExportPackage(PackageKind.Theme);

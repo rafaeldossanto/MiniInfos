@@ -1,6 +1,7 @@
 ﻿@{
     # One map for local runs and CI. Rules use the first matching path, most specific first.
     Domains = @{
+        CatalogTool = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.CatalogToolTests'; Suite = '' }
         Community = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.'; Suite = 'Community' }
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
         Claude = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Claude.'; Suite = '' }
@@ -20,8 +21,11 @@
     Rules = @(
         @{ Path = '*.md'; Ignore = $true }
         @{ Path = '.gitignore'; Ignore = $true }
+        @{ Path = 'tools/MiniInfos.Catalog/*'; Domains = @('CatalogTool') }
         @{ Path = 'widget/Community/*'; Domains = @('Community', 'Themes', 'Mascot', 'Settings') }
-        @{ Path = 'community/*'; Domains = @('Community') }
+        @{ Path = 'marketplace/*'; Domains = @('CatalogTool') }
+        # Deleted paths stay mapped while a PR spans the community/ -> marketplace/ rename.
+        @{ Path = 'community/*'; Domains = @('CatalogTool') }
         @{ Path = 'widget/Mascot/PetAnatomy.cs'; Domains = @('Community', 'Mascot') }
         @{ Path = 'widget/Mascot/PetAppearances.cs'; Domains = @('Community', 'Mascot') }
         @{ Path = 'widget/UI/Themes/CommunityTheme.cs'; Domains = @('Community', 'Themes') }
@@ -57,8 +61,10 @@
         @{ Path = 'widget/Infrastructure/Storage/*'; All = $true }
         @{ Path = 'widget/Infrastructure/Windows/AspectSizing.cs'; Domains = @('Windows', 'Cards') }
         @{ Path = 'widget/Infrastructure/Windows/StartupShortcut.cs'; Domains = @('Windows', 'Settings') }
+        @{ Path = 'widget/Infrastructure/Network/*'; Domains = @('Community', 'Updates') }
         @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Cards') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Claude/*'; Domains = @('Claude') }
+        @{ Path = 'tests/MiniInfos.Tests/Community/CatalogToolTests.cs'; Domains = @('CatalogTool') }
         @{ Path = 'tests/MiniInfos.Tests/Community/*'; Domains = @('Community') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Codex/*'; Domains = @('Codex') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/*'; Domains = @('Providers') }
@@ -84,6 +90,9 @@
         @{ Path = '.github/workflows/tests.yml'; All = $true }
         @{ Path = 'mod/*'; Mod = $true }
         @{ Path = '.claude-plugin/*'; Mod = $true }
+        @{ Path = 'tools/*.ps1'; Domains = @('CatalogTool') }
+        @{ Path = '.github/workflows/marketplace-*.yml'; Domains = @('CatalogTool') }
+        @{ Path = '.gitattributes'; Domains = @('CatalogTool') }
         @{ Path = 'installer/*'; All = $true }
         # App bootstrap, project files, shared test helpers and unmapped files fall back to all tests.
     )

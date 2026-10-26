@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net;
 using System.Security.Cryptography;
 using MiniInfos.Updates;
+using MiniInfos.Infrastructure.Network;
 
 namespace MiniInfos.Tests.Updates;
 
@@ -37,6 +38,22 @@ public sealed class UpdateTests
         Assert.Null(GitHubReleases.Parse(Release("v1.4.0", host: "example.com"), Current));
         Assert.Null(GitHubReleases.Parse(Release("v1.4.0", asset: "Other.exe"), Current));
         Assert.Null(GitHubReleases.Parse(Release("v1.4.0", draft: true), Current));
+    }
+
+    [Fact]
+    public void CatalogPrereleasesAndNonVersionTagsNeverBecomeAppUpdates()
+    {
+        Assert.Null(GitHubReleases.Parse(Release("catalog"), Current));
+        Assert.Null(GitHubReleases.Parse(Release("v99.0.0").Replace("\"prerelease\": false", "\"prerelease\": true"), Current));
+        Assert.Null(GitHubReleases.Parse(Release("catalog-999"), Current));
+    }
+
+    [Fact]
+    public async Task TheAppStillChecksLatestAtTheSharedRepositoryAndIgnoresCatalogMetadata()
+    {
+        using var http = new HttpClient(new Answer(System.Text.Encoding.UTF8.GetBytes(Release("catalog")), request =>
+            Assert.Equal($"/repositories/{GitHubRepository.Id}/releases/latest", request.RequestUri!.AbsolutePath)));
+        Assert.Null(await new GitHubReleases(http).NewerThanAsync(Current, default));
     }
 
     [Fact]
@@ -112,9 +129,12 @@ public sealed class UpdateTests
     }
 
     /// <summary>Answers every request with the same bytes, as GitHub would serve the installer.</summary>
-    private sealed class Answer(byte[] body) : HttpMessageHandler
+    private sealed class Answer(byte[] body, Action<HttpRequestMessage>? observe = null) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(body) });
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            observe?.Invoke(request);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(body) });
+        }
     }
 }
