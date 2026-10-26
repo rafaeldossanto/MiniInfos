@@ -56,6 +56,8 @@ Name: "{userstartup}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Parameters: "
 
 [Run]
 Filename: "{app}\MiniInfos.exe"; Description: "Abrir o MiniInfos agora"; Flags: nowait postinstall skipifsilent
+; An update from the app runs silently with /RELAUNCH=1: the new version opens when it is done.
+Filename: "{app}\MiniInfos.exe"; Flags: nowait; Check: IsRelaunch
 
 [UninstallDelete]
 ; The startup shortcut, also when the settings window made it rather than the installer.
@@ -70,6 +72,12 @@ const
 
 var
   IsModMissing: Boolean;
+
+// The app's own update asks for the new version to open at the end (see Updater.InstallerArguments).
+function IsRelaunch(): Boolean;
+begin
+  Result := ExpandConstant('{param:RELAUNCH|0}') = '1';
+end;
 
 // Asks the running MiniInfos to quit (its window only hides on close), then makes sure.
 procedure QuitRunningApp();

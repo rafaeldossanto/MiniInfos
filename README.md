@@ -43,6 +43,12 @@ Em repouso, a coruja também respira e balança suavemente sem mudar a posição
 
 `PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
 
+## Atualizações
+
+Quando sai uma versão nova, aparece uma linha logo acima do cartão, numa janelinha própria: **Nova atualização disponível**, com o botão **Baixar** à direita. Um clique na linha ou no botão baixa o instalador da versão, confere o SHA-256 publicado junto com ela, instala em silêncio e abre o MiniInfos de novo, já atualizado. Sem espaço acima do cartão, a linha aparece embaixo; com o cartão escondido, ela some junto. O MiniInfos procura versões novas 20 segundos depois de abrir e, depois, a cada 6 horas.
+
+`GitHubReleases` lê a última versão publicada (pelo número do repositório, então nenhum nome de conta vai no app), `Updater` baixa, confere e chama o instalador com `/RELAUNCH=1`, que reabre o app no fim, e `UpdateBanner` é a linha acima do cartão. As atualizações valem a partir da versão que traz o `Updater`: as anteriores precisam do instalador baixado à mão uma última vez.
+
 ## Junto com Claude ou Codex
 
 O MiniInfos inicia com o Windows, escondido (atalho em `shell:startup` com o argumento legado `--with-claude`). Ele aparece quando a janela do app Claude ou do app Codex abre, e some quando o último fecha. O app do Codex da Microsoft Store roda como `ChatGPT.exe`: só conta o que vem do pacote do Codex, então abrir o ChatGPT comum não mostra o quadrado. Também conta como Claude aberto qualquer chat do Claude Code rodando no terminal ou num editor: o mod avisa "estou vivo" a cada 30 s e "terminei" ao fechar. Um chat que morre sem avisar conta como fechado depois de 90 s. Chats do Codex CLI sem janela própria não acionam a abertura automática; você ainda pode abrir o MiniInfos pelo Menu Iniciar ou pela bandeja.
@@ -108,6 +114,7 @@ O MiniInfos não pede login e não lê credenciais. O widget acessa somente arqu
 
 - **Lê:** os históricos do Claude Code (`~/.claude/projects`), os registros do Codex (`~/.codex/sessions`) e os arquivos que o mod escreve. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
 - **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, posição, tamanho e página da janela) e `~/.claude/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
+- **Internet:** além do `codex app-server`, só pra procurar versões novas: uma consulta à página de versões do MiniInfos no GitHub a cada 6 horas e, quando você clica pra atualizar, o download do instalador. Nada seu é enviado.
 - **Desinstalar** apaga as duas pastas.
 
 O que é distribuído não leva nada da máquina onde foi gerado: a compilação Release sai sem arquivo de símbolos e com os caminhos de build trocados por `MiniInfos`.
