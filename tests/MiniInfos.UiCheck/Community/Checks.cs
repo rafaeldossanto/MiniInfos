@@ -109,6 +109,7 @@ internal static partial class Program
                 && library.Children.OfType<RadioButton>().All(button => button.Content is Image { Source: not null }),
                 TimeSpan.FromSeconds(5));
             Render(settings, System.IO.Path.Combine(pictures, "community-mascots.png"));
+            CheckPetExample(settings, pictures);
             CheckPetInteractions(cards.Pet!, pictures);
             Find<Button>(settings, "RemovePetPackage").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             Pump(TimeSpan.FromMilliseconds(350));

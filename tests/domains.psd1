@@ -31,7 +31,8 @@
         @{ Path = 'widget/UI/Themes/CommunityTheme.cs'; Domains = @('Community', 'Themes') }
         @{ Path = 'widget/UI/Windows/PetWindow.*'; Domains = @('Mascot') }
         @{ Path = 'widget/UI/Windows/UpdateBanner.*'; Domains = @('Updates') }
-        @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot') }
+        @{ Path = 'widget/UI/Windows/MascotExampleWindow.*'; Domains = @('Community', 'Mascot') }
+        @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot', 'Community') }
         @{ Path = 'widget/UI/Windows/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates') }
         @{ Path = 'widget/UI/Themes/AppFonts.cs'; Domains = @('Fonts') }
         @{ Path = 'widget/UI/Themes/*'; Domains = @('Themes') }

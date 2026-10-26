@@ -10,6 +10,9 @@ namespace MiniInfos.Community;
 
 public sealed record PackageDraft(PackageManifest Manifest, IReadOnlyDictionary<string, byte[]> Assets);
 
+/// <summary>A mascot's PNG grid with the track each row plays.</summary>
+public sealed record MascotSheet(BitmapSource Image, int Columns, IReadOnlyDictionary<PetState, MascotTrack> Tracks, PetAnatomy? Anatomy = null);
+
 /// <summary>Produces editable, importable examples from the actual rendering contract.</summary>
 public static class PackageTemplates
 {
@@ -29,17 +32,19 @@ public static class PackageTemplates
             "Edite o manifest.json e compartilhe seu tema.", Theme: definition), assets);
     }
 
-    public static async Task<PackageDraft> MascotAsync()
+    /// <summary>A built-in mascot laid out as a package's grid: a row per state, in the enum's order, and a column per pose.</summary>
+    public static async Task<MascotSheet> MascotSheetAsync(IPetAppearance? appearance = null)
     {
+        appearance ??= PetAppearances.Athena;
         var states = Enum.GetValues<PetState>();
         var side = PetFrame.CanvasSize;
-        var bitmap = new WriteableBitmap(side * PetSprites.FrameCount, side * states.Length, 96, 96, PixelFormats.Pbgra32, null);
+        var bitmap = new WriteableBitmap(side * appearance.FrameCount, side * states.Length, 96, 96, PixelFormats.Pbgra32, null);
         var tracks = new Dictionary<PetState, MascotTrack>();
         for (var row = 0; row < states.Length; row++)
         {
-            for (var column = 0; column < PetSprites.FrameCount; column++)
+            for (var column = 0; column < appearance.FrameCount; column++)
             {
-                var frame = PetSprites.Frame(states[row], column);
+                var frame = appearance.Frame(states[row], column);
                 bitmap.WritePixels(new Int32Rect(column * side, row * side, side, side), frame.Pixels.ToArray(), side * 4, 0);
             }
             tracks[states[row]] = new(row, DurationsMs: PetAnimation.DurationsFor(states[row]).ToArray(),
@@ -47,12 +52,22 @@ public static class PackageTemplates
             await Dispatcher.Yield(DispatcherPriority.Background);
         }
         bitmap.Freeze();
-        var bytes = await Task.Run(() => PackageImages.Encode(bitmap));
-        return new(new(1, PackageKind.Mascot, "community.meu-mascote", "Meu mascote", "Seu nome", "1.0.0", "UNLICENSED",
-            "Substitua as ilustrações, ajuste a anatomia e edite sua identificação antes de publicar.",
-            Mascot: new("sprites.png", PetSprites.FrameCount, states.Length, tracks, PetAnatomy.Athena)),
+        return new(bitmap, appearance.FrameCount, tracks, appearance.Anatomy);
+    }
+
+    /// <param name="sheet">A grid already laid out, as the example window has; built here when left out.</param>
+    public static async Task<PackageDraft> MascotAsync(MascotSheet? sheet = null, IPetAppearance? appearance = null)
+    {
+        sheet ??= await MascotSheetAsync(appearance);
+        var bytes = await Task.Run(() => PackageImages.Encode(sheet.Image));
+        return new(MascotManifest(sheet),
             new Dictionary<string, byte[]> { ["sprites.png"] = bytes, ["README.md"] = Instructions(PackageKind.Mascot) });
     }
+
+    /// <summary>The manifest the mascot model ships with: every state's track and the selected character's anatomy.</summary>
+    public static PackageManifest MascotManifest(MascotSheet sheet) => new(1, PackageKind.Mascot, "community.meu-mascote", "Meu mascote",
+        "Seu nome", "1.0.0", "UNLICENSED", "Substitua as ilustrações, ajuste a anatomia e edite sua identificação antes de publicar.",
+        Mascot: new("sprites.png", sheet.Columns, sheet.Tracks.Count, new(sheet.Tracks), sheet.Anatomy ?? PetAnatomy.Athena));
 
     private static byte[] Instructions(PackageKind kind) => Encoding.UTF8.GetBytes("""
         # Meu pacote do MiniInfos

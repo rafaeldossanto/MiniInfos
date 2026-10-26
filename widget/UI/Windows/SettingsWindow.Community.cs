@@ -23,7 +23,7 @@ public partial class SettingsWindow
         Closed += (_, _) => _communityClosed = true;
         if (_preferences.CommunityThemeId is { } theme && PackageLibrary.Shared.Find(PackageKind.Theme, theme) is null)
             _preferences.CommunityThemeId = null;
-        if (_preferences.PetId is { } pet && PackageLibrary.Shared.Find(PackageKind.Mascot, pet) is null)
+        if (_preferences.PetId is { } pet && !PetAppearances.IsBuiltIn(pet) && PackageLibrary.Shared.Find(PackageKind.Mascot, pet) is null)
             _preferences.PetId = null;
         RefreshCommunity();
         ShowTheme();
@@ -52,6 +52,17 @@ public partial class SettingsWindow
             panel.Children.Add(AddPetPackage);
             AthenaPet.Content = PetThumbnail(null);
             panel.Children.Add(AthenaPet);
+            foreach (var builtin in PetAppearances.BuiltIns.Where(pet => pet.Id is not null))
+            {
+                var button = new RadioButton
+                {
+                    Content = PetThumbnail(null, builtin.Id), Tag = builtin.Id, GroupName = "MascotChoice",
+                    Style = (Style)FindResource("PetLibraryChoice"), ToolTip = builtin.Appearance.Name + " · Incluído no MiniInfos",
+                };
+                AutomationProperties.SetName(button, builtin.Appearance.Name);
+                button.Checked += (_, _) => { if (!_showingCommunity) _preferences.PetId = builtin.Id; };
+                panel.Children.Add(button);
+            }
         }
         foreach (var package in PackageLibrary.Shared.List(kind))
         {
@@ -74,17 +85,19 @@ public partial class SettingsWindow
         }
     }
 
-    private Image PetThumbnail(InstalledPackage? package)
+    private Image PetThumbnail(InstalledPackage? package, string? builtinId = null)
     {
         var image = new Image { Width = 52, Height = 52 };
         RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
-        _ = LoadPetImageAsync(image, package, _petLibraryRevision, selected: false);
+        _ = LoadPetImageAsync(image, package, _petLibraryRevision, selected: false, builtinId);
         return image;
     }
 
-    private async Task LoadPetImageAsync(Image image, InstalledPackage? package, int revision, bool selected)
+    private async Task LoadPetImageAsync(Image image, InstalledPackage? package, int revision, bool selected, string? builtinId = null)
     {
-        var source = await PackageLibrary.Shared.Previews.GetAsync(package).ConfigureAwait(false);
+        var source = package is null
+            ? await PackageLibrary.Shared.Previews.GetBuiltInAsync(builtinId).ConfigureAwait(false)
+            : await PackageLibrary.Shared.Previews.GetAsync(package).ConfigureAwait(false);
         if (Dispatcher.HasShutdownStarted) return;
         await Dispatcher.InvokeAsync(() =>
         {
@@ -98,15 +111,16 @@ public partial class SettingsWindow
         foreach (var button in CommunityPetChoices.Children.OfType<RadioButton>()) button.IsChecked = (string)button.Tag == _preferences.PetId;
         AthenaPet.IsChecked = _preferences.PetId is null;
         RemoveThemePackage.IsEnabled = _preferences.CommunityThemeId is not null && !_packageBusy;
-        RemovePetPackage.IsEnabled = _preferences.PetId is not null && !_packageBusy;
+        RemovePetPackage.IsEnabled = !PetAppearances.IsBuiltIn(_preferences.PetId) && !_packageBusy;
     }
 
     private void ShowPetPreview()
     {
         var package = PackageLibrary.Shared.Find(PackageKind.Mascot, _preferences.PetId);
-        PetName.Text = package?.Name ?? PetAppearances.Athena.Name;
+        var builtinId = PetAppearances.IsBuiltIn(_preferences.PetId) ? _preferences.PetId : null;
+        PetName.Text = package?.Name ?? PetAppearances.BuiltIn(builtinId)!.Name;
         PetPreview.Source = null;
-        _ = LoadPetImageAsync(PetPreview, package, ++_petPreviewRevision, selected: true);
+        _ = LoadPetImageAsync(PetPreview, package, ++_petPreviewRevision, selected: true, builtinId);
     }
 
     private void OnAthenaChosen(object sender, RoutedEventArgs e)
@@ -174,10 +188,12 @@ public partial class SettingsWindow
         await PackageAction(kind, async () =>
         {
             var id = kind == PackageKind.Theme ? _preferences.CommunityThemeId : _preferences.PetId;
-            if (id is not null) await Task.Run(() => PackageLibrary.Shared.Export(kind, id, file));
+            if (id is not null && !(kind == PackageKind.Mascot && PetAppearances.IsBuiltIn(id)))
+                await Task.Run(() => PackageLibrary.Shared.Export(kind, id, file));
             else
             {
-                var draft = kind == PackageKind.Theme ? PackageTemplates.Theme(ThemeManager.Load(_preferences)) : await PackageTemplates.MascotAsync();
+                var draft = kind == PackageKind.Theme ? PackageTemplates.Theme(ThemeManager.Load(_preferences))
+                    : await PackageTemplates.MascotAsync(appearance: PetAppearances.Load(_preferences.PetId));
                 await Task.Run(() => PackageLibrary.Create(file, draft.Manifest, draft.Assets));
             }
             Status(kind).Text = "Pacote exportado. Para criar sua versão, edite o manifest.json e as imagens antes de compartilhar.";
@@ -187,11 +203,24 @@ public partial class SettingsWindow
     private void OnRemoveTheme(object sender, RoutedEventArgs e) => RemovePackage(PackageKind.Theme);
     private void OnRemovePet(object sender, RoutedEventArgs e) => RemovePackage(PackageKind.Mascot);
 
+    /// <summary>"Exemplo": one example window above the settings, brought forward when asked again; it closes with them.</summary>
+    private void OnShowPetExample(object sender, RoutedEventArgs e)
+    {
+        if (OwnedWindows.OfType<MascotExampleWindow>().FirstOrDefault() is { } open)
+        {
+            open.Activate();
+            return;
+        }
+
+        new MascotExampleWindow { Owner = this }.Show();
+    }
+
     private void RemovePackage(PackageKind kind)
     {
         if (_packageBusy) return;
         var id = kind == PackageKind.Theme ? _preferences.CommunityThemeId : _preferences.PetId;
         if (id is null) return;
+        if (kind == PackageKind.Mascot && PetAppearances.IsBuiltIn(id)) return;
         try
         {
             PackageLibrary.Shared.Remove(kind, id);

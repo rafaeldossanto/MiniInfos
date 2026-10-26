@@ -32,7 +32,7 @@ Contribuições apenas em `marketplace/` executam as checagens da ferramenta do 
 
 ## Criar seu primeiro pacote
 
-1. Selecione um tema embutido ou a Coruja de Atena e clique em **Exportar** na página correspondente.
+1. Selecione um tema embutido ou a Coruja de Atena e clique em **Exportar** na página correspondente. Para mascotes, **Exemplo** mostra antes a grade, o que cada linha anima e um trecho do manifesto, e também salva o modelo.
 2. Faça uma cópia do arquivo e troque sua extensão para `.zip` para extraí-lo.
 3. Edite `manifest.json`. Troque `id`, `name`, `author`, `version`, `license` e `description`. Cada projeto deve usar um ID próprio, como `seunome.corujinha`; o mesmo ID identifica futuras atualizações.
 4. Altere as cores e imagens ou desenhe sua personagem na grade PNG. O modelo de mascote já traz todos os estados e a anatomia.

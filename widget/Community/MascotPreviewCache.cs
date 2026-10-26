@@ -10,17 +10,21 @@ public sealed class MascotPreviewCache(string root, Func<InstalledPackage, Bitma
 {
     public string Root { get; } = Path.GetFullPath(root);
     private readonly ConcurrentDictionary<string, Lazy<Task<BitmapSource?>>> _previews = new();
-    private static readonly Lazy<Task<BitmapSource>> Athena = new(() => Task.Run(() =>
-        PackagePreviews.Mascot(PetAppearances.Athena.Frame(PetState.Idle, 0))));
+    private static readonly ConcurrentDictionary<IPetAppearance, Lazy<Task<BitmapSource>>> BuiltIns = new();
 
     public Task<BitmapSource?> GetAsync(InstalledPackage? package)
     {
-        if (package is null) return AthenaPreview();
+        if (package is null) return GetBuiltInAsync(null);
         var key = Location(package);
         return _previews.GetOrAdd(key, _ => new(() => Task.Run(() => ReadOrCreate(package, key)))).Value;
     }
 
-    private static async Task<BitmapSource?> AthenaPreview() => await Athena.Value.ConfigureAwait(false);
+    public async Task<BitmapSource?> GetBuiltInAsync(string? id)
+    {
+        var appearance = PetAppearances.BuiltIn(id) ?? throw new PackageException("Mascote padrão não encontrado.");
+        return await BuiltIns.GetOrAdd(appearance, pet => new(() => Task.Run(() =>
+            PackagePreviews.Mascot(pet.Frame(PetState.Idle, 0))))).Value.ConfigureAwait(false);
+    }
 
     /// <summary>Called after a successful install, also replacing a stale preview for a same-version reimport.</summary>
     public void Refresh(InstalledPackage package)
