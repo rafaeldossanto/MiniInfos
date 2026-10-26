@@ -2,6 +2,25 @@ namespace MiniInfos.UiCheck;
 
 internal static partial class Program
 {
+    /// <summary>The Mascote page, the longest: a thin bar in its margin, its rows as wide as a page that doesn't scroll.</summary>
+    private static void CheckLongPageScrolls(TabControl pages, double rowsWidth)
+    {
+        pages.SelectedIndex = 2;
+        Pump(TimeSpan.FromMilliseconds(300));
+        var scroll = (ScrollViewer)((TabItem)pages.Items[2]).Content;
+        scroll.ScrollToEnd();
+        Pump(TimeSpan.FromMilliseconds(300));
+        var bar = (ScrollBar)scroll.Template.FindName("PART_VerticalScrollBar", scroll);
+        var thumb = (Border)bar.Track.Thumb.Template.FindName("Bar", bar.Track.Thumb);
+        Check(bar.IsVisible && scroll.VerticalOffset > 0 && thumb.ActualWidth <= 6,
+            $"a page taller than the window scrolls with a thin bar ({thumb.ActualWidth:0} px, scrolled {scroll.VerticalOffset:0})");
+        var width = ((FrameworkElement)scroll.Content).ActualWidth;
+        Check(Math.Abs(width - rowsWidth) < 1, $"and its rows keep the width of the other pages ({width:0} = {rowsWidth:0})");
+        scroll.ScrollToHome();
+        pages.SelectedIndex = 0;
+        Pump(TimeSpan.FromMilliseconds(300));
+    }
+
     private static void CheckSettings(CardSet cards, Preferences preferences, string pictures)
     {
         var card = cards.Main;
@@ -25,7 +44,9 @@ internal static partial class Program
         var pages = Find<TabControl>(settings, "Pages");
         var names = pages.Items.OfType<TabItem>().Select(page => page.Header as string).ToList();
         Check(names.SequenceEqual(["Geral", "Aparência", "Mascote", "Sobre"]), $"with its pages ({string.Join(", ", names)})");
+        var rowsWidth = ((FrameworkElement)((TabItem)pages.Items[0]).Content).ActualWidth;
         RenderPages(settings, pages, pictures, "dark");
+        CheckLongPageScrolls(pages, rowsWidth);
 
         var topmost = Find<CheckBox>(settings, "TopmostToggle");
         topmost.IsChecked = false;
