@@ -16,9 +16,8 @@ public sealed class PetInteraction
     private TimeSpan _pressedTime;
     private TimeSpan _holdTime;
     private TimeSpan _lastMove;
-    private TimeSpan _lastPhysics;
-    private double _targetAngle;
-    private double _angle;
+    private readonly PetPendulum _physics = new();
+    private double _screenScale;
     private PetState? _feedback;
     private TimeSpan _feedbackUntil;
 
@@ -38,22 +37,21 @@ public sealed class PetInteraction
         return PetBodyPart.Body;
     }
 
-    public void Press(Point canvasPoint, Point screenPoint, TimeSpan now)
+    public void Press(Point canvasPoint, Point screenPoint, TimeSpan now, double screenScale = 0.5)
     {
         IsPressed = true; IsHeld = false;
         _pressedAt = canvasPoint;
         _pressScreen = PointerScreen = screenPoint;
         _part = PartAt(canvasPoint);
-        _pressedTime = _lastMove = _lastPhysics = now;
-        _targetAngle = _angle = 0;
+        _pressedTime = _lastMove = now;
+        _screenScale = screenScale;
     }
 
     public void Move(Point screenPoint, TimeSpan now)
     {
         if (!IsPressed) return;
+        if (now < _lastMove) return;
         if ((screenPoint - PointerScreen).Length < 0.001) return;
-        var seconds = Math.Max(0.008, (now - _lastMove).TotalSeconds);
-        _targetAngle = Math.Clamp((screenPoint.X - PointerScreen.X) / seconds * 0.025, -13, 13);
         PointerScreen = screenPoint;
         _lastMove = now;
         if ((screenPoint - _pressScreen).Length >= 5) BeginHold(now);
@@ -63,10 +61,6 @@ public sealed class PetInteraction
     {
         if (IsPressed && now - _pressedTime >= HoldDelay) BeginHold(now);
         if (!IsHeld) return null;
-        var target = now - _lastMove < TimeSpan.FromMilliseconds(180) ? _targetAngle : 0;
-        var dt = Math.Max(0, (now - _lastPhysics).TotalSeconds);
-        _angle += (target - _angle) * (1 - Math.Exp(-dt / 0.11));
-        _lastPhysics = now;
         var progress = PetAnimation.Ease((now - _holdTime) / PetAnimation.StateTransition);
         var state = HeldState(_part);
         var end = state switch
@@ -76,10 +70,8 @@ public sealed class PetInteraction
             _ => AnchorFor(state),
         };
         var anchor = _pressedAt + (end - _pressedAt) * progress;
-        var sway = Math.Sin((now - _holdTime).TotalSeconds * 5) * 1.4;
-        var gravity = state is PetState.HeldHead or PetState.HeldFeet
-            ? Math.Clamp(Math.Atan2(160 - end.X, Math.Max(30, 230 - end.Y)) * 180 / Math.PI, -8, 8) : 0;
-        return new(state, anchor, progress, Math.Clamp(gravity + _angle + sway, -14, 14));
+        var center = new Point(160, 230 + (state == PetState.HeldFeet ? -140 * progress : 0));
+        return new(state, anchor, progress, _physics.Advance(PointerScreen, center - anchor, now));
     }
 
     public PetState? StateAt(TimeSpan now) => HoldAt(now)?.State ?? (now < _feedbackUntil ? _feedback : null);
@@ -116,7 +108,8 @@ public sealed class PetInteraction
     {
         if (IsHeld) return;
         IsHeld = true;
-        _holdTime = _lastPhysics = now;
+        _holdTime = now;
+        _physics.Reset(_pressScreen, _pressedTime, _screenScale);
         AnimationRevision++;
     }
 

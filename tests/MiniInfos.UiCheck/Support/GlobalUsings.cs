@@ -1,0 +1,25 @@
+global using System.Diagnostics;
+global using System.Reflection;
+global using System.Runtime.InteropServices;
+global using System.Text.RegularExpressions;
+global using System.Windows.Controls.Primitives;
+global using System.Windows.Controls;
+global using System.Windows.Documents;
+global using System.Windows.Input;
+global using System.Windows.Interop;
+global using System.Windows.Media.Imaging;
+global using System.Windows.Media;
+global using System.Windows.Threading;
+global using System.Windows;
+global using MiniInfos.Infrastructure.Windows;
+global using MiniInfos.Infrastructure;
+global using MiniInfos.Mascot;
+global using MiniInfos.Providers.Claude;
+global using MiniInfos.Providers.Codex;
+global using MiniInfos.Providers;
+global using MiniInfos.Settings;
+global using MiniInfos.UI.Controls;
+global using MiniInfos.UI.Themes;
+global using MiniInfos.UI.Windows;
+global using MiniInfos.Updates;
+

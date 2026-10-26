@@ -34,6 +34,7 @@ Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coru
 
 - Clique rapidamente em um dos olhos: a coruja fecha os olhinhos e levanta as asas para protegê-los.
 - Segure pela cabeça, por uma das asas, pela barriga ou pelos pés para mover. Ela fica pendurada pela região escolhida; pelos pés, vira de cabeça para baixo. O ponto segurado acompanha o cursor, e a posição fica salva ao soltar.
+- Enquanto segura, os movimentos do mouse aplicam impulso à coruja. Movimentos circulares podem fazê-la dar voltas completas ao redor do ponto segurado; ao parar o mouse, ela continua balançando e perde força aos poucos.
 - Clique duas vezes para mostrar o MiniInfos.
 - Escolha Pequeno, Médio ou Grande nas configurações, ou use Alt + roda do mouse sobre a coruja.
 - Botão direito: mostrar o cartão, configurar o mascote, voltar pro canto, esconder a coruja ou sair do MiniInfos.
@@ -43,6 +44,8 @@ Ela pisca em repouso, bate as asas quando a contagem de tokens aumenta, fica ate
 Em repouso, a coruja também respira e balança suavemente sem mudar a posição da janela. Cada estado usa oito poses desenhadas, interpoladas a até 60 quadros por segundo; as mudanças de estado partem da imagem que já está na tela, com uma transição de 300 ms. O relógio usa o tempo transcorrido, para não desacelerar a animação quando um quadro demora mais. O processamento para quando a janela do mascote fecha.
 
 `PetInteraction` distingue o clique, um toque segurado de 220 ms e o arraste, identifica a região da coruja e mantém o ponto de apoio. O mouse fica capturado durante o gesto para permitir mover para fora da janela. Ao perder a captura ou soltar, ela volta ao estado de uso observado, sem alterar as contagens. As poses de interação ficam em `widget/Assets/athena-owl-interactions.png`; a asa direita é espelhada em memória, e a pose pelos pés usa uma rotação da animação de asas.
+
+`PetPendulum` simula a rotação ao redor do ponto de apoio usando gravidade, aceleração do cursor, inércia e amortecimento. O ângulo não fica limitado a uma pequena inclinação; a integração usa passos de até 1/240 s e limita impulsos de retomadas após pausas da interface. A posição do mouse é normalizada pela escala da coruja e da tela. `PetGeometry` mantém as transições de rotação sem achatar a imagem e calcula uma área transparente que contém o sprite girando. O tamanho visual da coruja continua o escolhido nas configurações; ao soltar, a área da janela volta ao normal e somente a posição de repouso é salva.
 
 `PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
 
@@ -206,21 +209,56 @@ Os chats abertos pegam a versão nova quando reiniciam.
 
 ## Testes
 
-A lógica (livros-caixa, leitura dos registros, onde achar o `codex`, os limites do Codex, os textos e as contas da janela):
+A validação cotidiana seleciona os domínios afetados pelos arquivos alterados, comparando o diretório de trabalho com `HEAD`:
 
-```bash
-dotnet test tests/MiniInfos.Tests
+```powershell
+./tests/run.ps1
 ```
 
-Esses testes e o build de Release também rodam sozinhos no GitHub (`.github/workflows/tests.yml`) a cada push na `dev` ou na `main` e em cada pull request. Os dois abaixo ficam só na sua máquina, porque precisam da área de trabalho, dos registros do Claude e do Codex, e do Claude Code.
+O mapa fica em `tests/domains.psd1` e é usado tanto localmente quanto no CI. Ele inclui consumidores de componentes compartilhados: uma mudança em `JsonlTail`, por exemplo, seleciona armazenamento, Claude e Codex; uma mudança em `PetInteraction` seleciona somente o mascote. Documentação não seleciona testes. Código sem regra, bootstrap e alterações do projeto selecionam a regressão completa, evitando ignorar uma funcionalidade nova por engano.
 
-A janela de verdade: abre o quadrado por uns 30 segundos, com os dados numa pasta temporária, confere bordas, bandeja, modos, ↻, páginas e o Codex, e salva um print de cada página na pasta que você indicar:
+Para conferir a seleção ou informar um escopo conhecido:
 
-```bash
-dotnet run --project tests/MiniInfos.UiCheck -- prints
+```powershell
+./tests/run.ps1 -Plan
+./tests/run.ps1 -Domain Mascot
+./tests/run.ps1 -Domain Claude,Codex
+./tests/run.ps1 -Base origin/dev -Plan
 ```
 
-O mod:
+A opção `-Base` compara o estado atual com outro commit ou branch. A seleção considera arquivos novos e ambos os caminhos de arquivos movidos. O escopo manual testa exatamente os domínios informados; para código compartilhado, prefira a seleção automática ou informe todos os consumidores afetados.
+
+Acrescente `-Ui` para conferir interação ou apresentação visual. Os cenários focados usam dados simulados, não leem históricos e não consultam contas. Um cenário de mascote não executa a bateria de temas ou fontes:
+
+```powershell
+./tests/run.ps1 -Domain Mascot -Ui
+./tests/run.ps1 -Domain Themes -Ui
+```
+
+`MiniInfos.UiCheck` separa cartões, configurações, temas, fontes, mascote, atualizações e integração com provedores. A saída do runner mostra somente falhas e resumos por cenário. Para investigar detalhes ou salvar imagens numa pasta específica, execute o cenário diretamente:
+
+```powershell
+dotnet run --project tests/MiniInfos.UiCheck -c Release -- prints --suite Mascot
+```
+
+Os arquivos dos cenários ficam em pastas próprias dentro de `tests/MiniInfos.UiCheck`; `Support` concentra a preparação e os auxiliares compartilhados. Os dados e atalhos dos testes ficam isolados em uma pasta temporária. Para consultar contas e registros reais, use `--suite Providers`; esse cenário e a execução completa mantêm a integração local, incluindo a verificação de um app Claude aberto.
+
+A regressão completa fica disponível para mudanças transversais e entregas:
+
+```powershell
+./tests/run.ps1 -All
+./tests/run.ps1 -All -Ui
+```
+
+O `dotnet test` compila o aplicativo antes de executar a seleção: todos os arquivos ainda precisam compilar, mesmo quando somente um domínio é testado. No GitHub (`.github/workflows/tests.yml`), a `dev` e os PRs usam a seleção por arquivos; a `main` executa todos os testes de unidade. Os testes visuais ficam locais porque abrem janelas reais.
+
+Ao alterar o mapa ou o executor, valide também a seleção:
+
+```powershell
+./tests/TestSelection.Tests.ps1
+```
+
+Quando o mod mudar, o runner informa a necessidade de executar seu teste no ambiente do Claude Code:
 
 ```bash
 claude plugin test mod

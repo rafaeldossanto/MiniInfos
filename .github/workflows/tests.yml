@@ -1,6 +1,5 @@
-# Builds the app as it ships and runs the logic tests on every push to dev or main and on every pull
-# request. The live window checks (tests/MiniInfos.UiCheck) and the mod's tests stay local: they need a
-# desktop session, real Claude and Codex logs, and Claude Code itself.
+# Selects affected domains on dev/PRs; main runs the complete unit regression.
+# Visual scenarios and the mod stay local: they need an interactive Windows session or Claude Code.
 name: Testes
 
 on:
@@ -23,13 +22,25 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
 
-      - name: Build do app (Release)
-        run: dotnet build widget/MiniInfos.csproj --configuration Release
+      - name: Validar seleção de testes
+        shell: pwsh
+        run: ./tests/TestSelection.Tests.ps1
 
-      - name: Testes de unidade
-        run: dotnet test tests/MiniInfos.Tests --configuration Release --logger "console;verbosity=normal"
+      - name: Testes dos domínios afetados
+        shell: pwsh
+        env:
+          TEST_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          TEST_FULL: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          if ($env:TEST_FULL -eq 'true' -or $env:TEST_BASE -match '^0+$' -or -not $env:TEST_BASE) {
+            ./tests/run.ps1 -All
+          } else {
+            ./tests/run.ps1 -Base $env:TEST_BASE
+          }
