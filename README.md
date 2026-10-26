@@ -167,6 +167,8 @@ A lógica (livros-caixa, leitura dos registros, onde achar o `codex`, os limites
 dotnet test tests/MiniInfos.Tests
 ```
 
+Esses testes e o build de Release também rodam sozinhos no GitHub (`.github/workflows/tests.yml`) a cada push na `dev` ou na `main` e em cada pull request. Os dois abaixo ficam só na sua máquina, porque precisam da área de trabalho, dos registros do Claude e do Codex, e do Claude Code.
+
 A janela de verdade: abre o quadrado por uns 30 segundos, com os dados numa pasta temporária, confere bordas, bandeja, modos, ↻, páginas e o Codex, e salva um print de cada página na pasta que você indicar:
 
 ```bash
