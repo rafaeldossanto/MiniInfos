@@ -15,6 +15,8 @@ Assert-Selection (((Get-TestSelection -Paths @('tests/MiniInfos.UiCheck/Provider
 
 $theme = Get-TestSelection -Paths @('widget/UI/Themes/Classic.xaml')
 Assert-Selection (($theme.Suites -join ',') -eq 'Themes') 'Tema selecionou cenários não relacionados'
+$community = Get-TestSelection -Paths @('widget/Community/PackageLibrary.cs')
+Assert-Selection (($community.Domains -join ',') -eq 'Community,Mascot,Settings,Themes') 'Pacotes perderam consumidores ou selecionaram provedores não relacionados'
 
 $tail = Get-TestSelection -Paths @('widget/Infrastructure/Storage/JsonlTail.cs')
 Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Storage') 'Leitura compartilhada não incluiu os dois provedores'
@@ -40,4 +42,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 16 cenários passaram.'
+Write-Host 'Seleção de testes: 17 cenários passaram.'

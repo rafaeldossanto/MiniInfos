@@ -12,27 +12,28 @@ public static class PetAnimation
     private static readonly int[] IdleDurations = [3500, 260, 240, 95, 55, 95, 360, 395];
     private static readonly int[] ActiveDurations = [130, 100, 90, 90, 110, 100, 110, 150];
     private static readonly int[] ProtectionDurations = [90, 100, 110, 180, 300, 200, 180, 290];
+    private static readonly int[] SleepDurations = Enumerable.Repeat(450, PetSprites.FrameCount).ToArray();
+    private static readonly int[] OtherDurations = Enumerable.Repeat(260, PetSprites.FrameCount).ToArray();
+
+    /// <summary>How long each of the owl's poses lasts in a state: what she plays, and what an exported model starts from.</summary>
+    public static IReadOnlyList<int> DurationsFor(PetState state) => state switch
+    {
+        PetState.Idle => IdleDurations, PetState.Active => ActiveDurations,
+        PetState.ProtectEyes => ProtectionDurations, PetState.Sleep => SleepDurations, _ => OtherDurations,
+    };
 
     public static PetPose PoseAt(PetState state, TimeSpan elapsed)
     {
-        var durations = state switch
-        {
-            PetState.Idle => IdleDurations,
-            PetState.Active => ActiveDurations,
-            PetState.ProtectEyes => ProtectionDurations,
-            _ => null,
-        };
-        var step = state == PetState.Sleep ? 450 : 260;
-        var cycle = durations?.Sum() ?? step * PetSprites.FrameCount;
-        var local = Math.Max(0, elapsed.TotalMilliseconds) % cycle;
+        var durations = DurationsFor(state);
+        var local = Math.Max(0, elapsed.TotalMilliseconds) % durations.Sum();
         var index = 0;
-        while (index < PetSprites.FrameCount - 1 && local >= (durations?[index] ?? step))
+        while (index < PetSprites.FrameCount - 1 && local >= durations[index])
         {
-            local -= durations?[index] ?? step;
+            local -= durations[index];
             index++;
         }
 
-        var duration = durations?[index] ?? step;
+        var duration = durations[index];
         var blendFor = state == PetState.Idle ? Math.Min(duration, 160) : duration;
         var progress = Math.Clamp((local - (duration - blendFor)) / blendFor, 0, 1);
         return new(index, (index + 1) % PetSprites.FrameCount, Ease(progress));
@@ -77,7 +78,8 @@ public static class PetPixels
 }
 
 /// <summary>Blends authored poses and eases state changes from the actual last displayed pixels.</summary>
-public sealed class PetAnimationPlayer(Func<PetState, int, ReadOnlyMemory<byte>> frame, int byteCount)
+public sealed class PetAnimationPlayer(Func<PetState, int, ReadOnlyMemory<byte>> frame, int byteCount,
+    Func<PetState, TimeSpan, PetPose>? poseAt = null)
 {
     private readonly byte[] _pixels = new byte[byteCount];
     private readonly byte[] _target = new byte[byteCount];
@@ -103,7 +105,7 @@ public sealed class PetAnimationPlayer(Func<PetState, int, ReadOnlyMemory<byte>>
             _last = null;
         }
         var local = elapsed - _stateStarted;
-        var pose = PetAnimation.PoseAt(state, local);
+        var pose = (poseAt ?? PetAnimation.PoseAt)(state, local);
         var poseWeight = PetPixels.Weight(pose.Blend);
         var transition = _transitioning ? PetPixels.Weight(PetAnimation.Ease(local / PetAnimation.StateTransition)) : 256;
         var key = (state, pose.From, pose.To, poseWeight, transition);

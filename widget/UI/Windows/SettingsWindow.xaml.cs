@@ -41,7 +41,7 @@ public partial class SettingsWindow : Window
         BuildFontChoices(TextFontChoices, AppFonts.TextOptions, "TextFont", choice => _preferences.TextFont = choice);
         BuildFontChoices(NumberFontChoices, AppFonts.NumberOptions, "NumberFont", choice => _preferences.NumberFont = choice);
         ShowFonts();
-        PetPreview.Source = PetSprites.Frame(PetState.Idle, 0).Source;
+        InitializeCommunity();
         ShowPetSize();
         ShowNumbers();
         preferences.PropertyChanged += OnPreferenceChanged;
@@ -72,7 +72,7 @@ public partial class SettingsWindow : Window
     {
         foreach (var choice in (RadioButton[])[SimpleTheme, ClassicTheme, LightTheme, SystemTheme])
         {
-            if ((ThemeChoice)choice.Tag == _preferences.Theme) choice.IsChecked = true;
+            choice.IsChecked = _preferences.CommunityThemeId is null && (ThemeChoice)choice.Tag == _preferences.Theme;
         }
     }
 
@@ -111,6 +111,8 @@ public partial class SettingsWindow : Window
     private void OnPreferenceChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Preferences.Theme)) ShowTheme();
+        if (e.PropertyName == nameof(Preferences.CommunityThemeId)) { ShowTheme(); ShowCommunitySelection(); }
+        if (e.PropertyName == nameof(Preferences.PetId)) { ShowCommunitySelection(); ShowPetPreview(); }
         if (e.PropertyName is nameof(Preferences.TextFont) or nameof(Preferences.NumberFont)) ShowFonts();
         if (e.PropertyName == nameof(Preferences.PetSize)) ShowPetSize();
     }

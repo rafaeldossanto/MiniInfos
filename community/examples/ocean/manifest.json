@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "Theme",
+  "id": "community.ocean",
+  "name": "Oceano",
+  "author": "MiniInfos Community",
+  "version": "1.0.0",
+  "license": "CC0-1.0",
+  "description": "Uma paleta escura em azul e verde, pronta para servir de exemplo.",
+  "theme": {
+    "base": "Simple",
+    "colors": {
+      "CardBackground": "#14262D",
+      "CardBorder": "#35525D",
+      "PrimaryText": "#EFF9FA",
+      "DimText": "#9BB8C0",
+      "Divider": "#2B454E",
+      "Track": "#223F49",
+      "MenuBackground": "#182E36",
+      "MenuBorder": "#35525D",
+      "MenuHighlight": "#294A54",
+      "Accent": "#38C9BA",
+      "AccentText": "#102A2C"
+    }
+  }
+}

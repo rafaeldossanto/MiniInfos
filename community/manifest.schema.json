@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MiniInfos Community Package v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "enum": [
+        "Theme",
+        "Mascot",
+        "theme",
+        "mascot"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^(?!miniinfos\\.)(?!.*\\.$)[a-z0-9][a-z0-9._-]{2,79}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(?:\\.\\d+){0,2}$",
+      "maxLength": 40
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 600
+    },
+    "theme": {
+      "$ref": "#/$defs/theme"
+    },
+    "mascot": {
+      "$ref": "#/$defs/mascot"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "id",
+    "name",
+    "author",
+    "version",
+    "license"
+  ],
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "enum": [
+            "Theme",
+            "theme"
+          ]
+        }
+      },
+      "required": [
+        "theme"
+      ],
+      "not": {
+        "required": [
+          "mascot"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": [
+            "Mascot",
+            "mascot"
+          ]
+        }
+      },
+      "required": [
+        "mascot"
+      ],
+      "not": {
+        "required": [
+          "theme"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 320
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 320
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "frameDurationMs": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 60000
+        },
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15
+          }
+        },
+        "durationsMs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "integer",
+            "minimum": 16,
+            "maximum": 60000
+          }
+        },
+        "blendMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000
+        }
+      },
+      "required": [
+        "row"
+      ]
+    },
+    "anatomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "regions": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "part": {
+                "enum": [
+                  "head",
+                  "leftEye",
+                  "rightEye",
+                  "leftWing",
+                  "rightWing",
+                  "body",
+                  "feet"
+                ]
+              },
+              "x": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 320
+              },
+              "y": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 320
+              },
+              "radiusX": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 640
+              },
+              "radiusY": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 640
+              }
+            },
+            "required": [
+              "part",
+              "x",
+              "y",
+              "radiusX",
+              "radiusY"
+            ]
+          }
+        },
+        "anchors": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "idle": {
+              "$ref": "#/$defs/point"
+            },
+            "active": {
+              "$ref": "#/$defs/point"
+            },
+            "alert": {
+              "$ref": "#/$defs/point"
+            },
+            "sleep": {
+              "$ref": "#/$defs/point"
+            },
+            "protectEyes": {
+              "$ref": "#/$defs/point"
+            },
+            "heldHead": {
+              "$ref": "#/$defs/point"
+            },
+            "heldLeftWing": {
+              "$ref": "#/$defs/point"
+            },
+            "heldRightWing": {
+              "$ref": "#/$defs/point"
+            },
+            "heldFeet": {
+              "$ref": "#/$defs/point"
+            },
+            "heldBody": {
+              "$ref": "#/$defs/point"
+            }
+          }
+        },
+        "massCenter": {
+          "$ref": "#/$defs/point"
+        },
+        "upsideDownMassCenter": {
+          "$ref": "#/$defs/point"
+        }
+      },
+      "required": [
+        "regions",
+        "anchors",
+        "massCenter",
+        "upsideDownMassCenter"
+      ]
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "enum": [
+            "Simple",
+            "Light",
+            "Classic"
+          ]
+        },
+        "colors": {
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "CardBackground",
+              "CardBorder",
+              "PrimaryText",
+              "DimText",
+              "Divider",
+              "Track",
+              "Hover",
+              "Selected",
+              "SelectedBorder",
+              "IconOther",
+              "MenuBackground",
+              "MenuBorder",
+              "MenuHighlight",
+              "MenuDisabled",
+              "Accent",
+              "AccentText",
+              "Warning",
+              "Danger"
+            ]
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^#(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
+          }
+        },
+        "headerImage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*:).+\\.png$"
+        },
+        "headerHeight": {
+          "type": "number",
+          "minimum": 44,
+          "maximum": 160
+        },
+        "headerTitleSize": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 32
+        }
+      }
+    },
+    "mascot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "spriteSheet": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*:).+\\.png$"
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "idle": {
+              "$ref": "#/$defs/track"
+            },
+            "active": {
+              "$ref": "#/$defs/track"
+            },
+            "alert": {
+              "$ref": "#/$defs/track"
+            },
+            "sleep": {
+              "$ref": "#/$defs/track"
+            },
+            "protectEyes": {
+              "$ref": "#/$defs/track"
+            },
+            "heldHead": {
+              "$ref": "#/$defs/track"
+            },
+            "heldLeftWing": {
+              "$ref": "#/$defs/track"
+            },
+            "heldRightWing": {
+              "$ref": "#/$defs/track"
+            },
+            "heldFeet": {
+              "$ref": "#/$defs/track"
+            },
+            "heldBody": {
+              "$ref": "#/$defs/track"
+            }
+          },
+          "required": [
+            "idle"
+          ]
+        },
+        "anatomy": {
+          "$ref": "#/$defs/anatomy"
+        }
+      },
+      "required": [
+        "spriteSheet",
+        "columns",
+        "rows",
+        "states"
+      ]
+    }
+  }
+}

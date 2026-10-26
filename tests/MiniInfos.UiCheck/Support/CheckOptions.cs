@@ -3,7 +3,7 @@ namespace MiniInfos.UiCheck;
 internal sealed record CheckOptions(IReadOnlySet<string> Suites, string? Output, bool Quiet)
 {
     private static readonly HashSet<string> Known = new(StringComparer.OrdinalIgnoreCase)
-        { "All", "Cards", "Settings", "Themes", "Fonts", "Mascot", "Updates", "Providers" };
+        { "All", "Cards", "Settings", "Themes", "Fonts", "Mascot", "Updates", "Providers", "Community" };
 
     public bool Includes(string suite) => Suites.Contains("All") || Suites.Contains(suite);
 

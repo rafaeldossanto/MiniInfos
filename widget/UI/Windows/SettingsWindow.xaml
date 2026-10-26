@@ -70,6 +70,14 @@
                                                  Content="Windows" Tag="{x:Static settings:ThemeChoice.System}" Checked="OnThemeChosen" />
                                 </StackPanel>
                             </Border>
+                            <WrapPanel x:Name="CommunityThemeChoices" Margin="0,8,0,0" />
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <Button x:Name="AddThemePackage" Content="Adicionar tema" Style="{StaticResource SettingsButton}" Click="OnAddTheme" />
+                                <Button x:Name="ExportThemePackage" Content="Exportar" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnExportTheme" />
+                                <Button x:Name="RemoveThemePackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemoveTheme" />
+                            </StackPanel>
+                            <TextBlock x:Name="ThemePackageStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                       Text="Adicione temas da comunidade ou exporte um modelo para criar o seu." />
                         </StackPanel>
 
                         <StackPanel Margin="0,0,0,16">
@@ -139,6 +147,7 @@
                             </Canvas>
                         </Viewbox>
                     </TabItem.Tag>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
@@ -148,11 +157,23 @@
                             <Image x:Name="PetPreview" Width="144" Height="144"
                                    RenderOptions.BitmapScalingMode="HighQuality" />
                             <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="Coruja de Atena" FontSize="16" FontWeight="SemiBold" />
+                                <TextBlock x:Name="PetName" Text="Coruja de Atena" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
                                 <TextBlock Text="Uma companhia para acompanhar seus tokens."
                                            Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" />
                             </StackPanel>
                         </Grid>
+                        <WrapPanel Margin="0,0,0,4">
+                            <RadioButton x:Name="AthenaPet" Content="Coruja de Atena" GroupName="MascotChoice"
+                                         Style="{StaticResource Segment}" Checked="OnAthenaChosen" />
+                        </WrapPanel>
+                        <WrapPanel x:Name="CommunityPetChoices" Margin="0,0,0,4" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Button x:Name="AddPetPackage" Content="Adicionar mascote" Style="{StaticResource SettingsButton}" Click="OnAddPet" />
+                            <Button x:Name="ExportPetPackage" Content="Exportar" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnExportPet" />
+                            <Button x:Name="RemovePetPackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemovePet" />
+                        </StackPanel>
+                        <TextBlock x:Name="PetPackageStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12"
+                                   Text="Adicione mascotes da comunidade ou exporte um modelo com as animações e a anatomia." />
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Mostrar mascote"
                                                 Tag="Fica solto na área de trabalho, mesmo com o cartão escondido.">
                             <CheckBox x:Name="PetToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PetEnabled}" />
@@ -174,6 +195,7 @@
                         <TextBlock Text="Ela anima quando os tokens aumentam, fica atenta em 90% de uso e dorme após dois minutos sem novos tokens."
                                    Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" />
                     </StackPanel>
+                    </ScrollViewer>
                 </TabItem>
 
                 <TabItem x:Name="AboutPage" Header="Sobre" Tag="&#xE946;">
