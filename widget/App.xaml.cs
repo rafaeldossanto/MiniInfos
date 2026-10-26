@@ -18,6 +18,7 @@ public partial class App : Application
     private readonly List<(EventWaitHandle Signal, RegisteredWaitHandle Wait)> _signals = [];
     private Mutex? _singleInstance;
     private TrayIcon? _trayIcon;
+    private Updater? _updater;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -62,11 +63,18 @@ public partial class App : Application
 
         Listen(ShowSignalName, cards.BringBack);
         Listen(QuitSignalName, cards.Quit);
+
+        // A newer version shows as a line above the card; taking it reinstalls silently and reopens the app.
+        var http = GitHubReleases.CreateClient();
+        _updater = new Updater(new GitHubReleases(http), http, Version.Parse(AppInfo.Version), Updater.RunInstaller(cards.Quit));
+        _ = new UpdateBanner(cards.Main, _updater, preferences);
+        _updater.Start();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
         _appWatch.Stop();
+        _updater?.Dispose();
         _trayIcon?.Dispose();
         foreach (var (signal, wait) in _signals)
         {

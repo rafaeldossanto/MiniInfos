@@ -1,0 +1,35 @@
+# Builds the app as it ships and runs the logic tests on every push to dev or main and on every pull
+# request. The live window checks (tests/MiniInfos.UiCheck) and the mod's tests stay local: they need a
+# desktop session, real Claude and Codex logs, and Claude Code itself.
+name: Testes
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Build e testes de unidade
+    # WPF only builds on Windows.
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build do app (Release)
+        run: dotnet build widget/MiniInfos.csproj --configuration Release
+
+      - name: Testes de unidade
+        run: dotnet test tests/MiniInfos.Tests --configuration Release --logger "console;verbosity=normal"

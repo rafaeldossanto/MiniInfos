@@ -66,7 +66,20 @@ internal static partial class Program
         var opening = Stopwatch.StartNew();
         window.Show();
         PumpUntil(() => window.Opacity == 1, TimeSpan.FromSeconds(10));
-        Check(window.Opacity == 1 && opening.Elapsed < TimeSpan.FromSeconds(4), $"the card shows quickly ({opening.Elapsed.TotalSeconds:0.0} s)");
+
+        // The data folder starts empty, so the first read goes through the whole history, as on a first launch:
+        // the card must not wait for it.
+        var shownAt = opening.Elapsed;
+        var shownHeight = window.Height;
+        var firstPage = Columns(window)[0];
+        var wasReading = Find<TextBlock>(firstPage, "Reading").Visibility == Visibility.Visible;
+        Check(window.Opacity == 1 && shownAt < TimeSpan.FromSeconds(2),
+            $"the card shows at once, its first read {(wasReading ? "still going" : "already done")} ({shownAt.TotalSeconds:0.0} s)");
+        PumpUntil(() => Find<StackPanel>(firstPage, "Numbers").Visibility == Visibility.Visible, TimeSpan.FromSeconds(60));
+        Check(Find<StackPanel>(firstPage, "Numbers").Visibility == Visibility.Visible
+            && Find<TextBlock>(firstPage, "Reading").Visibility == Visibility.Collapsed,
+            $"the numbers fill in once the history is read ({opening.Elapsed.TotalSeconds:0.0} s)");
+        Check(Math.Abs(window.Height - shownHeight) < 2, $"and the card keeps its size ({shownHeight:0} -> {window.Height:0})");
         Pump(TimeSpan.FromSeconds(1));
         var handle = new WindowInteropHelper(window).Handle;
 
@@ -79,6 +92,7 @@ internal static partial class Program
         CheckSplit(window, handle, pictures);
         CheckNewWindow(cards, pictures);
         CheckSettings(cards, preferences, pictures);
+        CheckUpdateBanner(cards, preferences, pictures);
         CheckApps();
         CheckDragKeepsProportions(window, handle, "one page");
 
@@ -174,6 +188,71 @@ internal static partial class Program
         Check(cards.Extras.Count == 0 && !Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Any(),
             "closing it forgets it for good");
         Check(IconIsLit(mainIcons, 0) && !IconIsLit(mainIcons, 1), "and its page's icon goes dark in the main card");
+    }
+
+    /// <summary>A newer version, served by fakes: the line above the card, and a click that installs it.</summary>
+    private static void CheckUpdateBanner(CardSet cards, Preferences preferences, string pictures)
+    {
+        var card = cards.Main;
+        var bytes = System.Text.Encoding.ASCII.GetBytes("MZ fake installer");
+        var update = new AvailableUpdate(new Version(99, 0, 0), new Uri("https://github.com/owner/MiniInfos/releases/download/v99.0.0/MiniInfos-Setup.exe"),
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
+        string? launched = null;
+        using var updater = new Updater(new FakeSource(update), new System.Net.Http.HttpClient(new FakeDownload(bytes)),
+            new Version(AppInfo.Version), path => launched = path);
+        var banner = new UpdateBanner(card, updater, preferences);
+        card.Top = SystemParameters.WorkArea.Bottom - card.ActualHeight - 16;
+
+        Check(!banner.IsVisible, "with nothing newer, no line shows");
+        _ = updater.CheckAsync();
+        PumpUntil(() => banner.IsVisible, TimeSpan.FromSeconds(5));
+        Pump(TimeSpan.FromMilliseconds(300));
+        var message = Shown(Find<TextBlock>(banner, "Message"));
+        var button = Find<Button>(banner, "DownloadButton");
+        Check(banner.IsVisible && message == "Nova atualização disponível" && button.IsEnabled,
+            $"a newer release shows the line with its button (\"{message}\", button {(button.IsEnabled ? "on" : "off")})");
+        Check(banner.Top + banner.ActualHeight <= card.Top && Math.Abs(banner.Left - card.Left) < 1 && Math.Abs(banner.ActualWidth - card.ActualWidth) < 1,
+            $"in a window of its own, just above the card and as wide ({banner.Left:0},{banner.Top:0} {banner.ActualWidth:0} over {card.Left:0},{card.Top:0} {card.ActualWidth:0})");
+        Render(banner, System.IO.Path.Combine(pictures, "update-banner.png"));
+
+        var bottom = card.Top;
+        card.Top = SystemParameters.VirtualScreenTop;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(banner.Top >= card.Top + card.ActualHeight, "with no room above, it goes below the card");
+        card.Top = bottom;
+        Pump(TimeSpan.FromMilliseconds(300));
+
+        card.HideCard();
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(!banner.IsVisible, "it hides with the card");
+        card.BringBack();
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(banner.IsVisible, "and comes back with it");
+
+        Find<Border>(banner, "Strip").RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+        { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
+        PumpUntil(() => launched is not null, TimeSpan.FromSeconds(10));
+        Check(launched is not null && File.ReadAllBytes(launched).SequenceEqual(bytes) && updater.Stage == UpdateStage.Installing,
+            "clicking the line downloads the installer, checks it and runs it");
+        Pump(TimeSpan.FromMilliseconds(200));
+        Check(Shown(Find<TextBlock>(banner, "Message")).StartsWith("Instalando") && !Find<Button>(banner, "DownloadButton").IsEnabled,
+            "while the installer runs, the line says so and the button rests");
+        if (launched is not null) File.Delete(launched);
+        banner.Close();
+    }
+
+    /// <summary>What a text block draws, its runs included, read from its content rather than its Text property.</summary>
+    private static string Shown(TextBlock text) => new TextRange(text.ContentStart, text.ContentEnd).Text;
+
+    private sealed class FakeSource(AvailableUpdate update) : IUpdateSource
+    {
+        public Task<AvailableUpdate?> NewerThanAsync(Version current, CancellationToken cancellation) => Task.FromResult<AvailableUpdate?>(update);
+    }
+
+    private sealed class FakeDownload(byte[] body) : System.Net.Http.HttpMessageHandler
+    {
+        protected override Task<System.Net.Http.HttpResponseMessage> SendAsync(System.Net.Http.HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new System.Net.Http.ByteArrayContent(body) });
     }
 
     private static void CheckSettings(CardSet cards, Preferences preferences, string pictures)
@@ -300,7 +379,7 @@ internal static partial class Program
             "enabling the owl opens an independent transparent desktop window");
         if (pet is null) return;
         Check(Preferences.Load().PetEnabled, "the enabled choice is saved");
-        Check(Enum.GetValues<PetState>().All(state => Enumerable.Range(0, 4).All(index =>
+        Check(Enum.GetValues<PetState>().All(state => Enumerable.Range(0, PetSprites.FrameCount).All(index =>
         {
             var frame = PetSprites.Frame(state, index);
             return frame.Source.IsFrozen && !frame.Hits(new Point(0, 0)) && frame.Hits(new Point(160, 200));
@@ -313,6 +392,11 @@ internal static partial class Program
         cards.Hide();
         Check(pet.IsVisible && !cards.Main.IsVisible, "hiding the card leaves the owl available on the desktop");
         var sprite = Find<Image>(pet, "Sprite");
+        var positionBeforeBreath = new Point(pet.Left, pet.Top);
+        var beforeBreath = sprite.RenderTransform.Value;
+        Pump(TimeSpan.FromMilliseconds(200));
+        Check(sprite.RenderTransform.Value != beforeBreath && new Point(pet.Left, pet.Top) == positionBeforeBreath,
+            "the owl breathes continuously between sprite frames without moving its desktop window");
         var menu = sprite.ContextMenu!;
         menu.PlacementTarget = sprite;
         menu.IsOpen = true;

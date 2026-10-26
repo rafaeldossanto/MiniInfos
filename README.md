@@ -39,7 +39,15 @@ Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coru
 
 Ela pisca em repouso, bate as asas quando a contagem de tokens aumenta, fica atenta quando uma janela atual chega a 90% e dorme após dois minutos sem novos tokens. As reações usam as leituras que o MiniInfos já faz, inclusive com o cartão escondido; não identificam pensamento, conclusão ou erro de uma tarefa. O mascote não faz chamadas de IA nem gasta tokens. Ao sair do MiniInfos, ele fecha junto.
 
-`PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, e `PetSprites` carrega e anima a arte local. A coruja foi gerada para o MiniInfos; o atlas fica em `widget/Assets/athena-owl.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
+Em repouso, a coruja também respira e balança suavemente sem mudar a posição da janela. Cada estado usa oito poses desenhadas, interpoladas a até 60 quadros por segundo; as mudanças de estado partem da imagem que já está na tela, com uma transição de 300 ms. O relógio usa o tempo transcorrido, para não desacelerar a animação quando um quadro demora mais. O processamento para quando a janela do mascote fecha.
+
+`PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
+
+## Atualizações
+
+Quando sai uma versão nova, aparece uma linha logo acima do cartão, numa janelinha própria: **Nova atualização disponível**, com o botão **Baixar** à direita. Um clique na linha ou no botão baixa o instalador da versão, confere o SHA-256 publicado junto com ela, instala em silêncio e abre o MiniInfos de novo, já atualizado. Sem espaço acima do cartão, a linha aparece embaixo; com o cartão escondido, ela some junto. O MiniInfos procura versões novas 20 segundos depois de abrir e, depois, a cada 6 horas.
+
+`GitHubReleases` lê a última versão publicada (pelo número do repositório, então nenhum nome de conta vai no app), `Updater` baixa, confere e chama o instalador com `/RELAUNCH=1`, que reabre o app no fim, e `UpdateBanner` é a linha acima do cartão. As atualizações valem a partir da versão que traz o `Updater`: as anteriores precisam do instalador baixado à mão uma última vez.
 
 ## Junto com Claude ou Codex
 
@@ -106,6 +114,7 @@ O MiniInfos não pede login e não lê credenciais. O widget acessa somente arqu
 
 - **Lê:** os históricos do Claude Code (`~/.claude/projects`), os registros do Codex (`~/.codex/sessions`) e os arquivos que o mod escreve. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
 - **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, posição, tamanho e página da janela) e `~/.claude/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
+- **Internet:** além do `codex app-server`, só pra procurar versões novas: uma consulta à página de versões do MiniInfos no GitHub a cada 6 horas e, quando você clica pra atualizar, o download do instalador. Nada seu é enviado.
 - **Desinstalar** apaga as duas pastas.
 
 O que é distribuído não leva nada da máquina onde foi gerado: a compilação Release sai sem arquivo de símbolos e com os caminhos de build trocados por `MiniInfos`.
@@ -166,6 +175,8 @@ A lógica (livros-caixa, leitura dos registros, onde achar o `codex`, os limites
 ```bash
 dotnet test tests/MiniInfos.Tests
 ```
+
+Esses testes e o build de Release também rodam sozinhos no GitHub (`.github/workflows/tests.yml`) a cada push na `dev` ou na `main` e em cada pull request. Os dois abaixo ficam só na sua máquina, porque precisam da área de trabalho, dos registros do Claude e do Codex, e do Claude Code.
 
 A janela de verdade: abre o quadrado por uns 30 segundos, com os dados numa pasta temporária, confere bordas, bandeja, modos, ↻, páginas e o Codex, e salva um print de cada página na pasta que você indicar:
 

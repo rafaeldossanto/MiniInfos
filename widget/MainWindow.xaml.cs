@@ -47,9 +47,15 @@ public partial class MainWindow : Window
     private const double ColumnWidth = 262;
     private const double ColumnGap = 25;
 
+    /// <summary>The card's corner radius (16) less its border, for what is drawn inside it.</summary>
+    private const double ArtCornerRadius = 15;
+
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan SpinTurn = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan MinSpin = TimeSpan.FromMilliseconds(600);
+
+    /// <summary>How long a card waits for its first read before showing anyway, its page saying it is reading.</summary>
+    private static readonly TimeSpan FirstReadWait = TimeSpan.FromMilliseconds(500);
 
     /// <summary>A touchpad swipe sends a burst of sideways wheel steps: after a page turns, the rest of the burst waits this long.</summary>
     private static readonly TimeSpan SwipeSettles = TimeSpan.FromMilliseconds(450);
@@ -128,7 +134,8 @@ public partial class MainWindow : Window
         _store = store ?? CardStore.Main;
         _kind = kind;
         InitializeComponent();
-        Card.SizeChanged += (_, e) => Card.Clip = new RectangleGeometry(new Rect(e.NewSize), 16, 16);
+        // The artwork's rounded top, inside the card's 1-pixel border: the clip runs past the bottom so only the top corners round.
+        HeaderArt.SizeChanged += (_, e) => HeaderArt.Clip = new RectangleGeometry(new Rect(0, 0, e.NewSize.Width, e.NewSize.Height + ArtCornerRadius), ArtCornerRadius, ArtCornerRadius);
         ShowTitle();
         Themes.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;
@@ -159,8 +166,11 @@ public partial class MainWindow : Window
         SourceInitialized += (_, _) => HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).AddHook(OnWindowMessage);
         Loaded += async (_, _) =>
         {
-            // The card's own size, filled and at its design width, sets the proportions it keeps.
-            await RefreshAsync();
+            // The card's own size at its design width sets the proportions it keeps. A long history never
+            // read before takes seconds: the card shows after a moment at most, its page saying it is
+            // reading, and measures again once the numbers come.
+            var firstRead = RefreshAsync();
+            if (await Task.WhenAny(firstRead, Task.Delay(FirstReadWait)) != firstRead) _isMeasureDue = true;
             SizeToContent = SizeToContent.Manual;
             MeasureDesign();
 
