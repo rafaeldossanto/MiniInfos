@@ -23,9 +23,14 @@ public partial class PetWindow : Window
         PetFrame.CanvasSize * PetFrame.CanvasSize * 4);
     private readonly WriteableBitmap _surface = new(PetFrame.CanvasSize, PetFrame.CanvasSize, 96, 96, PixelFormats.Pbgra32, null);
     private readonly MatrixTransform _motion = new();
+    private readonly PetInteraction _interaction = new();
+    private Matrix _grabMatrix;
+    private Matrix _releaseMatrix;
+    private TimeSpan? _releasedAt;
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private long _lastRenderFrame = -1;
     private PetState? _state;
+    private bool _wasReaction;
 
     public PetWindow(Preferences preferences, PetActivity activity, Action showCards, Action openSettings, Action quit)
     {
@@ -55,7 +60,8 @@ public partial class PetWindow : Window
         Paint(Stopwatch.GetElapsedTime(_startedAt));
     }
 
-    public PetState State => _activity.StateAt(DateTimeOffset.UtcNow);
+    private TimeSpan Elapsed => Stopwatch.GetElapsedTime(_startedAt);
+    public PetState State => _interaction.StateAt(Elapsed) ?? _activity.StateAt(DateTimeOffset.UtcNow);
 
     public void ResizePet()
     {
@@ -82,46 +88,139 @@ public partial class PetWindow : Window
 
     private void Paint(TimeSpan elapsed)
     {
-        var state = State;
-        if (_player.Draw(state, elapsed))
+        if (_interaction.IsPressed && IsMouseCaptured) _interaction.Move(CursorScreen(), elapsed);
+        var hold = _interaction.HoldAt(elapsed);
+        var reaction = hold?.State ?? _interaction.StateAt(elapsed);
+        var state = reaction ?? _activity.StateAt(DateTimeOffset.UtcNow);
+        if (_player.Draw(state, elapsed, _interaction.AnimationRevision))
             _surface.WritePixels(new Int32Rect(0, 0, PetFrame.CanvasSize, PetFrame.CanvasSize),
                 _player.Buffer, PetFrame.CanvasSize * 4, 0);
 
-        var pose = PetAnimation.MotionAt(elapsed);
         var matrix = Matrix.Identity;
-        matrix.ScaleAt(pose.ScaleX, pose.ScaleY, Width / 2, Height * 0.94);
-        matrix.RotateAt(pose.Angle, Width / 2, Height * 0.94);
-        matrix.Translate(pose.X * Width, pose.Y * Height);
+        if (hold is { } grip)
+        {
+            var anchor = ToWindow(grip.Anchor);
+            matrix.ScaleAt(state == PetState.HeldBody ? 1.02 : 0.95, state == PetState.HeldBody ? 0.94 : 0.95, anchor.X, anchor.Y);
+            matrix.RotateAt(grip.Angle, anchor.X, anchor.Y);
+            matrix = Blend(_grabMatrix, matrix, grip.Progress);
+            if (IsLoaded)
+            {
+                var pointer = PointFromScreen(_interaction.PointerScreen);
+                var attached = matrix.Transform(anchor);
+                Left += pointer.X - attached.X;
+                Top += pointer.Y - attached.Y;
+            }
+        }
+        else
+        {
+            var pose = PetAnimation.MotionAt(elapsed);
+            matrix.ScaleAt(pose.ScaleX, pose.ScaleY, Width / 2, Height * 0.94);
+            matrix.RotateAt(pose.Angle, Width / 2, Height * 0.94);
+            matrix.Translate(pose.X * Width, pose.Y * Height);
+            if (_releasedAt is { } released)
+            {
+                var progress = (elapsed - released) / PetAnimation.StateTransition;
+                matrix = Blend(_releaseMatrix, matrix, PetAnimation.Ease(progress));
+                if (progress >= 1) _releasedAt = null;
+            }
+        }
         _motion.Matrix = matrix;
-        if (state == _state) return;
+        Sprite.Cursor = hold is null ? Cursors.Hand : Cursors.SizeAll;
+        if (state == _state && _wasReaction == (reaction is not null)) return;
         _state = state;
+        _wasReaction = reaction is not null;
         var status = state switch
         {
+            PetState.Active when reaction is not null => "Brincando com você",
             PetState.Active => "Tokens aumentaram recentemente",
             PetState.Alert => "Uma janela de uso está em 90% ou mais",
             PetState.Sleep => "Sem novos tokens há alguns minutos",
+            PetState.ProtectEyes => "Ei! Protegendo os olhinhos",
+            PetState.HeldHead => "Pendurada pela cabeça",
+            PetState.HeldLeftWing or PetState.HeldRightWing => "Pendurada pela asa",
+            PetState.HeldFeet => "De cabeça para baixo!",
+            PetState.HeldBody => "Segurando pela barriguinha",
             _ => "De olho nos seus tokens",
         };
-        Sprite.ToolTip = $"Coruja de Atena · {status}\nArraste para mover · clique duplo para mostrar o MiniInfos\nAlt + roda do mouse muda o tamanho";
+        Sprite.ToolTip = $"Coruja de Atena · {status}\nToque nos olhos · segure pela cabeça, asas ou pés para mover\nClique duplo para mostrar o MiniInfos · Alt + roda muda o tamanho";
     }
 
     private void OnPressed(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount == 2)
         {
+            _interaction.CancelPress();
+            if (IsMouseCaptured) ReleaseMouseCapture();
             _showCards();
         }
         else
         {
-            DragMove();
-            KeepOnScreen();
-            SavePosition();
+            var local = e.GetPosition(this);
+            var unposed = _motion.Matrix;
+            unposed.Invert();
+            var canvas = unposed.Transform(local);
+            canvas = new Point(canvas.X / Width * PetFrame.CanvasSize, canvas.Y / Height * PetFrame.CanvasSize);
+            _grabMatrix = _motion.Matrix;
+            _releasedAt = null;
+            _interaction.Press(canvas, PointToScreen(local), Elapsed);
+            if (!CaptureMouse()) _interaction.CancelPress();
         }
         e.Handled = true;
     }
 
+    private void OnMoved(object sender, MouseEventArgs e)
+    {
+        if (!_interaction.IsPressed) return;
+        // Global cursor coordinates remain stable while the captured window moves underneath it.
+        _interaction.Move(CursorScreen(), Elapsed);
+        e.Handled = true;
+    }
+
+    private void OnReleased(object sender, MouseButtonEventArgs e)
+    {
+        if (!_interaction.IsPressed) return;
+        var elapsed = Elapsed;
+        if (IsMouseCaptured)
+        {
+            _interaction.Move(CursorScreen(), elapsed);
+            Paint(elapsed);
+        }
+        if (_interaction.Release(elapsed)) FinishDrop(elapsed);
+        if (IsMouseCaptured) ReleaseMouseCapture();
+        Paint(elapsed);
+        e.Handled = true;
+    }
+
+    private void OnCaptureLost(object sender, MouseEventArgs e)
+    {
+        if (!_interaction.IsPressed) return;
+        var wasHeld = _interaction.IsHeld;
+        _interaction.CancelPress();
+        if (wasHeld) FinishDrop(Elapsed);
+    }
+
+    private void FinishDrop(TimeSpan now)
+    {
+        _releaseMatrix = _motion.Matrix;
+        _releasedAt = now;
+        KeepOnScreen();
+        SavePosition();
+    }
+
+    private Point ToWindow(Point canvas) => new(canvas.X / PetFrame.CanvasSize * Width, canvas.Y / PetFrame.CanvasSize * Height);
+
+    private Point CursorScreen() => GetCursorPos(out var point) ? new Point(point.X, point.Y) : PointToScreen(Mouse.GetPosition(this));
+
+    private static Matrix Blend(Matrix from, Matrix to, double amount)
+    {
+        double Lerp(double a, double b) => a + (b - a) * amount;
+        return new Matrix(Lerp(from.M11, to.M11), Lerp(from.M12, to.M12), Lerp(from.M21, to.M21), Lerp(from.M22, to.M22),
+            Lerp(from.OffsetX, to.OffsetX), Lerp(from.OffsetY, to.OffsetY));
+    }
+
     private void OnWheel(object sender, MouseWheelEventArgs e)
     {
+        if (_interaction.IsPressed) return;
         if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) return;
         _preferences.PetSize = (PetSizeChoice)Math.Clamp((int)_preferences.PetSize + Math.Sign(e.Delta), 0, 2);
         e.Handled = true;
@@ -156,6 +255,7 @@ public partial class PetWindow : Window
             return 3; // MA_NOACTIVATE
         }
         if (message != 0x0084 || _state is null) return 0; // WM_NCHITTEST
+        if (_interaction.IsPressed) { handled = true; return 1; } // Keep the drag captured, even outside the silhouette.
         var value = lParam.ToInt64();
         var local = PointFromScreen(new Point((short)(value & 0xFFFF), (short)((value >> 16) & 0xFFFF)));
         var inverse = _motion.Matrix;
@@ -180,4 +280,11 @@ public partial class PetWindow : Window
 
     [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
     private static partial int SetWindowLong(nint window, int index, int value);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct CursorPoint { public int X; public int Y; }
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetCursorPos(out CursorPoint point);
 }

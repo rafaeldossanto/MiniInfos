@@ -30,6 +30,7 @@
     <Resource Include="MiniInfos.ico" />
     <Resource Include="Assets\athena-header.png" />
     <Resource Include="Assets\athena-owl-smooth.png" />
+    <Resource Include="Assets\athena-owl-interactions.png" />
     <Resource Include="Assets\Fonts\*.ttf" />
     <Content Include="Assets\Fonts\OFL*.txt" CopyToOutputDirectory="PreserveNewest" />
     <InternalsVisibleTo Include="MiniInfos.Tests" />

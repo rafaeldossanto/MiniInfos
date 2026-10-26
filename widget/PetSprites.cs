@@ -13,10 +13,28 @@ public sealed class PetFrame
     public ImageSource Source { get; }
     public ReadOnlyMemory<byte> Pixels => _pixels.Value;
 
-    public PetFrame(BitmapSource bitmap, Rect destination)
+    private PetFrame(ImageSource source)
     {
-        Source = Draw(bitmap, destination);
+        Source = source;
         _pixels = new(() => Rasterize(Source));
+    }
+
+    public PetFrame(BitmapSource bitmap, Rect destination) : this(Draw(bitmap, destination)) { }
+
+    public PetFrame Transformed(Transform transform)
+    {
+        var drawing = new DrawingGroup();
+        using (var context = drawing.Open())
+        {
+            context.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, CanvasSize, CanvasSize));
+            context.PushTransform(transform);
+            context.DrawImage(Source, new Rect(0, 0, CanvasSize, CanvasSize));
+            context.Pop();
+        }
+        drawing.Freeze();
+        var source = new DrawingImage(drawing);
+        source.Freeze();
+        return new PetFrame(source);
     }
 
     public bool Hits(Point point)
@@ -54,29 +72,78 @@ public sealed class PetFrame
 /// <summary>The generated atlas is decoded once; frames are cropped at runtime, not copied to disk.</summary>
 public static class PetSprites
 {
-    private sealed record Slice(BitmapSource Bitmap, double FootCenter);
+    private sealed record Slice(BitmapSource Bitmap, double FootCenter, Point TopCenter);
     public const int FrameCount = 8;
     private static readonly Lazy<PetFrame[][]> Frames = new(Load);
+    private static readonly Lazy<PetFrame[][]> Interactions = new(LoadInteractions);
+    private static readonly Lazy<PetFrame[]> RightWing = new(() => Interactions.Value[2]
+        .Select(frame => frame.Transformed(new ScaleTransform(-1, 1, 160, 160))).ToArray());
+    private static readonly Lazy<PetFrame[]> Feet = new(() => Frames.Value[(int)PetState.Active]
+        .Select(frame => frame.Transformed(new RotateTransform(180, 160, 160))).ToArray());
 
-    public static PetFrame Frame(PetState state, int index) => Frames.Value[(int)state][index % FrameCount];
+    public static PetFrame Frame(PetState state, int index)
+    {
+        var frames = state switch
+        {
+            PetState.ProtectEyes => Interactions.Value[0],
+            PetState.HeldHead => Interactions.Value[1],
+            PetState.HeldLeftWing => Interactions.Value[2],
+            PetState.HeldRightWing => RightWing.Value,
+            PetState.HeldBody => Interactions.Value[3],
+            PetState.HeldFeet => Feet.Value,
+            _ => Frames.Value[(int)state],
+        };
+        return frames[index % FrameCount];
+    }
 
     private static PetFrame[][] Load()
     {
-        var original = new BitmapImage(new Uri("pack://application:,,,/MiniInfos;component/Assets/athena-owl-smooth.png"));
-        var sheet = new FormatConvertedBitmap(original, PixelFormats.Bgra32, null, 0);
-        var cells = Enumerable.Range(0, 4).Select(row => Enumerable.Range(0, FrameCount).Select(column =>
-        {
-            var x = sheet.PixelWidth * column / FrameCount;
-            var end = sheet.PixelWidth * (column + 1) / FrameCount;
-            var y = sheet.PixelHeight * row / 4;
-            return Trim(sheet, new Int32Rect(x, y, end - x, sheet.PixelHeight * (row + 1) / 4 - y));
-        }).ToArray()).ToArray();
-        // Keep the owl's screen size when the source atlas resolution changes.
+        var cells = ReadAtlas("athena-owl-smooth.png");
         var scale = 224.0 / cells[0][0].Bitmap.PixelHeight;
-        return cells.Select(row => row.Select(slice => new PetFrame(slice.Bitmap,
-            new Rect(PetFrame.CanvasSize / 2.0 - slice.FootCenter * scale,
-                PetFrame.CanvasSize - 20 - slice.Bitmap.PixelHeight * scale,
-                slice.Bitmap.PixelWidth * scale, slice.Bitmap.PixelHeight * scale))).ToArray()).ToArray();
+        return cells.Select(row => row.Select(slice => Grounded(slice, scale)).ToArray()).ToArray();
+    }
+
+    private static PetFrame[][] LoadInteractions()
+    {
+        // The generated rows have different padding; boundaries fall in their transparent gaps.
+        int[] rows = [0, 225, 442, 687, 887];
+        int[][] columns =
+        [
+            [0, 244, 475, 690, 907, 1114, 1317, 1547, 1774],
+            [0, 236, 457, 679, 903, 1119, 1320, 1541, 1774],
+            [0, 250, 477, 697, 912, 1125, 1339, 1557, 1774],
+            [0, 244, 461, 686, 906, 1123, 1337, 1551, 1774],
+        ];
+        var cells = ReadAtlas("athena-owl-interactions.png", rows, columns);
+        var scale = 224.0 / cells[0][0].Bitmap.PixelHeight;
+        return cells.Select((row, index) => row.Select(slice =>
+        {
+            if (index == 0) return Grounded(slice, scale);
+            var state = index == 1 ? PetState.HeldHead : index == 2 ? PetState.HeldLeftWing : PetState.HeldBody;
+            var pivot = index == 3 ? new Point(slice.FootCenter, slice.Bitmap.PixelHeight * 0.63) : slice.TopCenter;
+            var target = PetInteraction.AnchorFor(state);
+            return new PetFrame(slice.Bitmap, new Rect(target.X - pivot.X * scale, target.Y - pivot.Y * scale,
+                slice.Bitmap.PixelWidth * scale, slice.Bitmap.PixelHeight * scale));
+        }).ToArray()).ToArray();
+    }
+
+    private static PetFrame Grounded(Slice slice, double scale) => new(slice.Bitmap,
+        new Rect(PetFrame.CanvasSize / 2.0 - slice.FootCenter * scale,
+            PetFrame.CanvasSize - 20 - slice.Bitmap.PixelHeight * scale,
+            slice.Bitmap.PixelWidth * scale, slice.Bitmap.PixelHeight * scale));
+
+    private static Slice[][] ReadAtlas(string name, int[]? rows = null, int[][]? columns = null)
+    {
+        var original = new BitmapImage(new Uri($"pack://application:,,,/MiniInfos;component/Assets/{name}"));
+        var sheet = new FormatConvertedBitmap(original, PixelFormats.Bgra32, null, 0);
+        return Enumerable.Range(0, 4).Select(row => Enumerable.Range(0, FrameCount).Select(column =>
+        {
+            var x = columns?[row][column] ?? sheet.PixelWidth * column / FrameCount;
+            var end = columns?[row][column + 1] ?? sheet.PixelWidth * (column + 1) / FrameCount;
+            var y = rows?[row] ?? sheet.PixelHeight * row / 4;
+            var bottom = rows?[row + 1] ?? sheet.PixelHeight * (row + 1) / 4;
+            return Trim(sheet, new Int32Rect(x, y, end - x, bottom - y));
+        }).ToArray()).ToArray();
     }
 
     private static Slice Trim(BitmapSource sheet, Int32Rect cell)
@@ -105,8 +172,18 @@ public static class PetSprites
             weight += alpha;
         }
         var footCenter = weight > 0 ? weightedX / weight : (left + right) / 2.0;
+        double topX = 0, topY = 0, topWeight = 0;
+        for (var y = top; y < Math.Min(bottom, top + 14); y++)
+        for (var x = left; x < right; x++)
+        {
+            var alpha = pixels[y * stride + x * 4 + 3];
+            if (alpha < 128) continue;
+            topX += (x + 0.5) * alpha; topY += (y + 0.5) * alpha; topWeight += alpha;
+        }
+        var topCenter = topWeight > 0 ? new Point(topX / topWeight - left, topY / topWeight - top)
+            : new Point((right - left) / 2.0, 0);
         var bitmap = new CroppedBitmap(sheet, new Int32Rect(cell.X + left, cell.Y + top, right - left, bottom - top));
         bitmap.Freeze();
-        return new Slice(bitmap, footCenter - left);
+        return new Slice(bitmap, footCenter - left, topCenter);
     }
 }

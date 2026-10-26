@@ -6,9 +6,10 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False"
         FontFamily="{DynamicResource AppFont}" Foreground="{DynamicResource PrimaryText}"
-        MouseLeftButtonDown="OnPressed" PreviewMouseWheel="OnWheel">
+        MouseLeftButtonDown="OnPressed" MouseLeftButtonUp="OnReleased" MouseMove="OnMoved"
+        LostMouseCapture="OnCaptureLost" PreviewMouseWheel="OnWheel">
     <Image x:Name="Sprite" Stretch="Uniform" Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality"
-           AutomationProperties.Name="Coruja de Atena. Arraste para mover. Clique duas vezes para mostrar o MiniInfos.">
+           AutomationProperties.Name="Coruja de Atena. Toque nos olhos para brincar. Segure pela cabeça, asas ou pés para mover. Clique duas vezes para mostrar o MiniInfos.">
         <Image.ContextMenu>
             <local:CardContextMenu>
                 <MenuItem Header="Mostrar MiniInfos" Click="OnShowCards" />

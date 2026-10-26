@@ -5,7 +5,11 @@ namespace MiniInfos;
 [JsonConverter(typeof(JsonStringEnumConverter<PetSizeChoice>))]
 public enum PetSizeChoice { Small, Medium, Large }
 
-public enum PetState { Idle, Active, Alert, Sleep }
+public enum PetState
+{
+    Idle, Active, Alert, Sleep,
+    ProtectEyes, HeldHead, HeldLeftWing, HeldRightWing, HeldFeet, HeldBody,
+}
 
 /// <summary>Only observable usage, without inferring whether the agent is thinking or has finished.</summary>
 public sealed record PetUsage(string Id, long Total, double? LimitPercent)

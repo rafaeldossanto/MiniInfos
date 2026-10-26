@@ -57,6 +57,18 @@ public sealed class PetAnimationTests
     }
 
     [Fact]
+    public void ReplayingTheSameInteractionStartsAtThePixelsAlreadyOnScreen()
+    {
+        var frames = Enumerable.Range(0, PetSprites.FrameCount).Select(index => new byte[] { (byte)(index * 20), 40, 100, 255 }).ToArray();
+        var player = new PetAnimationPlayer((_, index) => frames[index], 4);
+        player.Draw(PetState.ProtectEyes, TimeSpan.Zero, 1);
+        player.Draw(PetState.ProtectEyes, TimeSpan.FromMilliseconds(650), 1);
+        var before = player.Pixels.ToArray();
+        player.Draw(PetState.ProtectEyes, TimeSpan.FromMilliseconds(650), 2);
+        Assert.Equal(before, player.Pixels.ToArray());
+    }
+
+    [Fact]
     public void RestingBreathMovesBetweenSpriteKeysAndRemainsSubtle()
     {
         var first = PetAnimation.MotionAt(TimeSpan.Zero);

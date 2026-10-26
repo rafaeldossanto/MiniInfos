@@ -11,6 +11,7 @@ public static class PetAnimation
     public static readonly TimeSpan StateTransition = TimeSpan.FromMilliseconds(300);
     private static readonly int[] IdleDurations = [3500, 260, 240, 95, 55, 95, 360, 395];
     private static readonly int[] ActiveDurations = [130, 100, 90, 90, 110, 100, 110, 150];
+    private static readonly int[] ProtectionDurations = [90, 100, 110, 180, 300, 200, 180, 290];
 
     public static PetPose PoseAt(PetState state, TimeSpan elapsed)
     {
@@ -18,6 +19,7 @@ public static class PetAnimation
         {
             PetState.Idle => IdleDurations,
             PetState.Active => ActiveDurations,
+            PetState.ProtectEyes => ProtectionDurations,
             _ => null,
         };
         var step = state == PetState.Sleep ? 450 : 260;
@@ -81,6 +83,7 @@ public sealed class PetAnimationPlayer(Func<PetState, int, ReadOnlyMemory<byte>>
     private readonly byte[] _target = new byte[byteCount];
     private readonly byte[] _previous = new byte[byteCount];
     private PetState? _state;
+    private int _revision;
     private TimeSpan _stateStarted;
     private (PetState State, int From, int To, int Pose, int Transition)? _last;
     private bool _transitioning;
@@ -88,13 +91,14 @@ public sealed class PetAnimationPlayer(Func<PetState, int, ReadOnlyMemory<byte>>
     public ReadOnlyMemory<byte> Pixels => _pixels;
     internal byte[] Buffer => _pixels;
 
-    public bool Draw(PetState state, TimeSpan elapsed)
+    public bool Draw(PetState state, TimeSpan elapsed, int revision = 0)
     {
-        if (_state != state)
+        if (_state != state || _revision != revision)
         {
             _transitioning = _state is not null;
             if (_transitioning) _pixels.CopyTo(_previous, 0);
             _state = state;
+            _revision = revision;
             _stateStarted = elapsed;
             _last = null;
         }

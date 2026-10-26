@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Interop;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -397,6 +398,7 @@ internal static partial class Program
         Pump(TimeSpan.FromMilliseconds(200));
         Check(sprite.RenderTransform.Value != beforeBreath && new Point(pet.Left, pet.Top) == positionBeforeBreath,
             "the owl breathes continuously between sprite frames without moving its desktop window");
+        CheckPetInteractions(pet, pictures);
         var menu = sprite.ContextMenu!;
         menu.PlacementTarget = sprite;
         menu.IsOpen = true;
@@ -427,6 +429,63 @@ internal static partial class Program
         preferences.IsTopmost = true;
         Find<CheckBox>(settings, "PetToggle").IsChecked = false;
         Find<RadioButton>(settings, "MediumPet").IsChecked = true;
+    }
+
+    private static void CheckPetInteractions(PetWindow pet, string pictures)
+    {
+        var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var interaction = (PetInteraction)typeof(PetWindow).GetField("_interaction", flags)!.GetValue(pet)!;
+        var started = (long)typeof(PetWindow).GetField("_startedAt", flags)!.GetValue(pet)!;
+        var sprite = Find<Image>(pet, "Sprite");
+        TimeSpan Now() => Stopwatch.GetElapsedTime(started);
+        void Press(Point canvas)
+        {
+            var local = new Point(canvas.X / PetFrame.CanvasSize * pet.Width, canvas.Y / PetFrame.CanvasSize * pet.Height);
+            var screen = pet.PointToScreen(sprite.RenderTransform.Transform(local));
+            typeof(PetWindow).GetField("_grabMatrix", flags)!.SetValue(pet, sprite.RenderTransform.Value);
+            typeof(PetWindow).GetField("_releasedAt", flags)!.SetValue(pet, null);
+            interaction.Press(canvas, screen, Now());
+        }
+        void Release() => pet.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
+            { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
+
+        pet.Left = SystemParameters.WorkArea.Left + 120;
+        pet.Top = SystemParameters.WorkArea.Top + 100;
+        foreach (var x in new[] { 130, 192 })
+        {
+            Press(new Point(x, 194));
+            Release();
+            Check(pet.State == PetState.ProtectEyes, $"a quick poke in the {(x == 130 ? "left" : "right")} eye raises the protective wings");
+            Pump(TimeSpan.FromMilliseconds(500));
+            Render(pet, System.IO.Path.Combine(pictures, $"pet-poked-{x}.png"));
+        }
+
+        foreach (var (part, expected, name) in new[]
+        {
+            (new Point(160, 100), PetState.HeldHead, "head"),
+            (new Point(90, 245), PetState.HeldLeftWing, "left-wing"),
+            (new Point(230, 245), PetState.HeldRightWing, "right-wing"),
+            (new Point(144, 292), PetState.HeldFeet, "feet"),
+            (new Point(160, 250), PetState.HeldBody, "body"),
+        })
+        {
+            Press(part);
+            interaction.Move(interaction.PointerScreen + new Vector(30, 5), Now());
+            Pump(TimeSpan.FromMilliseconds(420));
+            var hold = interaction.HoldAt(Now());
+            Check(pet.State == expected && hold is not null, $"grabbing the {name} selects its hanging pose");
+            if (hold is { } grip)
+            {
+                var local = new Point(grip.Anchor.X / PetFrame.CanvasSize * pet.Width, grip.Anchor.Y / PetFrame.CanvasSize * pet.Height);
+                var anchor = pet.PointToScreen(sprite.RenderTransform.Transform(local));
+                Check((anchor - interaction.PointerScreen).Length < 2, "the grabbed part stays attached to the cursor as the pose changes");
+            }
+            Render(pet, System.IO.Path.Combine(pictures, $"pet-held-{name}.png"));
+            Release();
+            Check(!interaction.IsPressed && !interaction.IsHeld && (int)pet.State < (int)PetState.ProtectEyes,
+                "releasing returns to the observed usage state");
+            Pump(TimeSpan.FromMilliseconds(350));
+        }
     }
 
     private static void CheckFonts(CardSet cards, Preferences preferences, SettingsWindow settings, string pictures)
