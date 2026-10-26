@@ -60,9 +60,11 @@ public sealed class ClaudeUsageLedger
         }
     }
 
-    private void ReadFile(string path)
+    private void ReadFile(string path, long length)
     {
         var offset = _offsets.GetValueOrDefault(path);
+        if (offset == length) return;
+
         var next = JsonlTail.Read(path, offset, Record);
         if (next == offset) return;
 

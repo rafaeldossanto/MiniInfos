@@ -77,9 +77,11 @@ public sealed class CodexUsageLedger
         }
     }
 
-    private void ReadFile(string path)
+    private void ReadFile(string path, long length)
     {
         var known = _cursors.GetValueOrDefault(path) ?? new Cursor();
+        if (known.Offset == length) return;
+
         var id = known.SessionId ?? SessionKey(path);
         var cursor = Rebase(known with { SessionId = id });
         var next = JsonlTail.Read(

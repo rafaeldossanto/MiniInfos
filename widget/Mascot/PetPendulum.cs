@@ -11,6 +11,7 @@ public sealed class PetPendulum
     private const double StepSeconds = 1.0 / 240;
     private Point _pointer;
     private Vector _pointerVelocity;
+    private Vector _acceleration;
     private TimeSpan _time;
     private double _screenScale;
     private double _angle;
@@ -22,6 +23,7 @@ public sealed class PetPendulum
     {
         _pointer = pointer;
         _pointerVelocity = default;
+        _acceleration = default;
         _time = now;
         _screenScale = double.IsFinite(screenScale) && screenScale > 0 ? screenScale : 0.5;
         _angle = _angularVelocity = 0;
@@ -31,6 +33,7 @@ public sealed class PetPendulum
     {
         var elapsed = (now - _time).TotalSeconds;
         if (elapsed <= 0 || !double.IsFinite(pointer.X) || !double.IsFinite(pointer.Y)) return Angle;
+        var previousAcceleration = _acceleration;
         var acceleration = new Vector();
         if (elapsed <= 0.25)
         {
@@ -38,9 +41,14 @@ public sealed class PetPendulum
             var smoothed = _pointerVelocity + (velocity - _pointerVelocity) * (1 - Math.Exp(-elapsed / 0.035));
             acceleration = (smoothed - _pointerVelocity) / elapsed;
             if (acceleration.Length > 80000) acceleration *= 80000 / acceleration.Length;
+            _acceleration += (acceleration - _acceleration) * (1 - Math.Exp(-elapsed / 0.022));
             _pointerVelocity = smoothed;
         }
-        else _pointerVelocity = default; // A suspended UI must not turn a cursor jump into an explosive impulse.
+        else
+        {
+            _pointerVelocity = _acceleration = previousAcceleration = default;
+            // A suspended UI must not turn a cursor jump into an explosive impulse.
+        }
         _time = now;
         _pointer = pointer;
 
@@ -48,9 +56,11 @@ public sealed class PetPendulum
         var steps = Math.Max(1, (int)Math.Ceiling(duration / StepSeconds));
         var dt = duration / steps;
         var inertia = massOffset.LengthSquared + GyrationRadius * GyrationRadius;
-        var force = new Vector(-acceleration.X, Gravity - acceleration.Y);
         for (var step = 0; step < steps; step++)
         {
+            // Smooth the force itself and interpolate it within the frame, rather than changing torque in jumps.
+            var input = previousAcceleration + (_acceleration - previousAcceleration) * ((step + 0.5) / steps);
+            var force = new Vector(-input.X, Gravity - input.Y);
             var sin = Math.Sin(_angle);
             var cos = Math.Cos(_angle);
             var mass = new Vector(massOffset.X * cos - massOffset.Y * sin, massOffset.X * sin + massOffset.Y * cos);

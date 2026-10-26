@@ -88,6 +88,25 @@ public sealed class PetPhysicsTests
     }
 
     [Fact]
+    public void InteractiveViewportKeepsTheSameSizeThroughEveryRotation()
+    {
+        var expected = new Size(484, 484);
+        foreach (var anchor in new[] { new Point(0, 0), new Point(160, 160), new Point(45, 122) })
+        for (var angle = -720; angle <= 720; angle += 15)
+        {
+            var matrix = Matrix.Identity;
+            matrix.ScaleAt(1.02, 1.02, anchor.X, anchor.Y);
+            matrix.RotateAt(angle, anchor.X, anchor.Y);
+            var viewport = PetGeometry.Around(matrix, 160, anchor);
+            Assert.Equal(expected, viewport.Bounds.Size);
+            Assert.InRange((viewport.Transform.Transform(anchor) - new Point(242, 242)).Length, 0, 0.00001);
+            var image = new Rect(0, 0, 160, 160);
+            image.Transform(viewport.Transform);
+            Assert.True(new Rect(expected).Contains(image), $"Clipped at {angle} degrees");
+        }
+    }
+
+    [Fact]
     public void ReturningFromHalfATurnDoesNotFlattenOrShrinkTheOwl()
     {
         var upsideDown = Matrix.Identity;

@@ -33,7 +33,7 @@ public partial class PetWindow : Window
     private PetPlacement? _dropPlacement;
     private TimeSpan? _releasedAt;
     private readonly long _startedAt = Stopwatch.GetTimestamp();
-    private long _lastRenderFrame = -1;
+    private readonly PetFrameClock _frameClock = new();
     private PetState? _state;
     private bool _wasReaction;
 
@@ -101,10 +101,7 @@ public partial class PetWindow : Window
 
     private void OnRendering(object? sender, EventArgs e)
     {
-        // Match display rendering, capped at 60 updates/s on high-refresh monitors.
-        var frame = (long)(((RenderingEventArgs)e).RenderingTime.TotalSeconds * 60);
-        if (frame == _lastRenderFrame) return;
-        _lastRenderFrame = frame;
+        if (!_frameClock.Tick(((RenderingEventArgs)e).RenderingTime, _interaction.IsPressed || _releasedAt is not null)) return;
         Paint(Stopwatch.GetElapsedTime(_startedAt));
     }
 
@@ -140,22 +137,31 @@ public partial class PetWindow : Window
         }
         var returning = _releasedAt is not null;
         var settled = returning && elapsed - _releasedAt!.Value >= PetAnimation.StateTransition;
-        var viewport = PetGeometry.Fit(matrix, SpriteSize, hold is not null || (returning && !settled));
+        var viewport = hold is { } holding
+            ? PetGeometry.Around(matrix, SpriteSize, ToWindow(holding.Anchor))
+            : returning && !settled
+                ? PetGeometry.Around(matrix, SpriteSize, ToWindow(new Point(160, 200)))
+                : PetGeometry.Fit(matrix, SpriteSize, rotating: false);
         matrix = viewport.Transform;
-        Width = viewport.Bounds.Width;
-        Height = viewport.Bounds.Height;
+        if (Width != viewport.Bounds.Width) Width = viewport.Bounds.Width;
+        if (Height != viewport.Bounds.Height) Height = viewport.Bounds.Height;
         if (IsLoaded && hold is { } attachedGrip)
         {
             var pointer = PointFromScreen(_interaction.PointerScreen);
             var attached = matrix.Transform(ToWindow(attachedGrip.Anchor));
             Left += pointer.X - attached.X;
             Top += pointer.Y - attached.Y;
+            // HWND positions round to whole screen pixels; keep the residual in the sprite transform.
+            var residual = PointFromScreen(_interaction.PointerScreen) - matrix.Transform(ToWindow(attachedGrip.Anchor));
+            matrix.Translate(residual.X, residual.Y);
         }
         else if (IsLoaded && returning)
         {
             var origin = PointFromScreen(_releaseOrigin);
             Left += origin.X + viewport.Bounds.X;
             Top += origin.Y + viewport.Bounds.Y;
+            var residual = PointFromScreen(_releaseOrigin) + (Vector)viewport.Bounds.TopLeft;
+            matrix.Translate(residual.X, residual.Y);
             if (settled)
             {
                 _releasedAt = null;

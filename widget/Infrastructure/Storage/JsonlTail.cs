@@ -52,20 +52,24 @@ public static class JsonlTail
     }
 
     /// <summary>Hands every JSONL file under <paramref name="root"/> to <paramref name="readFile"/>, then drops the cursors of files that are gone.</summary>
-    public static void ReadFolder<TCursor>(string root, Dictionary<string, TCursor> cursors, Action<string> readFile)
+    public static void ReadFolder<TCursor>(string root, Dictionary<string, TCursor> cursors, Action<string, long> readFile)
     {
         if (!Directory.Exists(root)) return;
         ReadFolders([root], cursors, readFile);
     }
 
     /// <summary>One scan of all sources: no source can remove another source's cursors.</summary>
-    public static void ReadFolders<TCursor>(IReadOnlyList<string> roots, Dictionary<string, TCursor> cursors, Action<string> readFile)
+    /// <param name="readFile">
+    /// Gets each file's path and its length as the listing found it, so a reader can pass over a file its cursor
+    /// already reached without opening it: most logs don't change between two scans.
+    /// </param>
+    public static void ReadFolders<TCursor>(IReadOnlyList<string> roots, Dictionary<string, TCursor> cursors, Action<string, long> readFile)
     {
-        var files = roots.SelectMany(root => SourceFiles.Files(root, "*.jsonl", recursive: true))
-            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var files = roots.SelectMany(root => SourceFiles.FileInfos(root, "*.jsonl", recursive: true))
+            .DistinctBy(file => file.FullName, StringComparer.OrdinalIgnoreCase).ToArray();
         // A full copy supplies historical deltas before a shorter, partially copied session is read.
-        foreach (var file in files.OrderByDescending(SourceFiles.Length)) readFile(file);
-        var seen = files.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in files.OrderByDescending(file => file.Length)) readFile(file.FullName, file.Length);
+        var seen = files.Select(file => file.FullName).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var gone in cursors.Keys.Where(path => !seen.Contains(path)).ToArray()) cursors.Remove(gone);
     }
 }

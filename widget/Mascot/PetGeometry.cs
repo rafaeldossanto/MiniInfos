@@ -38,4 +38,15 @@ public static class PetGeometry
         transform.Translate(-bounds.X, -bounds.Y);
         return new(transform, bounds);
     }
+
+    /// <summary>A constant canvas avoids reallocating the layered window's render surface at every rotation.</summary>
+    public static PetViewport Around(Matrix transform, double size, Point anchor)
+    {
+        // The farthest canvas corner is sqrt(2) * size from any grip, with room for the pose's small stretch.
+        var extent = Math.Ceiling(size * 3) + 4;
+        var pivot = transform.Transform(anchor);
+        var bounds = new Rect(pivot.X - extent / 2, pivot.Y - extent / 2, extent, extent);
+        transform.Translate(-bounds.X, -bounds.Y);
+        return new(transform, bounds);
+    }
 }
