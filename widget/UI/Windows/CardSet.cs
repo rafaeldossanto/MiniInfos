@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Threading;
 using MiniInfos.Infrastructure.Storage;
 using MiniInfos.Infrastructure.Windows;
 using MiniInfos.Mascot;
@@ -14,23 +15,35 @@ namespace MiniInfos.UI.Windows;
 /// </summary>
 public sealed class CardSet
 {
-    private readonly IReadOnlyList<IUsageProvider> _providers;
+    /// <summary>Apps are installed and removed rarely, and looking costs little; ↻ looks at once.</summary>
+    private static readonly TimeSpan CheckInstallsEvery = TimeSpan.FromMinutes(1);
+
+    private readonly InstalledProviders _providers;
     private readonly Preferences _preferences;
     private readonly List<MainWindow> _extras = [];
     private readonly DesktopPet _pet;
+    private readonly DispatcherTimer _installWatch = new() { Interval = CheckInstallsEvery };
 
+    /// <param name="providers">Every provider: each card pages through those whose app is installed.</param>
     public CardSet(IReadOnlyList<IUsageProvider> providers, Preferences preferences)
     {
-        _providers = providers;
+        _providers = new InstalledProviders(providers);
         _preferences = preferences;
-        Main = Adopt(new MainWindow(providers, preferences));
+        Main = Adopt(new MainWindow(_providers.Shown, preferences));
         _pet = new DesktopPet(preferences, BringBack, OpenPetSettings, Quit);
         Main.UsageRead += _pet.Observe;
-        foreach (var store in CardStore.Extras()) _extras.Add(Adopt(new MainWindow(providers, preferences, store, CardKind.Extra)));
+        foreach (var store in CardStore.Extras()) _extras.Add(Adopt(new MainWindow(_providers.Shown, preferences, store, CardKind.Extra)));
         LightOpenPages();
+
+        _providers.Changed += ShowInstalledProviders;
+        _installWatch.Tick += (_, _) => _ = CheckInstallsAsync();
+        _installWatch.Start();
     }
 
     public MainWindow Main { get; }
+
+    /// <summary>The providers with a page, in every card.</summary>
+    public IReadOnlyList<IUsageProvider> Providers => _providers.Shown;
 
     public IReadOnlyList<MainWindow> Extras => _extras;
 
@@ -64,6 +77,12 @@ public sealed class CardSet
     public Task ForceRefreshAsync() => Task.WhenAll(All.Select(card => card.ForceRefreshAsync()));
 
     /// <summary>
+    /// Looks again at which apps are installed: a page comes or goes with its app, in every card. It starts
+    /// from the cards' dispatcher, so the pages change on their thread whoever asks.
+    /// </summary>
+    public Task CheckInstallsAsync() => Main.Dispatcher.InvokeAsync(_providers.CheckAsync).Task.Unwrap();
+
+    /// <summary>
     /// Opens the settings for a card, shown first since the window stays above it. One window at a
     /// time: asked again for the same card, it comes to the front; for another, it reopens for that one.
     /// </summary>
@@ -93,6 +112,7 @@ public sealed class CardSet
     /// <summary>Quits the app with every card saved as it is, so the extras come back next time.</summary>
     public void Quit()
     {
+        _installWatch.Stop();
         Main.UsageRead -= _pet.Observe;
         _pet.Dispose();
         foreach (var card in All) card.PrepareToQuit();
@@ -110,6 +130,7 @@ public sealed class CardSet
         card.NewWindowRequested += OpenNew;
         card.QuitRequested += Quit;
         card.SettingsRequested += OpenSettings;
+        card.RefreshForced += () => _ = CheckInstallsAsync();
         card.PagesChanged += LightOpenPages;
         card.IsVisibleChanged += (_, _) => LightOpenPages();
         card.Dismissed += closed =>
@@ -122,9 +143,15 @@ public sealed class CardSet
 
     private void OpenNew(MainWindow from, string providerId)
     {
-        var card = Adopt(new MainWindow(_providers, _preferences, CardStore.NewExtra(from.SettingsForNewCard(providerId)), CardKind.Extra));
+        var card = Adopt(new MainWindow(_providers.Shown, _preferences, CardStore.NewExtra(from.SettingsForNewCard(providerId)), CardKind.Extra));
         _extras.Add(card);
         card.BringBack();
+        LightOpenPages();
+    }
+
+    private void ShowInstalledProviders()
+    {
+        foreach (var card in All) card.ShowProviders(_providers.Shown);
         LightOpenPages();
     }
 

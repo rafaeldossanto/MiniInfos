@@ -186,6 +186,64 @@ internal static partial class Program
         Check(title.Text == first, "a provider icon turns straight to its page");
     }
 
+    private static void CheckInstalls(CardSet cards, string pictures)
+    {
+        var window = cards.Main;
+        var icons = Find<StackPanel>(window, "PageIcons");
+        var installed = cards.Providers;
+
+        // However many pages there are, their icons sit in the middle of the card.
+        foreach (var count in (int[])[1, 2, 3, 5])
+        {
+            window.ShowProviders([.. Enumerable.Range(0, count).Select(page => new SampleProvider(page == 0 ? "claude" : $"sample{page}", $"Teste {page + 1}"))]);
+            Pump(TimeSpan.FromMilliseconds(300));
+            var offset = CenterOffset(window, icons);
+            Check(icons.Children.Count == count && Math.Abs(offset) < 1, $"{count} page icon(s) centered in the card ({offset:0.0} px off)");
+            if (count == 5) Render(window, System.IO.Path.Combine(pictures, "five-pages.png"));
+        }
+
+        window.ShowProviders(installed);
+        Pump(TimeSpan.FromMilliseconds(300));
+
+        // The rest uninstalls apps: only the sample ones can be.
+        if (installed is not [SampleProvider claude, SampleProvider codex]) return;
+
+        var (_, split, _, _) = OpenPageMenu(icons, 1);
+        Choose(split);
+        var splitWidth = window.Width;
+        codex.Installed = false;
+        LookAgain(cards);
+        Check(icons.Children.Count == 1 && Columns(window).Count == 1 && window.Width < splitWidth * 0.6,
+            $"an app uninstalled takes its page away, and a card split with it goes back to one page ({splitWidth:0} -> {window.Width:0})");
+        Check(Find<Button>(window, "PreviousPageButton").Visibility == Visibility.Hidden && Math.Abs(CenterOffset(window, icons)) < 1,
+            "the page left keeps its icon, centered, with no arrows");
+        Render(window, System.IO.Path.Combine(pictures, "one-page.png"));
+
+        codex.Installed = true;
+        LookAgain(cards);
+        Check(icons.Children.Count == 2 && Find<TextBlock>(Columns(window)[0], "PageTitle").Text == "Claude", "installed again, its page comes back");
+
+        claude.Installed = codex.Installed = false;
+        LookAgain(cards);
+        Check(icons.Children.Count == 2, "with no app found, every page shows");
+        claude.Installed = codex.Installed = true;
+        LookAgain(cards);
+    }
+
+    private static void LookAgain(CardSet cards)
+    {
+        var look = cards.CheckInstallsAsync();
+        PumpUntil(() => look.IsCompleted, TimeSpan.FromSeconds(5));
+        Pump(TimeSpan.FromMilliseconds(300));
+    }
+
+    /// <summary>How far the icons' middle sits from the card's, in the card's own units.</summary>
+    private static double CenterOffset(MainWindow window, FrameworkElement icons)
+    {
+        var card = Find<Border>(window, "Card");
+        return icons.TransformToAncestor(card).Transform(new Point(0, 0)).X + icons.ActualWidth / 2 - card.ActualWidth / 2;
+    }
+
     private static void CheckDragKeepsProportions(MainWindow window, IntPtr handle, string when)
     {
         var rect = WindowRect(handle);

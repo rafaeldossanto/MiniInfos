@@ -68,7 +68,7 @@ public partial class MainWindow : Window
     /// <summary>A touchpad swipe sends a burst of sideways wheel steps: after a page turns, the rest of the burst waits this long.</summary>
     private static readonly TimeSpan SwipeSettles = TimeSpan.FromMilliseconds(450);
 
-    private readonly IReadOnlyList<IUsageProvider> _providers;
+    private IReadOnlyList<IUsageProvider> _providers;
     private readonly CardStore _store;
     private readonly CardKind _kind;
     private readonly DispatcherTimer _timer = new() { Interval = RefreshEvery };
@@ -111,6 +111,9 @@ public partial class MainWindow : Window
     /// <summary>The card switched between Resumido and Detalhado.</summary>
     public event Action? ViewChanged;
 
+    /// <summary>↻ or "Atualizar agora": whoever holds the cards may look again at which apps are installed.</summary>
+    public event Action? RefreshForced;
+
     /// <summary>Whole numbers rolling up (Detalhado), or the short 1,4B form (Resumido); set, it flips the card's own switch.</summary>
     public bool IsDetailed
     {
@@ -129,6 +132,24 @@ public partial class MainWindow : Window
     {
         _pagesElsewhere = pages;
         UpdatePageIcons();
+    }
+
+    /// <summary>
+    /// The providers to page through, as apps are installed or removed: the pages on screen stay while
+    /// their providers do, and a card left with none of its own shows the first page. Nothing is saved
+    /// here: the saved pages change only when the card next saves itself.
+    /// </summary>
+    public void ShowProviders(IReadOnlyList<IUsageProvider> providers)
+    {
+        if (providers.Count == 0) throw new ArgumentException("The card needs a provider to show.", nameof(providers));
+
+        var before = ShownProviders();
+        _providers = providers;
+        var kept = before.Select(provider => IndexOf(provider.Id)).Where(page => page >= 0).ToArray();
+        _selection = PageSelection.Restore(kept.Length > 0 ? kept[0] : -1, kept.Length > 1 ? kept[1] : -1, providers.Count);
+        _pagesElsewhere = new HashSet<int>();
+        BuildPageIcons();
+        ShowSelection(before);
     }
 
     /// <param name="providers">One page each, in this order.</param>
@@ -280,6 +301,7 @@ public partial class MainWindow : Window
     {
         if (!RefreshButton.IsEnabled) return;
 
+        RefreshForced?.Invoke();
         RefreshButton.IsEnabled = false;
         RefreshSpin.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, SpinTurn) { RepeatBehavior = RepeatBehavior.Forever });
         var startedAt = Stopwatch.GetTimestamp();
@@ -313,13 +335,21 @@ public partial class MainWindow : Window
 
     private async Task RefreshNowAsync(bool force)
     {
-        var now = DateTimeOffset.Now;
-        var shown = _selection;
+        IReadOnlyList<IUsageProvider> providers;
+        UsagePage[] pages;
+        DateTimeOffset now;
+        do
+        {
+            providers = _providers;
+            now = DateTimeOffset.Now;
+            var shown = _selection;
 
-        // Every provider reads, so each ledger keeps up with its logs; the pages on screen alone may
-        // pay for costlier reads, and only they are forced.
-        var pages = await Task.WhenAll(_providers.Select((provider, index) =>
-            provider.ReadAsync(now, isShown: shown.Shows(index), force: force && shown.Shows(index))));
+            // Every provider with a page reads, so each ledger keeps up with its logs; the pages on screen
+            // alone may pay for costlier reads, and only they are forced.
+            pages = await Task.WhenAll(providers.Select((provider, index) =>
+                provider.ReadAsync(now, isShown: shown.Shows(index), force: force && shown.Shows(index))));
+        }
+        while (providers != _providers); // An app came or went meanwhile: the new set reads.
 
         for (var index = 0; index < pages.Length; index++)
         {
@@ -329,7 +359,7 @@ public partial class MainWindow : Window
         }
 
         Show(pages, now);
-        UsageRead?.Invoke(pages.Select((page, index) => PetUsage.Of(_providers[index].Id, page, now)).ToArray(), now);
+        UsageRead?.Invoke(pages.Select((page, index) => PetUsage.Of(providers[index].Id, page, now)).ToArray(), now);
     }
 
     /// <summary>Draws the pages on screen, one or two.</summary>
@@ -365,19 +395,27 @@ public partial class MainWindow : Window
     {
         if (next.SameAs(_selection)) return;
 
-        var previous = _selection;
+        var before = ShownProviders();
         _selection = next;
+        ShowSelection(before);
+        SaveSettings();
+        PagesChanged?.Invoke();
+    }
+
+    /// <summary>Lays out the pages now selected: the columns whose provider changed start their counts over.</summary>
+    private void ShowSelection(IReadOnlyList<IUsageProvider> before)
+    {
         LayOutColumns();
         for (var column = 0; column < _columns.Count; column++)
         {
-            if (column >= previous.Shown.Count || previous.Shown[column] != next.Shown[column]) _columns[column].Restart();
+            if (column >= before.Count || before[column] != _providers[_selection.Shown[column]]) _columns[column].Restart();
         }
 
         UpdatePageIcons();
-        SaveSettings();
-        PagesChanged?.Invoke();
         _ = RefreshAsync();
     }
+
+    private IUsageProvider[] ShownProviders() => [.. _selection.Shown.Select(page => _providers[page])];
 
     /// <summary>
     /// One column per page on screen, a line between them, and the card as wide as they need. A card
@@ -396,7 +434,7 @@ public partial class MainWindow : Window
             Columns.Children.Add(_columns[column]);
         }
 
-        Pager.Visibility = _providers.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        // Hidden, never collapsed: with the arrows' room on both sides, the icons stay centered in the card however many there are.
         PreviousPageButton.Visibility = NextPageButton.Visibility = _selection.CanTurn ? Visibility.Visible : Visibility.Hidden;
 
         var scale = _designHeight > 0 ? Width / _designWidth : 1;

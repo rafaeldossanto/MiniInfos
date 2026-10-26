@@ -4,6 +4,11 @@ namespace MiniInfos.UiCheck;
 internal sealed class SampleProvider(string id, string title) : IUsageProvider
 {
     public string Id => id;
+
+    /// <summary>Whether its app counts as installed: a check sets it, then has the cards look again.</summary>
+    public bool Installed { get; set; } = true;
+
+    public bool IsInstalled() => Installed;
     public bool IsInUse() => true;
     public void Flush() { }
 

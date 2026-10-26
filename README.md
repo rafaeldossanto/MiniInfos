@@ -2,6 +2,8 @@
 
 Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para Claude e outra para Codex (GPT). Pra trocar de página: as setinhas ou os ícones das IAs no rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. Os ícones são monocromáticos, com o selecionado branco e os demais cinza. A página escolhida fica salva.
 
+Cada página só aparece com o app dela instalado no PC: o app da Microsoft Store, o comando no terminal (`claude`, `codex`), a extensão no VS Code (ou Cursor, Windsurf) ou o app aberto. Desinstalado, o ícone some em até um minuto, ou na hora com ↻, e volta do mesmo jeito quando o app é instalado de novo. A pasta de dados não conta, porque ela fica no PC depois de desinstalar. Com um app só, o ícone dele continua no rodapé; se nenhum for encontrado, aparecem as duas páginas. Os ícones ficam sempre no centro do cartão, quantos forem.
+
 Botão direito num ícone, **Abrir em**, como no app do Claude:
 
 - **Visualização dividida:** o quadrado mostra as duas páginas lado a lado, com os dois ícones acesos, e fica com o dobro da largura. Cada coluna diz quando os seus limites foram atualizados, e o ↻ atualiza as duas. **Visualização única** (no mesmo menu), ou um clique simples num ícone, volta pra uma página.
@@ -95,7 +97,7 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 
 | Pasta em `widget/` | Responsabilidade |
 | --- | --- |
-| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders` e modelos de tokens, limites e páginas compartilhados. |
+| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders`, escolha das páginas instaladas `InstalledProviders` e modelos de tokens, limites e páginas compartilhados. |
 | `Providers/Claude/` | Históricos, feeds, títulos, caminhos e detecção do Claude. |
 | `Providers/Codex/` | Históricos, conta, app-server, caminhos e detecção do Codex. |
 | `Sources/` | Descoberta e catálogo das pastas de registros, com os modelos de entrada e resultado da busca. |
@@ -108,13 +110,13 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `UI/Themes/` | Dicionários de temas, `ThemeManager` e tipografia compartilhada. |
 | `UI/Styles/` e `UI/Icons/` | Estilos e símbolos vetoriais compartilhados. |
 | `Infrastructure/Storage/` | Caminhos do aplicativo, arquivos JSON, livros-caixa, leitura incremental e acesso defensivo aos arquivos. |
-| `Infrastructure/Windows/` | Processos, atalhos, bandeja e geometria de janelas do Windows. |
+| `Infrastructure/Windows/` | Processos, comandos no PATH, apps instalados, atalhos, bandeja e geometria de janelas do Windows. |
 | `Infrastructure/AppInfo.cs` | Versão do aplicativo obtida do assembly. |
 | `Assets/` | Ícone do aplicativo, ilustrações, sprites, fontes e respectivas licenças. |
 
 Os namespaces acompanham as pastas (`MiniInfos.Providers.Claude`, por exemplo). `tests/MiniInfos.Tests` espelha esses grupos, e `Support` contém o suporte compartilhado aos testes. Contratos usados por mais de um provedor ficam fora das implementações específicas; a persistência compartilhada fica em infraestrutura. As convenções para futuras mudanças também estão no `AGENTS.md` do projeto.
 
-Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
+Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`, e diz onde a instalação dele aparece num `AppFootprint` (pacote da Store, comando, extensão, arquivo, processo), que `InstalledApps` confere; `InstalledProviders` deixa no cartão só os instalados, olhando de novo a cada minuto e no ↻; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
 
 Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0 e OpenAI da 11.15.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
 
@@ -145,7 +147,7 @@ Os limites são da conta, não de um chat. Cada chat guarda a leitura da última
 
 Os tokens do Claude ficam num livro-caixa próprio em `%LOCALAPPDATA%\MiniInfos\ledger.json`. Assim o total não cai quando o Claude Code apaga históricos antigos. Cada resposta conta uma vez só, pelo id da mensagem, e o total soma entrada, saída, cache lido e cache escrito.
 
-Os tokens locais do Codex ficam em `%LOCALAPPDATA%\MiniInfos\codex-ledger.json`. Cada evento de uso registra o acumulado da sessão; o MiniInfos acrescenta somente a diferença em relação à maior leitura daquela sessão, identificada pelo ID nos metadados ou pelo UUID do arquivo. Mover, arquivar ou copiar a mesma sessão para outra fonte não soma seus tokens novamente. O histórico das versões anteriores é preservado. O total segue o `total_tokens` do Codex, inclusive nos eventos (como os de compactação) que trazem só o total, sem entrada e saída. O cache já está incluído nos tokens de entrada do Codex, então não é somado duas vezes. Os percentuais são da conta e podem abranger atividade fora desta máquina; por isso os tokens locais nas janelas não são uma conversão direta desses percentuais. Sem `codex` instalado ou sem autenticação ativa, a página continua exibindo os tokens locais e deixa os limites indisponíveis.
+Os tokens locais do Codex ficam em `%LOCALAPPDATA%\MiniInfos\codex-ledger.json`. Cada evento de uso registra o acumulado da sessão; o MiniInfos acrescenta somente a diferença em relação à maior leitura daquela sessão, identificada pelo ID nos metadados ou pelo UUID do arquivo. Mover, arquivar ou copiar a mesma sessão para outra fonte não soma seus tokens novamente. O histórico das versões anteriores é preservado. O total segue o `total_tokens` do Codex, inclusive nos eventos (como os de compactação) que trazem só o total, sem entrada e saída. O cache já está incluído nos tokens de entrada do Codex, então não é somado duas vezes. Os percentuais são da conta e podem abranger atividade fora desta máquina; por isso os tokens locais nas janelas não são uma conversão direta desses percentuais. Sem autenticação ativa (ou sem o `codex`, quando nenhum app é encontrado e as duas páginas aparecem), a página continua exibindo os tokens locais e deixa os limites indisponíveis.
 
 ## Privacidade
 

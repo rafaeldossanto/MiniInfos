@@ -4,7 +4,7 @@
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
         Claude = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Claude.'; Suite = '' }
         Codex = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Codex.'; Suite = '' }
-        Providers = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.PlanWindowTests|FullyQualifiedName~MiniInfos.Tests.Providers.TokenSummaryTests'; Suite = '' }
+        Providers = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.PlanWindowTests|FullyQualifiedName~MiniInfos.Tests.Providers.TokenSummaryTests|FullyQualifiedName~MiniInfos.Tests.Providers.InstalledProvidersTests'; Suite = '' }
         Integration = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.'; Suite = 'Providers' }
         Sources = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Sources.'; Suite = '' }
         Settings = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Settings.'; Suite = 'Settings' }

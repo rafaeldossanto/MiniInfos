@@ -38,6 +38,14 @@ public static partial class DesktopApps
         }
     }
 
+    /// <summary>Whether any process of this name runs, with a window or without.</summary>
+    public static bool IsRunning(string processName)
+    {
+        var processes = Process.GetProcessesByName(processName);
+        foreach (var process in processes) process.Dispose();
+        return processes.Length > 0;
+    }
+
     public static IReadOnlyList<string> ExecutablePaths(params string[] names) => ExecutablePaths(false, names);
 
     public static IReadOnlyList<string> ExecutablePaths(bool withoutWindow, params string[] names)

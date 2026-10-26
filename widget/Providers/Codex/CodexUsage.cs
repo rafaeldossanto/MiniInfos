@@ -18,6 +18,8 @@ public sealed class CodexUsage : IUsageProvider
 
     public string Id => "codex";
 
+    public bool IsInstalled() => CodexInstall.IsPresent();
+
     public bool IsInUse() => CodexApp.IsOpen();
 
     public async Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force)
