@@ -39,6 +39,7 @@ public partial class App : Application
         base.OnStartup(e);
         var preferences = Preferences.Load();
         Themes.Follow(preferences);
+        AppFonts.Follow(preferences);
         var providers = UsageProviders.Create();
         var cards = new CardSet(providers, preferences);
         MainWindow = cards.Main;

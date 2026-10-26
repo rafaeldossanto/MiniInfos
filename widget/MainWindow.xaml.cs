@@ -126,8 +126,13 @@ public partial class MainWindow : Window
         _kind = kind;
         InitializeComponent();
         Card.SizeChanged += (_, e) => Card.Clip = new RectangleGeometry(new Rect(e.NewSize), 16, 16);
-        Themes.Changed += OnThemeChanged;
-        Closed += (_, _) => Themes.Changed -= OnThemeChanged;
+        Themes.Changed += OnAppearanceChanged;
+        AppFonts.Changed += OnAppearanceChanged;
+        Closed += (_, _) =>
+        {
+            Themes.Changed -= OnAppearanceChanged;
+            AppFonts.Changed -= OnAppearanceChanged;
+        };
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
         TopmostItem.SetBinding(MenuItem.IsCheckedProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences, Mode = BindingMode.TwoWay });
 
@@ -405,7 +410,7 @@ public partial class MainWindow : Window
         MaxHeight = _designHeight * MaxScale;
     }
 
-    private void OnThemeChanged()
+    private void OnAppearanceChanged()
     {
         if (_designHeight <= 0) return;
         var scale = Width / _designWidth;

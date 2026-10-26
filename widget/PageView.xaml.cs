@@ -27,7 +27,7 @@ public partial class PageView : UserControl
     {
         // Beside the title, how fresh the limits are: each provider is read apart.
         PageTitle.Text = page.Title;
-        Note.Text = page.Updated;
+        NumericText.Show(Note, page.Updated);
         ShowWindow(page.ShortWindow, page.TokensOrigin, now, countText, ShortLabel, ShortPercent, ShortBar, ShortDetail, _shortTokens);
         ShowWindow(page.LongWindow, page.TokensOrigin, now, countText, LongLabel, LongPercent, LongBar, LongDetail, _longTokens);
 
@@ -36,7 +36,7 @@ public partial class PageView : UserControl
         TodayBlock.ToolTip = $"{Format.Breakdown(page.Today, countText)}\n{page.TokensOrigin}";
         TotalBlock.ToolTip = $"{Format.Breakdown(page.Total, countText)}\n{page.TokensOrigin}";
 
-        ChatText.Text = page.Activity;
+        NumericText.Show(ChatText, page.Activity);
         ChatText.ToolTip = $"{page.Activity}\n{page.ActivityHint}";
     }
 
@@ -58,7 +58,7 @@ public partial class PageView : UserControl
         RollingCount used)
     {
         var length = line.Window.Length;
-        label.Text = Format.WindowLabel(length);
+        NumericText.Show(label, Format.WindowLabel(length));
         detail.ToolTip = $"{Format.Breakdown(line.Tokens, countText)}\n{tokensOrigin}";
 
         if (line.Window.Limit is not { } limit)

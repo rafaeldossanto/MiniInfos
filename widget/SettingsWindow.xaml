@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:MiniInfos"
         Title="Configurações do MiniInfos"
-        Width="520"
-        Height="340"
+        Width="600"
+        Height="500"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -51,6 +51,7 @@
                 </TabItem>
 
                 <TabItem x:Name="AppearancePage" Header="Aparência" Tag="&#xE790;">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Tema" />
@@ -68,6 +69,34 @@
                                                  Content="Windows" Tag="{x:Static local:ThemeChoice.System}" Checked="OnThemeChosen" />
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,16">
+                            <TextBlock Text="Fontes" />
+                            <TextBlock Text="Escolha a fonte dos textos e dos números."
+                                       Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,8" />
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Textos" VerticalAlignment="Center" />
+                                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
+                                    <StackPanel x:Name="TextFontChoices" Orientation="Horizontal" />
+                                </Border>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Números" VerticalAlignment="Center" />
+                                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
+                                    <StackPanel x:Name="NumberFontChoices" Orientation="Horizontal" />
+                                </Border>
+                            </Grid>
+                            <TextBlock x:Name="FontPreview" FontFamily="{DynamicResource CardFont}"
+                                       Foreground="{DynamicResource DimText}" Margin="64,8,0,0" />
                         </StackPanel>
 
                         <TextBlock Text="Este cartão" Style="{StaticResource SectionTitle}" />
@@ -91,6 +120,7 @@
                             </StackPanel>
                         </HeaderedContentControl>
                     </StackPanel>
+                    </ScrollViewer>
                 </TabItem>
 
                 <TabItem x:Name="AboutPage" Header="Sobre" Tag="&#xE946;">

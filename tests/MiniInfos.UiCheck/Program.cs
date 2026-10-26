@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -54,6 +55,7 @@ internal static partial class Program
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var preferences = Preferences.Load();
         Themes.Follow(preferences);
+        AppFonts.Follow(preferences);
         var providers = UsageProviders.Create();
         var cards = new CardSet(providers, preferences);
         var window = cards.Main;
@@ -255,6 +257,7 @@ internal static partial class Program
         Check(Preferences.Load().Theme == ThemeChoice.Classic, "the classic choice is kept for the next launch");
         Render(card, System.IO.Path.Combine(pictures, "card-classic.png"));
         Render(settings, System.IO.Path.Combine(pictures, "settings-classic.png"));
+        CheckFonts(cards, preferences, settings, pictures);
 
         var icons = Find<StackPanel>(card, "PageIcons");
         var (_, split, _, _) = OpenPageMenu(icons, 1);
@@ -283,6 +286,79 @@ internal static partial class Program
         Find<Button>(settings, "CloseButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Pump(TimeSpan.FromMilliseconds(300));
         Check(cards.Settings is null && !settings.IsVisible, "its close button closes it");
+    }
+
+    private static void CheckFonts(CardSet cards, Preferences preferences, SettingsWindow settings, string pictures)
+    {
+        var card = cards.Main;
+        foreach (var option in AppFonts.TextOptions.Concat(AppFonts.NumberOptions).DistinctBy(option => option.Choice))
+        {
+            foreach (var weight in new[] { FontWeights.Normal, FontWeights.SemiBold })
+            {
+                var typeface = new Typeface(option.Family, FontStyles.Normal, weight, FontStretches.Normal);
+                Check(typeface.TryGetGlyphTypeface(out var glyph) && glyph.FontUri.Scheme == "pack"
+                    && glyph.FamilyNames.Values.Contains(option.Name), $"{option.Name} {weight} loads from the app, without font fallback");
+            }
+        }
+
+        void ChooseFont(string panel, FontChoice choice) => Find<StackPanel>(settings, panel).Children
+            .OfType<RadioButton>().Single(button => (FontChoice)button.Tag == choice).IsChecked = true;
+
+        var (_, _, _, open) = OpenPageMenu(Find<StackPanel>(card, "PageIcons"), 1);
+        Choose(open);
+        PumpUntil(() => cards.Extras.Count == 1 && cards.Extras[0].Opacity == 1, TimeSpan.FromSeconds(10));
+        var extra = cards.Extras.Single();
+        var originalWidth = card.Width;
+        card.IsDetailed = true;
+        var combinations = new[]
+        {
+            (Name: "atual", Text: FontChoice.Manrope, Number: FontChoice.Manrope),
+            (Name: "monoespacada", Text: FontChoice.Manrope, Number: FontChoice.GeistMono),
+            (Name: "monumental", Text: FontChoice.Cinzel, Number: FontChoice.BodoniModa),
+            (Name: "digital", Text: FontChoice.ChakraPetch, Number: FontChoice.Orbitron),
+        };
+        foreach (var combination in combinations)
+        {
+            ChooseFont("TextFontChoices", combination.Text);
+            ChooseFont("NumberFontChoices", combination.Number);
+            Pump(TimeSpan.FromMilliseconds(500));
+            var page = Columns(card)[0];
+            var detail = Find<TextBlock>(page, "ShortDetail");
+            Check(card.FontFamily == AppFonts.Family(combination.Text)
+                && extra.FontFamily == card.FontFamily
+                && Find<TextBlock>(page, "TodayTokens").FontFamily == AppFonts.Family(combination.Number)
+                && Find<TextBlock>(Columns(extra)[0], "TodayTokens").FontFamily == AppFonts.Family(combination.Number),
+                $"{combination.Name}: both open cards take the chosen text and number fonts immediately");
+            Check(detail.Inlines.OfType<Run>().Any(run => run.Text.Any(char.IsDigit)
+                    && run.FontFamily == AppFonts.Family(combination.Number))
+                && detail.Inlines.OfType<Run>().Any(run => run.Text.Contains("tokens")
+                    && run.FontFamily == AppFonts.Family(combination.Text)),
+                "mixed captions keep letters and digits in their separate families");
+            var saved = Preferences.Load();
+            Check(saved.TextFont == combination.Text && saved.NumberFont == combination.Number,
+                "the two font choices are saved independently");
+            Check(Math.Abs(card.Width - originalWidth) < 1, "changing fonts preserves the card's scale");
+            Render(card, System.IO.Path.Combine(pictures, $"font-{combination.Name}.png"));
+        }
+
+        Render(settings, System.IO.Path.Combine(pictures, "settings-fonts.png"));
+        var (_, split, _, _) = OpenPageMenu(Find<StackPanel>(card, "PageIcons"), 1);
+        Choose(split);
+        Check(Columns(card).All(page => Find<TextBlock>(page, "TodayTokens").FontFamily == AppFonts.Family(FontChoice.Orbitron)),
+            "both split columns use the selected number font");
+        Render(card, System.IO.Path.Combine(pictures, "split-digital.png"));
+        Find<RadioButton>(settings, "LightTheme").IsChecked = true;
+        Pump(TimeSpan.FromMilliseconds(300));
+        Check(card.FontFamily == AppFonts.Family(FontChoice.ChakraPetch)
+            && Find<TextBlock>(Columns(card)[0], "TodayTokens").FontFamily == AppFonts.Family(FontChoice.Orbitron),
+            "changing the color theme leaves the font choices intact");
+        Find<RadioButton>(settings, "ClassicTheme").IsChecked = true;
+        var (_, _, single, _) = OpenPageMenu(Find<StackPanel>(card, "PageIcons"), 0);
+        Choose(single);
+        Find<Button>(extra, "DismissButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        ChooseFont("TextFontChoices", FontChoice.Manrope);
+        ChooseFont("NumberFontChoices", FontChoice.Manrope);
+        Pump(TimeSpan.FromMilliseconds(500));
     }
 
     private static string[] ThemeKeys(ResourceDictionary resources) => resources.Keys.Cast<object>()

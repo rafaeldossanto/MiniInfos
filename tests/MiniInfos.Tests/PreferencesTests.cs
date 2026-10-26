@@ -43,6 +43,36 @@ public sealed class PreferencesTests
     }
 
     [Fact]
+    public void ExistingPreferencesKeepTheirValuesAndDefaultToTheCurrentFonts()
+    {
+        using var folder = new TempFolder();
+        var path = folder.File("settings.json");
+        File.WriteAllText(path, """{"IsTopmost":false,"FollowsApps":false,"Theme":"Classic"}""");
+
+        var preferences = new Preferences(path);
+
+        Assert.Equal((false, false, ThemeChoice.Classic), (preferences.IsTopmost, preferences.FollowsApps, preferences.Theme));
+        Assert.Equal((FontChoice.Manrope, FontChoice.Manrope), (preferences.TextFont, preferences.NumberFont));
+    }
+
+    [Theory]
+    [InlineData(FontChoice.Manrope, FontChoice.Manrope)]
+    [InlineData(FontChoice.Manrope, FontChoice.GeistMono)]
+    [InlineData(FontChoice.Cinzel, FontChoice.BodoniModa)]
+    [InlineData(FontChoice.ChakraPetch, FontChoice.Orbitron)]
+    public void ChosenFontsSurviveAThemeChangeAndRestart(FontChoice text, FontChoice numbers)
+    {
+        using var folder = new TempFolder();
+        var path = folder.File("settings.json");
+        var preferences = new Preferences(path) { TextFont = text, NumberFont = numbers };
+        preferences.Theme = ThemeChoice.Classic;
+
+        var reloaded = new Preferences(path);
+
+        Assert.Equal((text, numbers, ThemeChoice.Classic), (reloaded.TextFont, reloaded.NumberFont, reloaded.Theme));
+    }
+
+    [Fact]
     public void TheStartupShortcutComesAndGoes()
     {
         using var folder = new TempFolder();
