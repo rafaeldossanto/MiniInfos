@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Threading;
 using MiniInfos.Community;
 using MiniInfos.Community.Catalog;
+using MiniInfos.UI.Controls;
 
 namespace MiniInfos.UI.Windows;
 
@@ -40,6 +40,13 @@ public partial class SettingsWindow
     }
 
     public void ShowCommunityPage() => Pages.SelectedItem = CommunityPage;
+
+    /// <summary>The Comunidade page on its Temas, as "Mais temas na Comunidade" in the theme library opens it.</summary>
+    public void ShowCommunityThemes()
+    {
+        CatalogThemes.IsChecked = true;
+        ShowCommunityPage();
+    }
 
     public Task RefreshCatalogAsync(bool force = true) => Dispatcher.InvokeAsync(() => LoadCatalogCoreAsync(force)).Task.Unwrap();
 
@@ -108,26 +115,18 @@ public partial class SettingsWindow
         CatalogStatus.Text = entries.Length == 0 ? "Nenhum pacote disponível nesta categoria." : "Escolha um pacote para instalar no MiniInfos.";
         foreach (var entry in entries)
         {
-            var image = new Image { Width = 128, Height = 128, Margin = new Thickness(0, 0, 0, 8) };
-            RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
-            var body = new StackPanel();
-            body.Children.Add(image);
-            body.Children.Add(new TextBlock { Text = entry.Name, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-            body.Children.Add(CatalogCaption(entry.Author));
-            body.Children.Add(CatalogCaption($"{entry.License} · v{entry.Version}"));
-            if (!string.IsNullOrWhiteSpace(entry.Description)) body.Children.Add(CatalogCaption(entry.Description));
+            var image = PackageCard.Preview();
+            var captions = new List<string> { entry.Author, $"{entry.License} · v{entry.Version}" };
+            if (!string.IsNullOrWhiteSpace(entry.Description)) captions.Add(entry.Description);
             var state = _catalogBrowser.State(entry);
             var button = new Button
             {
                 Content = state switch { CatalogInstallState.Install => "Instalar", CatalogInstallState.Update => "Atualizar", _ => "Instalado" },
                 Tag = entry.Id, IsEnabled = state != CatalogInstallState.Installed && !_catalogInstalling,
-                Style = (Style)FindResource("SettingsButton"), Margin = new Thickness(0, 12, 0, 0),
             };
-            var status = CatalogCaption("");
+            var status = PackageCard.Caption(this, "");
             button.Click += async (_, _) => await InstallCatalogEntryAsync(snapshot, entry, button, status);
-            body.Children.Add(button);
-            body.Children.Add(status);
-            var card = new Border { Style = (Style)FindResource("CatalogCard"), Child = body };
+            var card = PackageCard.Create(this, image, entry.Name, captions, button, status);
             card.Loaded += (_, _) => QueueVisibleCatalogPreviews();
             CatalogChoices.Children.Add(card);
             _pendingCatalogImages.Add((entry, image, card));
@@ -157,11 +156,6 @@ public partial class SettingsWindow
             }
         }, DispatcherPriority.Background);
     }
-
-    private TextBlock CatalogCaption(string text) => new()
-    {
-        Text = text, Style = (Style)FindResource("Caption"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
-    };
 
     private async Task LoadCatalogImageAsync(CatalogSnapshot snapshot, CatalogEntry entry, Image image, int revision, CancellationToken cancellation)
     {

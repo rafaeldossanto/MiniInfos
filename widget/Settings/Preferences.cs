@@ -18,7 +18,8 @@ public sealed record AppSettings(
     bool PetEnabled = false,
     PetSizeChoice PetSize = PetSizeChoice.Medium,
     string? CommunityThemeId = null,
-    string? PetId = null);
+    string? PetId = null,
+    IReadOnlyList<string>? RecentThemes = null);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -58,7 +59,7 @@ public sealed class Preferences : INotifyPropertyChanged
         set
         {
             var wasCustom = _settings.CommunityThemeId is not null;
-            Change(_settings with { Theme = value, CommunityThemeId = null });
+            Change(_settings with { Theme = value, CommunityThemeId = null, RecentThemes = ThemeHistory.Promote(_settings.RecentThemes, ThemeHistory.Key(value)) });
             if (wasCustom) RefreshTheme();
         }
     }
@@ -90,7 +91,28 @@ public sealed class Preferences : INotifyPropertyChanged
     public string? CommunityThemeId
     {
         get => _settings.CommunityThemeId;
-        set => Change(_settings with { CommunityThemeId = string.IsNullOrWhiteSpace(value) ? null : value });
+        set
+        {
+            var id = string.IsNullOrWhiteSpace(value) ? null : value;
+            // Choosing a community theme puts it first in the row; clearing one (removed, or a built-in chosen) changes no order.
+            Change(_settings with { CommunityThemeId = id, RecentThemes = id is null ? _settings.RecentThemes : ThemeHistory.Promote(_settings.RecentThemes, id) });
+        }
+    }
+
+    /// <summary>
+    /// Theme keys (<see cref="ThemeHistory"/>), the last chosen first. The theme in use always leads, even one
+    /// chosen before the history was kept.
+    /// </summary>
+    public IReadOnlyList<string> RecentThemes => ThemeHistory.Promote(_settings.RecentThemes ?? [], ThemeKey);
+
+    /// <summary>The theme in use, as <see cref="ThemeHistory"/> keys it.</summary>
+    public string ThemeKey => CommunityThemeId ?? ThemeHistory.Key(Theme);
+
+    /// <summary>Uses the theme a <see cref="ThemeHistory"/> key names: a built-in, or a community package's id.</summary>
+    public void UseTheme(string key)
+    {
+        if (ThemeHistory.BuiltIn(key) is { } theme) Theme = theme;
+        else CommunityThemeId = key;
     }
 
     public string? PetId

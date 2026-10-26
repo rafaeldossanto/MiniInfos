@@ -34,13 +34,18 @@
         @{ Path = 'widget/UI/Windows/PetWindow.*'; Domains = @('Mascot') }
         @{ Path = 'widget/UI/Windows/UpdateBanner.*'; Domains = @('Updates') }
         @{ Path = 'widget/UI/Windows/MascotExampleWindow.*'; Domains = @('Community', 'Mascot') }
+        @{ Path = 'widget/UI/Windows/DialogWindow.cs'; Domains = @('Themes', 'Community', 'Mascot') }
+        @{ Path = 'widget/UI/Windows/ThemeLibraryWindow.*'; Domains = @('Themes', 'Community') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot', 'Community') }
         @{ Path = 'widget/UI/Windows/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates') }
         @{ Path = 'widget/UI/Themes/AppFonts.cs'; Domains = @('Fonts') }
+        @{ Path = 'widget/UI/Themes/ThemeOption.cs'; Domains = @('Themes', 'Fonts', 'Community') }
         @{ Path = 'widget/UI/Themes/*'; Domains = @('Themes') }
         @{ Path = 'widget/UI/Controls/CardContextMenu.cs'; Domains = @('Cards', 'Themes', 'Mascot') }
+        @{ Path = 'widget/UI/Controls/PackageCard.cs'; Domains = @('Community', 'Themes') }
         @{ Path = 'widget/UI/Controls/*'; Domains = @('Cards', 'Fonts', 'Updates') }
         @{ Path = 'widget/UI/Styles/MenuStyles.xaml'; Domains = @('Cards', 'Themes', 'Mascot') }
+        @{ Path = 'widget/UI/Styles/SettingsStyles.xaml'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Community') }
         @{ Path = 'widget/UI/Styles/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates') }
         @{ Path = 'widget/UI/Icons/*'; Domains = @('Cards') }
         @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Cards', 'Updates') }
@@ -56,6 +61,7 @@
         @{ Path = 'widget/Settings/FontChoice.cs'; Domains = @('Fonts', 'Settings') }
         @{ Path = 'widget/Settings/ThemeChoice.cs'; Domains = @('Themes', 'Settings') }
         @{ Path = 'widget/Settings/CardSettings.cs'; Domains = @('Cards') }
+        @{ Path = 'widget/Settings/ThemeHistory.cs'; Domains = @('Settings', 'Themes', 'Fonts', 'Community') }
         @{ Path = 'widget/Settings/*'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates') }
         @{ Path = 'widget/Updates/*'; Domains = @('Updates') }
         @{ Path = 'widget/Infrastructure/Storage/JsonlTail.cs'; Domains = @('Storage', 'Claude', 'Codex') }

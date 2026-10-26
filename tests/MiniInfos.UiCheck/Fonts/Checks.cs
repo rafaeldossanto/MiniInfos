@@ -66,7 +66,7 @@ internal static partial class Program
         Check(Columns(card).All(page => Find<TextBlock>(page, "TodayTokens").FontFamily == AppFonts.Family(FontChoice.Orbitron)),
             "both split columns use the selected number font");
         Render(card, System.IO.Path.Combine(pictures, "split-digital.png"));
-        Find<RadioButton>(settings, "LightTheme").IsChecked = true;
+        ChooseTheme(settings, ThemeChoice.Light);
         Pump(TimeSpan.FromMilliseconds(300));
         Check(card.FontFamily == AppFonts.Family(FontChoice.ChakraPetch)
             && Find<TextBlock>(Columns(card)[0], "TodayTokens").FontFamily == AppFonts.Family(FontChoice.Orbitron),

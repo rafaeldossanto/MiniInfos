@@ -109,7 +109,7 @@ public sealed class CatalogRuntimeTests : IDisposable
     public async Task PreviewDownloadsAreFrozenCachedAndRequestedAgainOnlyAfterExpiry()
     {
         var (snapshot, _) = Snapshot();
-        var png = PackageImages.Encode(PackagePreviews.Theme(new(PackageFixture.Theme(), _folder.Path)));
+        var png = PackageImages.Encode(PackagePreviews.Theme(new InstalledPackage(PackageFixture.Theme(), _folder.Path)));
         var entry = snapshot.Index.Packages[0] with { PreviewSha256 = Hash(png) };
         snapshot = snapshot with { Index = snapshot.Index with { Packages = [entry] }, Assets = [snapshot.Assets[0], Asset(entry.Preview, png)] };
         var calls = 0;
@@ -128,7 +128,7 @@ public sealed class CatalogRuntimeTests : IDisposable
     public async Task ConcurrentCardsSharingArtworkDownloadItOnlyOnce()
     {
         var (snapshot, _) = Snapshot();
-        var png = PackageImages.Encode(PackagePreviews.Theme(new(PackageFixture.Theme(), _folder.Path)));
+        var png = PackageImages.Encode(PackagePreviews.Theme(new InstalledPackage(PackageFixture.Theme(), _folder.Path)));
         var entry = snapshot.Index.Packages[0] with { PreviewSha256 = Hash(png) };
         snapshot = snapshot with { Index = snapshot.Index with { Packages = [entry] }, Assets = [Asset(entry.Preview, png)] };
         var calls = 0;

@@ -43,7 +43,12 @@ public static class PackagePreviews
     {
         // Initialize WPF's embedded-resource resolver in console hosts, without creating an Application/window.
         _ = Application.ResourceAssembly;
-        var resources = CommunityTheme.Load(package);
+        return Theme(CommunityTheme.Load(package));
+    }
+
+    /// <summary>A miniature card in a theme's brushes, built-in or community: header, two bars and the footer.</summary>
+    public static BitmapSource Theme(ResourceDictionary resources)
+    {
         Brush Color(string key) => (Brush)resources[key];
         var visual = new DrawingVisual();
         using (var drawing = visual.RenderOpen())

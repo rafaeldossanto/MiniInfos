@@ -1,5 +1,4 @@
 using System.Windows;
-using System.IO;
 using Microsoft.Win32;
 using MiniInfos.Community;
 using MiniInfos.Settings;
@@ -57,7 +56,7 @@ public static class ThemeManager
         if (package is not null)
         {
             try { return CommunityTheme.Load(package); }
-            catch (Exception e) when (e is PackageException or IOException or UnauthorizedAccessException) { }
+            catch (Exception e) when (CommunityTheme.IsUnreadable(e)) { }
         }
         return Load(preferences.Theme);
     }

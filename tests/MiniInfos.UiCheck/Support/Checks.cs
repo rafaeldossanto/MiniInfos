@@ -68,9 +68,10 @@ internal static partial class Program
         }
     }
 
+    /// <summary>The window as drawn, its template included: a dialog's frame lives there, not in its content.</summary>
     private static void Render(Window window, string file)
     {
-        RenderElement((FrameworkElement)window.Content, file);
+        RenderElement((FrameworkElement)VisualTreeHelper.GetChild(window, 0), file);
     }
 
     private static void RenderElement(FrameworkElement content, string file)

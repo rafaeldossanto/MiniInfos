@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -16,7 +15,7 @@ namespace MiniInfos.UI.Windows;
 /// "Exemplo" on the Mascote page: the built-in owl as a package's grid, a row per state with what it is for,
 /// a piece of its manifest, and the model to save, draw over and add with the + tile.
 /// </summary>
-public partial class MascotExampleWindow : Window
+public partial class MascotExampleWindow : DialogWindow
 {
     /// <summary>A grid cell on screen: eight columns fit beside the row names.</summary>
     private const double CellSize = 44;
@@ -136,20 +135,5 @@ public partial class MascotExampleWindow : Window
             FileName = "meu-mascote.miniinfos",
         };
         if (dialog.ShowDialog(this) == true) await SaveTemplateAsync(dialog.FileName);
-    }
-
-    private void OnClose(object sender, RoutedEventArgs e) => Close();
-
-    private void OnTitlePressed(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ButtonState == MouseButtonState.Pressed) DragMove();
-    }
-
-    private void OnKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Escape) return;
-
-        Close();
-        e.Handled = true;
     }
 }
