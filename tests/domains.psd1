@@ -1,6 +1,7 @@
 ﻿@{
     # One map for local runs and CI. Rules use the first matching path, most specific first.
     Domains = @{
+        Community = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.'; Suite = 'Community' }
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
         Claude = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Claude.'; Suite = '' }
         Codex = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Codex.'; Suite = '' }
@@ -19,6 +20,11 @@
     Rules = @(
         @{ Path = '*.md'; Ignore = $true }
         @{ Path = '.gitignore'; Ignore = $true }
+        @{ Path = 'widget/Community/*'; Domains = @('Community', 'Themes', 'Mascot', 'Settings') }
+        @{ Path = 'community/*'; Domains = @('Community') }
+        @{ Path = 'widget/Mascot/PetAnatomy.cs'; Domains = @('Community', 'Mascot') }
+        @{ Path = 'widget/Mascot/PetAppearances.cs'; Domains = @('Community', 'Mascot') }
+        @{ Path = 'widget/UI/Themes/CommunityTheme.cs'; Domains = @('Community', 'Themes') }
         @{ Path = 'widget/UI/Windows/PetWindow.*'; Domains = @('Mascot') }
         @{ Path = 'widget/UI/Windows/UpdateBanner.*'; Domains = @('Updates') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot') }
@@ -53,6 +59,7 @@
         @{ Path = 'widget/Infrastructure/Windows/StartupShortcut.cs'; Domains = @('Windows', 'Settings') }
         @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Cards') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Claude/*'; Domains = @('Claude') }
+        @{ Path = 'tests/MiniInfos.Tests/Community/*'; Domains = @('Community') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Codex/*'; Domains = @('Codex') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/*'; Domains = @('Providers') }
         @{ Path = 'tests/MiniInfos.Tests/Mascot/*'; Domains = @('Mascot') }
@@ -65,6 +72,7 @@
         @{ Path = 'tests/MiniInfos.Tests/Infrastructure/Storage/*'; Domains = @('Storage') }
         @{ Path = 'tests/MiniInfos.Tests/Infrastructure/Windows/*'; Domains = @('Windows') }
         @{ Path = 'tests/MiniInfos.UiCheck/Mascot/*'; Domains = @('Mascot') }
+        @{ Path = 'tests/MiniInfos.UiCheck/Community/*'; Domains = @('Community') }
         @{ Path = 'tests/MiniInfos.UiCheck/Themes/*'; Domains = @('Themes') }
         @{ Path = 'tests/MiniInfos.UiCheck/Fonts/*'; Domains = @('Fonts') }
         @{ Path = 'tests/MiniInfos.UiCheck/Cards/*'; Domains = @('Cards') }

@@ -102,4 +102,11 @@ public sealed class PetInteractionTests
         Assert.True(interaction.AnimationRevision > first);
         Assert.Equal(PetState.ProtectEyes, interaction.StateAt(TimeSpan.FromMilliseconds(1600)));
     }
+
+    [Fact]
+    public void TheOwlTurnsUprightAroundHerVisibleCenterNotTheMassCenterHerSwingUses()
+    {
+        Assert.Equal(new Point(160, 200), PetAppearances.Athena.RestCenter);
+        Assert.Equal(new Point(160, 230), PetAppearances.Athena.Anatomy.MassCenter.Point);
+    }
 }

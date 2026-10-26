@@ -6,8 +6,9 @@ public enum PetBodyPart { Head, LeftEye, RightEye, LeftWing, RightWing, Body, Fe
 public readonly record struct PetHold(PetState State, Point Anchor, double Progress, double Angle);
 
 /// <summary>Click, hold and drag gestures share one clock; they do not alter the observed token activity.</summary>
-public sealed class PetInteraction
+public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bool>? hasPose = null)
 {
+    private readonly PetAnatomy _anatomy = anatomy ?? PetAnatomy.Athena;
     public static readonly TimeSpan HoldDelay = TimeSpan.FromMilliseconds(220);
     public static readonly TimeSpan ProtectionFor = TimeSpan.FromMilliseconds(1450);
     private Point _pressedAt;
@@ -26,23 +27,14 @@ public sealed class PetInteraction
     public Point PointerScreen { get; private set; }
     public int AnimationRevision { get; private set; }
 
-    public static PetBodyPart PartAt(Point point)
-    {
-        if (InEllipse(point, new Point(130, 194), 22, 25)) return PetBodyPart.LeftEye;
-        if (InEllipse(point, new Point(192, 194), 22, 25)) return PetBodyPart.RightEye;
-        if (point.Y >= 278) return PetBodyPart.Feet;
-        if (point.Y < 232 && InEllipse(point, new Point(160, 165), 85, 95)) return PetBodyPart.Head;
-        if (point.X < 122) return PetBodyPart.LeftWing;
-        if (point.X > 198) return PetBodyPart.RightWing;
-        return PetBodyPart.Body;
-    }
+    public static PetBodyPart PartAt(Point point) => PetAnatomy.Athena.PartAt(point);
 
     public void Press(Point canvasPoint, Point screenPoint, TimeSpan now, double screenScale = 0.5)
     {
         IsPressed = true; IsHeld = false;
         _pressedAt = canvasPoint;
         _pressScreen = PointerScreen = screenPoint;
-        _part = PartAt(canvasPoint);
+        _part = _anatomy.PartAt(canvasPoint);
         _pressedTime = _lastMove = now;
         _screenScale = screenScale;
     }
@@ -67,10 +59,11 @@ public sealed class PetInteraction
         {
             PetState.HeldHead or PetState.HeldBody => _pressedAt,
             PetState.HeldFeet => new Point(PetFrame.CanvasSize - _pressedAt.X, PetFrame.CanvasSize - _pressedAt.Y),
-            _ => AnchorFor(state),
+            _ => hasPose?.Invoke(state) == false ? _pressedAt : _anatomy.AnchorFor(state),
         };
         var anchor = _pressedAt + (end - _pressedAt) * progress;
-        var center = new Point(160, 230 + (state == PetState.HeldFeet ? -140 * progress : 0));
+        var center = _anatomy.MassCenter.Point;
+        if (state == PetState.HeldFeet) center += (_anatomy.UpsideDownMassCenter.Point - center) * progress;
         return new(state, anchor, progress, _physics.Advance(PointerScreen, center - anchor, now));
     }
 
@@ -95,14 +88,7 @@ public sealed class PetInteraction
 
     public void CancelPress() => IsPressed = IsHeld = false;
 
-    public static Point AnchorFor(PetState state) => state switch
-    {
-        PetState.HeldHead => new(160, 82),
-        PetState.HeldLeftWing => new(85, 38),
-        PetState.HeldRightWing => new(235, 38),
-        PetState.HeldFeet => new(160, 24),
-        _ => new(160, 225),
-    };
+    public static Point AnchorFor(PetState state) => PetAnatomy.Athena.AnchorFor(state);
 
     private void BeginHold(TimeSpan now)
     {
@@ -122,6 +108,4 @@ public sealed class PetInteraction
         _ => PetState.HeldBody,
     };
 
-    private static bool InEllipse(Point point, Point center, double xRadius, double yRadius) =>
-        Math.Pow((point.X - center.X) / xRadius, 2) + Math.Pow((point.Y - center.Y) / yRadius, 2) <= 1;
 }

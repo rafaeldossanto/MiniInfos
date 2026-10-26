@@ -51,6 +51,14 @@ Em repouso, a coruja também respira e balança suavemente sem mudar a posição
 
 `PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
 
+## Temas e mascotes da comunidade
+
+Em **Configurações → Aparência**, use **Adicionar tema** para importar um pacote `.miniinfos` ou `.zip`; em **Mascote**, use **Adicionar mascote**. O conteúdo importado aparece junto das opções instaladas, pode ser selecionado na hora e fica salvo para as próximas aberturas. A seleção é independente para tema e mascote. Autor, versão e licença aparecem no tooltip da opção.
+
+**Exportar** permite compartilhar um pacote instalado. Com um tema embutido ou a Coruja de Atena selecionados, cria um modelo editável com o manifesto e as imagens; o modelo de mascote inclui todas as poses e os pontos de interação. **Remover** apaga o pacote selecionado e volta à alternativa embutida. Um pacote ausente ou inválido não impede abrir o aplicativo.
+
+O formato é aberto, versionado e feito de JSON e PNG. Autores podem criar suas próprias paletas, cabeçalhos, animações e anatomia do mascote, aproveitando a física e as interações do MiniInfos. Os arquivos são compartilháveis pelos canais da comunidade e importados localmente; o aplicativo não executa scripts ou XAML dos pacotes. Veja o [guia de criação](community/README.md), o [JSON Schema](community/manifest.schema.json) e o [tema Oceano de exemplo](community/examples/ocean/manifest.json).
+
 ## Atualizações
 
 Quando sai uma versão nova, aparece uma linha logo acima do cartão, numa janelinha própria: **Nova atualização disponível**, com o botão **Baixar** à direita. Um clique na linha ou no botão baixa o instalador da versão, confere o SHA-256 publicado junto com ela, instala em silêncio e abre o MiniInfos de novo, já atualizado. Sem espaço acima do cartão, a linha aparece embaixo; com o cartão escondido, ela some junto. O MiniInfos procura versões novas 20 segundos depois de abrir e, depois, a cada 6 horas.
@@ -101,6 +109,7 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `Providers/Claude/` | Históricos, feeds, títulos, caminhos e detecção do Claude. |
 | `Providers/Codex/` | Históricos, conta, app-server, caminhos e detecção do Codex. |
 | `Sources/` | Descoberta e catálogo das pastas de registros, com os modelos de entrada e resultado da busca. |
+| `Community/` | Contrato de pacotes, validação, biblioteca, importação, exportação e modelos para autores. |
 | `Mascot/` | Estados, gestos, animação, sprites, posição e coordenação da coruja. |
 | `Settings/` | Preferências compartilhadas, configurações dos cartões e escolhas de tema e fontes. |
 | `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |

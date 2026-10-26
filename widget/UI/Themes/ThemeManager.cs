@@ -1,5 +1,7 @@
 using System.Windows;
+using System.IO;
 using Microsoft.Win32;
+using MiniInfos.Community;
 using MiniInfos.Settings;
 
 namespace MiniInfos.UI.Themes;
@@ -20,16 +22,16 @@ public static class ThemeManager
     /// <summary>Applies the chosen theme now and again whenever it changes, or Windows' mode does under <see cref="ThemeChoice.System"/>.</summary>
     public static void Follow(Preferences preferences)
     {
-        Apply(preferences.Theme);
+        Apply(preferences);
         preferences.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(Preferences.Theme)) Apply(preferences.Theme);
+            if (e.PropertyName is nameof(Preferences.Theme) or nameof(Preferences.CommunityThemeId)) Apply(preferences);
         };
         SystemEvents.UserPreferenceChanged += (_, e) =>
         {
             if (e.Category == UserPreferenceCategory.General && preferences.Theme == ThemeChoice.System)
             {
-                Application.Current.Dispatcher.InvokeAsync(() => Apply(ThemeChoice.System));
+                Application.Current.Dispatcher.InvokeAsync(() => Apply(preferences));
             }
         };
     }
@@ -49,15 +51,26 @@ public static class ThemeManager
         return resources;
     }
 
+    public static ResourceDictionary Load(Preferences preferences)
+    {
+        var package = PackageLibrary.Shared.Find(PackageKind.Theme, preferences.CommunityThemeId);
+        if (package is not null)
+        {
+            try { return CommunityTheme.Load(package); }
+            catch (Exception e) when (e is PackageException or IOException or UnauthorizedAccessException) { }
+        }
+        return Load(preferences.Theme);
+    }
+
     public static ThemeChoice Resolve(ThemeChoice theme) => theme switch
     {
         ThemeChoice.System => IsWindowsLight() ? ThemeChoice.Light : ThemeChoice.Simple,
         _ => theme,
     };
 
-    private static void Apply(ThemeChoice theme)
+    private static void Apply(Preferences preferences)
     {
-        var next = Load(theme);
+        var next = Load(preferences);
         var dictionaries = Application.Current.Resources.MergedDictionaries;
         if (_applied is not null) dictionaries.Remove(_applied);
         dictionaries.Add(next);

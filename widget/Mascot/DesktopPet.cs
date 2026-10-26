@@ -37,6 +37,7 @@ public sealed class DesktopPet : IDisposable
     {
         if (change.PropertyName == nameof(Preferences.PetEnabled)) Follow();
         if (change.PropertyName == nameof(Preferences.PetSize)) Window?.ResizePet();
+        if (change.PropertyName == nameof(Preferences.PetId)) { CloseWindow(); Follow(); }
     }
 
     private void Follow()

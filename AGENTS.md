@@ -12,6 +12,7 @@ Siga também as instruções do diretório pai: DRY, Clean Code, SOLID e código
 - Compartilhe leitura incremental, persistência e acesso ao Windows por meio dos componentes de infraestrutura existentes. Evite duplicá-los em cada funcionalidade ou criar uma pasta genérica de utilitários sem responsabilidade definida.
 - Separe contratos e persistência dos controles visuais. Extraia responsabilidades quando necessário, sem introduzir camadas ou interfaces que não resolvam um problema concreto.
 - Ao mover arquivos, atualize namespaces, referências XAML, URIs de recursos, documentação e caminhos usados pelo instalador.
+- O formato de temas e mascotes da comunidade fica em `Community/` e é documentado em `community/`. Preserve a compatibilidade do `schemaVersion`; novos recursos precisam acompanhar validação, JSON Schema e testes. Pacotes são dados declarativos locais: não carregue código, XAML ou recursos remotos fornecidos por um pacote.
 
 ## Validação
 

@@ -16,7 +16,9 @@ public sealed record AppSettings(
     FontChoice TextFont = FontChoice.Manrope,
     FontChoice NumberFont = FontChoice.Manrope,
     bool PetEnabled = false,
-    PetSizeChoice PetSize = PetSizeChoice.Medium);
+    PetSizeChoice PetSize = PetSizeChoice.Medium,
+    string? CommunityThemeId = null,
+    string? PetId = null);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -53,7 +55,12 @@ public sealed class Preferences : INotifyPropertyChanged
     public ThemeChoice Theme
     {
         get => _settings.Theme;
-        set => Change(_settings with { Theme = value });
+        set
+        {
+            var wasCustom = _settings.CommunityThemeId is not null;
+            Change(_settings with { Theme = value, CommunityThemeId = null });
+            if (wasCustom) RefreshTheme();
+        }
     }
 
     public FontChoice TextFont
@@ -79,6 +86,21 @@ public sealed class Preferences : INotifyPropertyChanged
         get => _settings.PetSize;
         set => Change(_settings with { PetSize = value });
     }
+
+    public string? CommunityThemeId
+    {
+        get => _settings.CommunityThemeId;
+        set => Change(_settings with { CommunityThemeId = string.IsNullOrWhiteSpace(value) ? null : value });
+    }
+
+    public string? PetId
+    {
+        get => _settings.PetId;
+        set => Change(_settings with { PetId = string.IsNullOrWhiteSpace(value) ? null : value });
+    }
+
+    public void RefreshTheme() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommunityThemeId)));
+    public void RefreshPet() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PetId)));
 
     private void Change(AppSettings next, [CallerMemberName] string property = "")
     {

@@ -22,11 +22,11 @@ public partial class PetWindow : Window
     private readonly Action _openSettings;
     private readonly Action _quit;
     private readonly JsonFile<PetPlacement> _placement = new(Path.Combine(AppPaths.Data, "mascot.json"));
-    private readonly PetAnimationPlayer _player = new((state, index) => PetSprites.Frame(state, index).Pixels,
-        PetFrame.CanvasSize * PetFrame.CanvasSize * 4);
+    private readonly PetAnimationPlayer _player;
+    private readonly IPetAppearance _appearance;
     private readonly WriteableBitmap _surface = new(PetFrame.CanvasSize, PetFrame.CanvasSize, 96, 96, PixelFormats.Pbgra32, null);
     private readonly MatrixTransform _motion = new();
-    private readonly PetInteraction _interaction = new();
+    private readonly PetInteraction _interaction;
     private Matrix _grabMatrix;
     private Matrix _releaseMatrix;
     private Point _releaseOrigin;
@@ -44,7 +44,12 @@ public partial class PetWindow : Window
         _showCards = showCards;
         _openSettings = openSettings;
         _quit = quit;
+        _appearance = PetAppearances.Load(preferences.PetId);
+        _interaction = new(_appearance.Anatomy, _appearance.HasPose);
+        _player = new((state, index) => _appearance.Frame(state, index).Pixels,
+            PetFrame.CanvasSize * PetFrame.CanvasSize * 4, _appearance.PoseAt);
         InitializeComponent();
+        Title = _appearance.Name + " — MiniInfos";
         Sprite.Source = _surface;
         Sprite.RenderTransform = _motion;
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
@@ -140,7 +145,7 @@ public partial class PetWindow : Window
         var viewport = hold is { } holding
             ? PetGeometry.Around(matrix, SpriteSize, ToWindow(holding.Anchor))
             : returning && !settled
-                ? PetGeometry.Around(matrix, SpriteSize, ToWindow(new Point(160, 200)))
+                ? PetGeometry.Around(matrix, SpriteSize, ToWindow(_appearance.RestCenter))
                 : PetGeometry.Fit(matrix, SpriteSize, rotating: false);
         matrix = viewport.Transform;
         if (Width != viewport.Bounds.Width) Width = viewport.Bounds.Width;
@@ -189,7 +194,7 @@ public partial class PetWindow : Window
             PetState.HeldBody => "Segurando pela barriguinha",
             _ => "De olho nos seus tokens",
         };
-        Sprite.ToolTip = $"Coruja de Atena · {status}\nToque nos olhos · segure pela cabeça, asas ou pés para mover\nClique duplo para mostrar o MiniInfos · Alt + roda muda o tamanho";
+        Sprite.ToolTip = $"{_appearance.Name} · {status}\nToque nos olhos · segure para mover e girar\nClique duplo para mostrar o MiniInfos · Alt + roda muda o tamanho";
     }
 
     private void OnPressed(object sender, MouseButtonEventArgs e)
@@ -297,7 +302,7 @@ public partial class PetWindow : Window
         if (_dropPlacement is { } drop) return drop;
         if (Width == SpriteSize && Height == SpriteSize && !_interaction.IsHeld) return new(Left, Top);
         // Return upright around the body's visible center, independent of the temporary rotating viewport.
-        var center = ToWindow(new Point(160, 200));
+        var center = ToWindow(_appearance.RestCenter);
         var offset = _motion.Matrix.Transform(center) - center;
         var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
