@@ -34,6 +34,7 @@ Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coru
 
 - Clique rapidamente em um dos olhos: a coruja fecha os olhinhos e levanta as asas para protegê-los.
 - Segure pela cabeça, por uma das asas, pela barriga ou pelos pés para mover. Ela fica pendurada pela região escolhida; pelos pés, vira de cabeça para baixo. O ponto segurado acompanha o cursor, e a posição fica salva ao soltar.
+- Enquanto segura, os movimentos do mouse aplicam impulso à coruja. Movimentos circulares podem fazê-la dar voltas completas ao redor do ponto segurado; ao parar o mouse, ela continua balançando e perde força aos poucos.
 - Clique duas vezes para mostrar o MiniInfos.
 - Escolha Pequeno, Médio ou Grande nas configurações, ou use Alt + roda do mouse sobre a coruja.
 - Botão direito: mostrar o cartão, configurar o mascote, voltar pro canto, esconder a coruja ou sair do MiniInfos.
@@ -43,6 +44,8 @@ Ela pisca em repouso, bate as asas quando a contagem de tokens aumenta, fica ate
 Em repouso, a coruja também respira e balança suavemente sem mudar a posição da janela. Cada estado usa oito poses desenhadas, interpoladas a até 60 quadros por segundo; as mudanças de estado partem da imagem que já está na tela, com uma transição de 300 ms. O relógio usa o tempo transcorrido, para não desacelerar a animação quando um quadro demora mais. O processamento para quando a janela do mascote fecha.
 
 `PetInteraction` distingue o clique, um toque segurado de 220 ms e o arraste, identifica a região da coruja e mantém o ponto de apoio. O mouse fica capturado durante o gesto para permitir mover para fora da janela. Ao perder a captura ou soltar, ela volta ao estado de uso observado, sem alterar as contagens. As poses de interação ficam em `widget/Assets/athena-owl-interactions.png`; a asa direita é espelhada em memória, e a pose pelos pés usa uma rotação da animação de asas.
+
+`PetPendulum` simula a rotação ao redor do ponto de apoio usando gravidade, aceleração do cursor, inércia e amortecimento. O ângulo não fica limitado a uma pequena inclinação; a integração usa passos de até 1/240 s e limita impulsos de retomadas após pausas da interface. A posição do mouse é normalizada pela escala da coruja e da tela. `PetGeometry` mantém as transições de rotação sem achatar a imagem e calcula uma área transparente que contém o sprite girando. O tamanho visual da coruja continua o escolhido nas configurações; ao soltar, a área da janela volta ao normal e somente a posição de repouso é salva.
 
 `PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
 

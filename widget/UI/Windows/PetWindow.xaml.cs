@@ -29,6 +29,8 @@ public partial class PetWindow : Window
     private readonly PetInteraction _interaction = new();
     private Matrix _grabMatrix;
     private Matrix _releaseMatrix;
+    private Point _releaseOrigin;
+    private PetPlacement? _dropPlacement;
     private TimeSpan? _releasedAt;
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private long _lastRenderFrame = -1;
@@ -46,7 +48,7 @@ public partial class PetWindow : Window
         Sprite.Source = _surface;
         Sprite.RenderTransform = _motion;
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
-        Width = Height = PetPlacement.Size(preferences.PetSize);
+        Width = Height = Sprite.Width = Sprite.Height = PetPlacement.Size(preferences.PetSize);
         SourceInitialized += (_, _) =>
         {
             var handle = new WindowInteropHelper(this).Handle;
@@ -64,21 +66,38 @@ public partial class PetWindow : Window
     }
 
     private TimeSpan Elapsed => Stopwatch.GetElapsedTime(_startedAt);
+    private double SpriteSize => Sprite.Width;
     public PetState State => _interaction.StateAt(Elapsed) ?? _activity.StateAt(DateTimeOffset.UtcNow);
 
     public void ResizePet()
     {
-        var center = Left + Width / 2;
-        var bottom = Top + Height;
-        Width = Height = PetPlacement.Size(_preferences.PetSize);
+        var position = CurrentPlacement();
+        var center = position.Left + SpriteSize / 2;
+        var bottom = position.Top + SpriteSize;
+        _interaction.CancelPress();
+        if (IsMouseCaptured) ReleaseMouseCapture();
+        _releasedAt = null;
+        _dropPlacement = null;
+        Width = Height = Sprite.Width = Sprite.Height = PetPlacement.Size(_preferences.PetSize);
         if (!IsLoaded) return;
         Left = center - Width / 2;
         Top = bottom - Height;
         KeepOnScreen();
+        Paint(Elapsed);
         SavePosition();
     }
 
-    public void BackToCorner() { RestorePosition(null); SavePosition(); }
+    public void BackToCorner()
+    {
+        _interaction.CancelPress();
+        if (IsMouseCaptured) ReleaseMouseCapture();
+        _releasedAt = null;
+        _dropPlacement = null;
+        Width = Height = SpriteSize;
+        RestorePosition(null);
+        Paint(Elapsed);
+        SavePosition();
+    }
 
     private void OnRendering(object? sender, EventArgs e)
     {
@@ -105,26 +124,45 @@ public partial class PetWindow : Window
             var anchor = ToWindow(grip.Anchor);
             matrix.ScaleAt(state == PetState.HeldBody ? 1.02 : 0.95, state == PetState.HeldBody ? 0.94 : 0.95, anchor.X, anchor.Y);
             matrix.RotateAt(grip.Angle, anchor.X, anchor.Y);
-            matrix = Blend(_grabMatrix, matrix, grip.Progress);
-            if (IsLoaded)
-            {
-                var pointer = PointFromScreen(_interaction.PointerScreen);
-                var attached = matrix.Transform(anchor);
-                Left += pointer.X - attached.X;
-                Top += pointer.Y - attached.Y;
-            }
+            matrix = PetGeometry.Blend(_grabMatrix, matrix, grip.Progress, grip.Angle);
         }
         else
         {
             var pose = PetAnimation.MotionAt(elapsed);
-            matrix.ScaleAt(pose.ScaleX, pose.ScaleY, Width / 2, Height * 0.94);
-            matrix.RotateAt(pose.Angle, Width / 2, Height * 0.94);
-            matrix.Translate(pose.X * Width, pose.Y * Height);
+            matrix.ScaleAt(pose.ScaleX, pose.ScaleY, SpriteSize / 2, SpriteSize * 0.94);
+            matrix.RotateAt(pose.Angle, SpriteSize / 2, SpriteSize * 0.94);
+            matrix.Translate(pose.X * SpriteSize, pose.Y * SpriteSize);
             if (_releasedAt is { } released)
             {
                 var progress = (elapsed - released) / PetAnimation.StateTransition;
-                matrix = Blend(_releaseMatrix, matrix, PetAnimation.Ease(progress));
-                if (progress >= 1) _releasedAt = null;
+                matrix = PetGeometry.Blend(_releaseMatrix, matrix, PetAnimation.Ease(progress));
+            }
+        }
+        var returning = _releasedAt is not null;
+        var settled = returning && elapsed - _releasedAt!.Value >= PetAnimation.StateTransition;
+        var viewport = PetGeometry.Fit(matrix, SpriteSize, hold is not null || (returning && !settled));
+        matrix = viewport.Transform;
+        Width = viewport.Bounds.Width;
+        Height = viewport.Bounds.Height;
+        if (IsLoaded && hold is { } attachedGrip)
+        {
+            var pointer = PointFromScreen(_interaction.PointerScreen);
+            var attached = matrix.Transform(ToWindow(attachedGrip.Anchor));
+            Left += pointer.X - attached.X;
+            Top += pointer.Y - attached.Y;
+        }
+        else if (IsLoaded && returning)
+        {
+            var origin = PointFromScreen(_releaseOrigin);
+            Left += origin.X + viewport.Bounds.X;
+            Top += origin.Y + viewport.Bounds.Y;
+            if (settled)
+            {
+                _releasedAt = null;
+                _dropPlacement = null;
+                // The final rest transform only moves transparent padding beyond the original canvas.
+                Width = Height = SpriteSize;
+                SavePosition();
             }
         }
         _motion.Matrix = matrix;
@@ -162,10 +200,11 @@ public partial class PetWindow : Window
             var unposed = _motion.Matrix;
             unposed.Invert();
             var canvas = unposed.Transform(local);
-            canvas = new Point(canvas.X / Width * PetFrame.CanvasSize, canvas.Y / Height * PetFrame.CanvasSize);
+            canvas = new Point(canvas.X / SpriteSize * PetFrame.CanvasSize, canvas.Y / SpriteSize * PetFrame.CanvasSize);
             _grabMatrix = _motion.Matrix;
             _releasedAt = null;
-            _interaction.Press(canvas, PointToScreen(local), Elapsed);
+            _dropPlacement = null;
+            _interaction.Press(canvas, PointToScreen(local), Elapsed, SpriteSize / PetFrame.CanvasSize * VisualTreeHelper.GetDpi(this).DpiScaleX);
             if (!CaptureMouse()) _interaction.CancelPress();
         }
         e.Handled = true;
@@ -204,22 +243,19 @@ public partial class PetWindow : Window
 
     private void FinishDrop(TimeSpan now)
     {
+        var target = CurrentPlacement();
+        var offset = new Vector(target.Left - Left, target.Top - Top);
         _releaseMatrix = _motion.Matrix;
+        _releaseMatrix.Translate(-offset.X, -offset.Y);
+        _releaseOrigin = PointToScreen(new Point(offset.X, offset.Y));
+        _dropPlacement = target;
         _releasedAt = now;
-        KeepOnScreen();
         SavePosition();
     }
 
-    private Point ToWindow(Point canvas) => new(canvas.X / PetFrame.CanvasSize * Width, canvas.Y / PetFrame.CanvasSize * Height);
+    private Point ToWindow(Point canvas) => new(canvas.X / PetFrame.CanvasSize * SpriteSize, canvas.Y / PetFrame.CanvasSize * SpriteSize);
 
     private Point CursorScreen() => GetCursorPos(out var point) ? new Point(point.X, point.Y) : PointToScreen(Mouse.GetPosition(this));
-
-    private static Matrix Blend(Matrix from, Matrix to, double amount)
-    {
-        double Lerp(double a, double b) => a + (b - a) * amount;
-        return new Matrix(Lerp(from.M11, to.M11), Lerp(from.M12, to.M12), Lerp(from.M21, to.M21), Lerp(from.M22, to.M22),
-            Lerp(from.OffsetX, to.OffsetX), Lerp(from.OffsetY, to.OffsetY));
-    }
 
     private void OnWheel(object sender, MouseWheelEventArgs e)
     {
@@ -232,7 +268,7 @@ public partial class PetWindow : Window
     private void RestorePosition(PetPlacement? saved)
     {
         var work = SystemParameters.WorkArea;
-        var position = saved ?? new PetPlacement(work.Right - Width - 24, work.Bottom - Height - 24);
+        var position = saved ?? new PetPlacement(work.Right - SpriteSize - 24, work.Bottom - SpriteSize - 24);
         Left = position.Left; Top = position.Top;
         KeepOnScreen();
     }
@@ -241,13 +277,25 @@ public partial class PetWindow : Window
     {
         var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
-        var position = new PetPlacement(Left, Top).KeepVisible(screen, Width);
+        var position = new PetPlacement(Left, Top).KeepVisible(screen, SpriteSize);
         Left = position.Left; Top = position.Top;
     }
 
     private void SavePosition()
     {
-        if (IsLoaded && double.IsFinite(Left) && double.IsFinite(Top)) _placement.Save(new PetPlacement(Left, Top));
+        if (IsLoaded && double.IsFinite(Left) && double.IsFinite(Top)) _placement.Save(CurrentPlacement());
+    }
+
+    private PetPlacement CurrentPlacement()
+    {
+        if (_dropPlacement is { } drop) return drop;
+        if (Width == SpriteSize && Height == SpriteSize && !_interaction.IsHeld) return new(Left, Top);
+        // Return upright around the body's visible center, independent of the temporary rotating viewport.
+        var center = ToWindow(new Point(160, 200));
+        var offset = _motion.Matrix.Transform(center) - center;
+        var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+        return new PetPlacement(Left + offset.X, Top + offset.Y).KeepVisible(screen, SpriteSize);
     }
 
     private nint OnMessage(nint handle, int message, nint wParam, nint lParam, ref bool handled)
@@ -264,8 +312,8 @@ public partial class PetWindow : Window
         var inverse = _motion.Matrix;
         inverse.Invert();
         local = inverse.Transform(local);
-        var x = local.X / Width * PetFrame.CanvasSize;
-        var y = local.Y / Height * PetFrame.CanvasSize;
+        var x = local.X / SpriteSize * PetFrame.CanvasSize;
+        var y = local.Y / SpriteSize * PetFrame.CanvasSize;
         if (x >= 0 && x < PetFrame.CanvasSize && y >= 0 && y < PetFrame.CanvasSize
             && _player.Pixels.Span[((int)y * PetFrame.CanvasSize + (int)x) * 4 + 3] >= 32) return 0;
         handled = true;

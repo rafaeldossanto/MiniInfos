@@ -48,7 +48,7 @@ internal static partial class Program
         pet.Left = SystemParameters.WorkArea.Left + 80;
         pet.Top = SystemParameters.WorkArea.Top + 100;
         var moved = new Point(pet.Left, pet.Top);
-        Render(pet, System.IO.Path.Combine(pictures, "desktop-owl.png"));
+        RenderElement(pet, System.IO.Path.Combine(pictures, "desktop-owl.png"));
         Render(settings, System.IO.Path.Combine(pictures, "settings-pet.png"));
         Find<CheckBox>(settings, "PetToggle").IsChecked = false;
         Check(cards.Pet is null && !pet.IsVisible && !Preferences.Load().PetEnabled,
@@ -73,7 +73,7 @@ internal static partial class Program
         TimeSpan Now() => Stopwatch.GetElapsedTime(started);
         void Press(Point canvas)
         {
-            var local = new Point(canvas.X / PetFrame.CanvasSize * pet.Width, canvas.Y / PetFrame.CanvasSize * pet.Height);
+            var local = new Point(canvas.X / PetFrame.CanvasSize * sprite.Width, canvas.Y / PetFrame.CanvasSize * sprite.Height);
             var screen = pet.PointToScreen(sprite.RenderTransform.Transform(local));
             typeof(PetWindow).GetField("_grabMatrix", flags)!.SetValue(pet, sprite.RenderTransform.Value);
             typeof(PetWindow).GetField("_releasedAt", flags)!.SetValue(pet, null);
@@ -90,7 +90,7 @@ internal static partial class Program
             Release();
             Check(pet.State == PetState.ProtectEyes, $"a quick poke in the {(x == 130 ? "left" : "right")} eye raises the protective wings");
             Pump(TimeSpan.FromMilliseconds(500));
-            Render(pet, System.IO.Path.Combine(pictures, $"pet-poked-{x}.png"));
+            RenderElement(pet, System.IO.Path.Combine(pictures, $"pet-poked-{x}.png"));
         }
 
         foreach (var (part, expected, name) in new[]
@@ -109,15 +109,44 @@ internal static partial class Program
             Check(pet.State == expected && hold is not null, $"grabbing the {name} selects its hanging pose");
             if (hold is { } grip)
             {
-                var local = new Point(grip.Anchor.X / PetFrame.CanvasSize * pet.Width, grip.Anchor.Y / PetFrame.CanvasSize * pet.Height);
+                var local = new Point(grip.Anchor.X / PetFrame.CanvasSize * sprite.Width, grip.Anchor.Y / PetFrame.CanvasSize * sprite.Height);
                 var anchor = pet.PointToScreen(sprite.RenderTransform.Transform(local));
                 Check((anchor - interaction.PointerScreen).Length < 2, "the grabbed part stays attached to the cursor as the pose changes");
             }
-            Render(pet, System.IO.Path.Combine(pictures, $"pet-held-{name}.png"));
+            RenderElement(pet, System.IO.Path.Combine(pictures, $"pet-held-{name}.png"));
             Release();
             Check(!interaction.IsPressed && !interaction.IsHeld && (int)pet.State < (int)PetState.ProtectEyes,
                 "releasing returns to the observed usage state");
             Pump(TimeSpan.FromMilliseconds(350));
         }
+
+        Press(new Point(160, 100));
+        var center = interaction.PointerScreen - new Vector(70, 0);
+        interaction.Move(interaction.PointerScreen + new Vector(5, 0), Now());
+        var orbit = Stopwatch.StartNew();
+        double minimum = 0, maximum = 0, gripError = 0;
+        var staysInside = true;
+        while (orbit.Elapsed.TotalSeconds < 3)
+        {
+            var phase = orbit.Elapsed.TotalSeconds * Math.Tau / 0.6;
+            interaction.Move(center + new Vector(70 * Math.Cos(phase), 70 * Math.Sin(phase)), Now());
+            Pump(TimeSpan.FromMilliseconds(16));
+            if (interaction.HoldAt(Now()) is not { } hold) continue;
+            minimum = Math.Min(minimum, hold.Angle);
+            maximum = Math.Max(maximum, hold.Angle);
+            var anchor = new Point(hold.Anchor.X / PetFrame.CanvasSize * sprite.Width, hold.Anchor.Y / PetFrame.CanvasSize * sprite.Height);
+            var attached = pet.PointToScreen(sprite.RenderTransform.Transform(anchor));
+            gripError = Math.Max(gripError, (attached - interaction.PointerScreen).Length);
+            var bounds = sprite.RenderTransform.TransformBounds(new Rect(0, 0, sprite.Width, sprite.Height));
+            staysInside &= bounds.Left >= -1 && bounds.Top >= -1 && bounds.Right <= pet.ActualWidth + 1 && bounds.Bottom <= pet.ActualHeight + 1;
+        }
+        Check(maximum - minimum > 360, "circular mouse motion drives complete revolutions around the grip");
+        Check(gripError < 2, $"the pivot remains attached throughout the spin ({gripError:0.0} px)");
+        Check(staysInside, "the rotating owl is never clipped by its transparent window");
+        RenderElement(pet, System.IO.Path.Combine(pictures, "pet-physics-spin.png"));
+        Release();
+        Pump(TimeSpan.FromMilliseconds(400));
+        Check(Math.Abs(pet.Width - sprite.Width) < 1 && Math.Abs(pet.Height - sprite.Height) < 1
+            && sprite.RenderTransform.Value.HasInverse, "dropping the owl restores its normal viewport without collapsing the sprite");
     }
 }
