@@ -10,6 +10,10 @@
     <RootNamespace>MiniInfos</RootNamespace>
     <AssemblyName>MiniInfos</AssemblyName>
     <ApplicationIcon>MiniInfos.ico</ApplicationIcon>
+    <!-- The one version: build.ps1 hands it to the installer, and the app tells it to codex. -->
+    <Version>1.1.0</Version>
+    <!-- The source-generated P/Invoke in DesktopApps. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <!-- What ships carries nothing of the machine it was built on: no symbols file, no build paths. -->
@@ -24,6 +28,10 @@
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
     <Resource Include="MiniInfos.ico" />
+    <Resource Include="Assets\athena-header.png" />
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <Content Include="Assets\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+    <InternalsVisibleTo Include="MiniInfos.Tests" />
   </ItemGroup>
 
 </Project>

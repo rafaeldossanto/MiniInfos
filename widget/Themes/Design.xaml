@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!-- Shared type and layout; the classic palette overrides only its illustrated header. -->
+    <FontFamily x:Key="AppFont">pack://application:,,,/MiniInfos;component/Assets/Fonts/#Manrope</FontFamily>
+    <sys:Double x:Key="HeaderHeight">44</sys:Double>
+    <sys:Double x:Key="HeaderTitleSize">14</sys:Double>
+    <Visibility x:Key="HeaderArtworkVisibility">Collapsed</Visibility>
+    <DrawingImage x:Key="HeaderArtwork" />
+</ResourceDictionary>

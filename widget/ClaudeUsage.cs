@@ -1,0 +1,59 @@
+namespace MiniInfos;
+
+/// <summary>
+/// Claude's page: the plan's limits as the miniinfos mod publishes them from each chat, and the
+/// tokens of every Claude Code chat from its transcripts.
+/// </summary>
+public sealed class ClaudeUsage : IUsageProvider
+{
+    private const string FiveHourKind = "five_hour";
+    private const string WeekKind = "seven_day";
+
+    private static readonly TimeSpan FiveHours = TimeSpan.FromHours(5);
+    private static readonly TimeSpan Week = TimeSpan.FromDays(7);
+
+    private readonly ClaudeUsageLedger _ledger = ClaudeUsageLedger.Load();
+
+    public string Id => "claude";
+
+    /// <summary>The desktop app's window, or any Claude Code chat still running: in a terminal, an editor or the app.</summary>
+    public bool IsInUse() => ClaudeApp.IsOpen() || FeedReader.Read(DateTimeOffset.Now).HasOpenChat;
+
+    public async Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force)
+    {
+        var feed = FeedReader.Read(now);
+        var fiveHour = new PlanWindow(FiveHours, feed.Limits.GetValueOrDefault(FiveHourKind));
+        var week = new PlanWindow(Week, feed.Limits.GetValueOrDefault(WeekKind));
+
+        var tokens = await Task.Run(() =>
+        {
+            _ledger.Scan();
+            return _ledger.Summarize(now, fiveHour.Start(now), week.Start(now));
+        });
+
+        return new UsagePage(
+            "Claude",
+            new WindowLine(fiveHour, tokens.ShortWindow),
+            new WindowLine(week, tokens.LongWindow),
+            tokens.Today,
+            tokens.Total,
+            "De todos os chats guardados em ~/.claude/projects.",
+            Activity(feed.Latest),
+            "Chat que respondeu por último",
+            feed.LimitsUpdated is { } updated ? $"atualizado {Format.Ago(updated, now)}" : "sem dados ainda",
+            "Atualizar agora. Os % mudam quando um chat do Claude Code recebe resposta.");
+    }
+
+    public void Flush() => _ledger.Flush();
+
+    private static string Activity(FeedEntry? latest)
+    {
+        if (latest is null) return "Nenhum chat com o mod ainda";
+
+        var parts = new List<string> { ChatTitles.Of(latest) };
+        if (latest.Context?.Percent is { } fill) parts.Add($"contexto {Format.Percent(fill)}");
+        if (latest.CostUsd is { } cost) parts.Add(Format.Cost(cost));
+
+        return string.Join(" · ", parts);
+    }
+}

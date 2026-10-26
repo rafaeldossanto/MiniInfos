@@ -1,0 +1,59 @@
+<UserControl x:Class="MiniInfos.PageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="262">
+    <!-- One provider's page: the card shows one, or two side by side. -->
+    <UserControl.Resources>
+        <ResourceDictionary Source="CardStyles.xaml" />
+    </UserControl.Resources>
+
+    <StackPanel>
+        <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="PageTitle" FontWeight="SemiBold" FontSize="16" />
+            <TextBlock x:Name="Note" Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource Caption}"
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+        </Grid>
+
+        <Grid>
+            <TextBlock x:Name="ShortLabel" />
+            <TextBlock x:Name="ShortPercent" HorizontalAlignment="Right" FontWeight="SemiBold" />
+        </Grid>
+        <ProgressBar x:Name="ShortBar" Style="{StaticResource Meter}" />
+        <TextBlock x:Name="ShortDetail" Style="{StaticResource Caption}" />
+
+        <Grid Margin="0,12,0,0">
+            <TextBlock x:Name="LongLabel" />
+            <TextBlock x:Name="LongPercent" HorizontalAlignment="Right" FontWeight="SemiBold" />
+        </Grid>
+        <ProgressBar x:Name="LongBar" Style="{StaticResource Meter}" />
+        <TextBlock x:Name="LongDetail" Style="{StaticResource Caption}" />
+
+        <Border Height="1" Background="{DynamicResource Divider}" Margin="0,12" />
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel x:Name="TodayBlock" Background="Transparent">
+                <TextBlock Text="Tokens hoje" Style="{StaticResource Caption}" />
+                <!-- Reserve the same line height even when a long count scales down. -->
+                <Viewbox Height="34" StretchDirection="DownOnly" HorizontalAlignment="Left">
+                    <TextBlock x:Name="TodayTokens" Style="{StaticResource BigCount}" />
+                </Viewbox>
+            </StackPanel>
+            <StackPanel x:Name="TotalBlock" Grid.Column="1" Background="Transparent" Margin="8,0,0,0">
+                <TextBlock Text="Tokens no total" Style="{StaticResource Caption}" />
+                <Viewbox Height="34" StretchDirection="DownOnly" HorizontalAlignment="Left">
+                    <TextBlock x:Name="TotalTokens" Style="{StaticResource BigCount}" />
+                </Viewbox>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock x:Name="ChatText" Style="{StaticResource Caption}" Margin="0,8,0,0" />
+    </StackPanel>
+</UserControl>

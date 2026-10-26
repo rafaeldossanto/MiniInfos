@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Simple.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <!-- Warm stone accents; warning and danger remain distinguishable from ordinary use. -->
+    <SolidColorBrush x:Key="CardBackground" Color="#1F1F1F" />
+    <SolidColorBrush x:Key="CardBorder" Color="#66635D" />
+    <SolidColorBrush x:Key="PrimaryText" Color="#F0EDE7" />
+    <SolidColorBrush x:Key="DimText" Color="#AAA7A1" />
+    <SolidColorBrush x:Key="Divider" Color="#3D3B37" />
+    <SolidColorBrush x:Key="Track" Color="#353430" />
+    <SolidColorBrush x:Key="MenuBackground" Color="#242321" />
+    <SolidColorBrush x:Key="MenuBorder" Color="#57544E" />
+    <SolidColorBrush x:Key="MenuHighlight" Color="#34322F" />
+    <SolidColorBrush x:Key="Accent" Color="#D9D2C3" />
+    <SolidColorBrush x:Key="AccentText" Color="#1F1F1F" />
+    <SolidColorBrush x:Key="Warning" Color="#CDA66B" />
+    <SolidColorBrush x:Key="Danger" Color="#D7786B" />
+    <sys:Double x:Key="HeaderHeight">96</sys:Double>
+    <sys:Double x:Key="HeaderTitleSize">20</sys:Double>
+    <Visibility x:Key="HeaderArtworkVisibility">Visible</Visibility>
+    <BitmapImage x:Key="HeaderArtwork" UriSource="pack://application:,,,/MiniInfos;component/Assets/athena-header.png" />
+</ResourceDictionary>
