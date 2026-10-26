@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 
 namespace MiniInfos;
@@ -25,6 +26,9 @@ public partial class PageView : UserControl
     /// <param name="countText">How the chosen view writes a count: 1,4B, or every digit.</param>
     public void Show(UsagePage page, DateTimeOffset now, Func<long, string> countText)
     {
+        Numbers.Visibility = Visibility.Visible;
+        Reading.Visibility = Visibility.Collapsed;
+
         // Beside the title, how fresh the limits are: each provider is read apart.
         NumericText.Show(PageTitle, page.Title);
         NumericText.Show(Note, page.Updated);

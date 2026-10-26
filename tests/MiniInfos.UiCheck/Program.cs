@@ -66,7 +66,20 @@ internal static partial class Program
         var opening = Stopwatch.StartNew();
         window.Show();
         PumpUntil(() => window.Opacity == 1, TimeSpan.FromSeconds(10));
-        Check(window.Opacity == 1 && opening.Elapsed < TimeSpan.FromSeconds(4), $"the card shows quickly ({opening.Elapsed.TotalSeconds:0.0} s)");
+
+        // The data folder starts empty, so the first read goes through the whole history, as on a first launch:
+        // the card must not wait for it.
+        var shownAt = opening.Elapsed;
+        var shownHeight = window.Height;
+        var firstPage = Columns(window)[0];
+        var wasReading = Find<TextBlock>(firstPage, "Reading").Visibility == Visibility.Visible;
+        Check(window.Opacity == 1 && shownAt < TimeSpan.FromSeconds(2),
+            $"the card shows at once, its first read {(wasReading ? "still going" : "already done")} ({shownAt.TotalSeconds:0.0} s)");
+        PumpUntil(() => Find<StackPanel>(firstPage, "Numbers").Visibility == Visibility.Visible, TimeSpan.FromSeconds(60));
+        Check(Find<StackPanel>(firstPage, "Numbers").Visibility == Visibility.Visible
+            && Find<TextBlock>(firstPage, "Reading").Visibility == Visibility.Collapsed,
+            $"the numbers fill in once the history is read ({opening.Elapsed.TotalSeconds:0.0} s)");
+        Check(Math.Abs(window.Height - shownHeight) < 2, $"and the card keeps its size ({shownHeight:0} -> {window.Height:0})");
         Pump(TimeSpan.FromSeconds(1));
         var handle = new WindowInteropHelper(window).Handle;
 
