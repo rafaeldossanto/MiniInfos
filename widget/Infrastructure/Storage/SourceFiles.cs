@@ -30,11 +30,15 @@ public static class SourceFiles
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { return []; }
     }
 
-    public static string[] Files(string root, string pattern, bool recursive = false)
+    public static string[] Files(string root, string pattern, bool recursive = false) =>
+        Array.ConvertAll(FileInfos(root, pattern, recursive), file => file.FullName);
+
+    /// <summary>The files with the length the folder listing already carries: learning it opens nothing.</summary>
+    public static FileInfo[] FileInfos(string root, string pattern, bool recursive = false)
     {
         try
         {
-            return Directory.GetFiles(root, pattern, new EnumerationOptions
+            return new DirectoryInfo(root).GetFiles(pattern, new EnumerationOptions
             {
                 IgnoreInaccessible = true,
                 RecurseSubdirectories = recursive,
@@ -42,11 +46,5 @@ public static class SourceFiles
             });
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { return []; }
-    }
-
-    public static long Length(string path)
-    {
-        try { return new FileInfo(path).Length; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return 0; }
     }
 }

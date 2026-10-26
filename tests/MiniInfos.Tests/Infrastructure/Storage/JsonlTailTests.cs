@@ -52,7 +52,7 @@ public sealed class JsonlTailTests : IDisposable
         var cursors = new Dictionary<string, long> { [a] = 4, [b] = 4 };
         var read = new List<string>();
 
-        JsonlTail.ReadFolders([Path.Combine(_folder.Path, "a"), Path.Combine(_folder.Path, "b"), _folder.Path], cursors, read.Add);
+        JsonlTail.ReadFolders([Path.Combine(_folder.Path, "a"), Path.Combine(_folder.Path, "b"), _folder.Path], cursors, (path, _) => read.Add(path));
 
         Assert.Equal(2, read.Count);
         Assert.Equal(2, cursors.Count);
@@ -68,9 +68,21 @@ public sealed class JsonlTailTests : IDisposable
         var cursors = new Dictionary<string, long> { [kept] = 0, [Path.Combine(_folder.Path, "logs", "gone.jsonl")] = 9 };
         var read = new List<string>();
 
-        JsonlTail.ReadFolder(Path.Combine(_folder.Path, "logs"), cursors, read.Add);
+        JsonlTail.ReadFolder(Path.Combine(_folder.Path, "logs"), cursors, (path, _) => read.Add(path));
 
         Assert.Equal([kept], read);
         Assert.Equal([kept], cursors.Keys);
+    }
+
+    [Fact]
+    public void AFolderReadTellsEachFilesLengthSoAnUnchangedOneNeedNotBeOpened()
+    {
+        var log = _folder.File("logs", "chat.jsonl");
+        File.WriteAllText(log, "one\ntwo\n");
+        var lengths = new Dictionary<string, long>();
+
+        JsonlTail.ReadFolder(Path.Combine(_folder.Path, "logs"), new Dictionary<string, long>(), (path, length) => lengths[path] = length);
+
+        Assert.Equal(new FileInfo(log).Length, lengths[log]);
     }
 }
