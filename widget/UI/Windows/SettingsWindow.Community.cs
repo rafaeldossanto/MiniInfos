@@ -187,6 +187,18 @@ public partial class SettingsWindow
     private void OnRemoveTheme(object sender, RoutedEventArgs e) => RemovePackage(PackageKind.Theme);
     private void OnRemovePet(object sender, RoutedEventArgs e) => RemovePackage(PackageKind.Mascot);
 
+    /// <summary>"Exemplo": one example window above the settings, brought forward when asked again; it closes with them.</summary>
+    private void OnShowPetExample(object sender, RoutedEventArgs e)
+    {
+        if (OwnedWindows.OfType<MascotExampleWindow>().FirstOrDefault() is { } open)
+        {
+            open.Activate();
+            return;
+        }
+
+        new MascotExampleWindow { Owner = this }.Show();
+    }
+
     private void RemovePackage(PackageKind kind)
     {
         if (_packageBusy) return;

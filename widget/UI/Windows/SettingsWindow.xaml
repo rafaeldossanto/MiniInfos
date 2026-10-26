@@ -190,6 +190,8 @@
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                             <Button x:Name="ExportPetPackage" Content="Exportar" Style="{StaticResource SettingsButton}" Click="OnExportPet" />
                             <Button x:Name="RemovePetPackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemovePet" />
+                            <Button x:Name="PetExampleButton" Content="Exemplo" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnShowPetExample"
+                                    ToolTip="Mostra a grade e o manifesto de um mascote, com o modelo para criar o seu" />
                         </StackPanel>
                         <TextBlock x:Name="PetPackageStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12"
                                    Text="Use + para adicionar um mascote e clique em uma miniatura para selecionar. Exporte para compartilhar ou criar o seu." />

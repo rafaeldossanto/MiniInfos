@@ -60,6 +60,8 @@ Em **Configurações → Aparência**, use **Adicionar tema** para importar um p
 
 Na biblioteca de mascotes, o primeiro quadrado tem um bonequinho de contorno tracejado com **+** para adicionar um pacote. À direita ficam as miniaturas da Coruja de Atena e dos mascotes instalados; clique para selecionar. O escolhido fica destacado, e os demais ficam um pouco mais transparentes. As opções continuam em novas linhas quando necessário. A biblioteca é local: os pacotes e a seleção ficam salvos no computador, sem conta ou banco de dados online.
 
+**Exemplo**, ao lado de Exportar e Remover, abre o modelo da Coruja de Atena como um pacote o vê: a grade do PNG, com o nome de cada linha no manifesto e o que ela anima (repouso, alerta, segurando pela cabeça…), e um trecho do `manifest.json`. **Salvar modelo** grava o `.miniinfos` completo para desenhar por cima e adicionar pelo **+**.
+
 As miniaturas são recortadas pelo conteúdo visível e salvas em 128 × 128, fora dos pacotes, em `%LOCALAPPDATA%\MiniInfos\previews\mascots`. A instalação gera a prévia, e as Configurações reaproveitam esse PNG tanto na galeria quanto na imagem maior. Se o cache faltar ou estiver corrompido, a prévia é refeita em segundo plano; o quadrado fica vazio até a imagem ficar pronta. A exportação não inclui o cache.
 
 **Exportar** permite compartilhar um pacote instalado. Com um tema embutido ou a Coruja de Atena selecionados, cria um modelo editável com o manifesto e as imagens; o modelo de mascote inclui todas as poses e os pontos de interação. **Remover** apaga o pacote selecionado e volta à alternativa embutida. Um pacote ausente ou inválido não impede abrir o aplicativo.
