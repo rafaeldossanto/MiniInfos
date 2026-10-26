@@ -20,14 +20,14 @@
 
         <Grid>
             <TextBlock x:Name="ShortLabel" />
-            <TextBlock x:Name="ShortPercent" HorizontalAlignment="Right" FontWeight="SemiBold" />
+            <TextBlock x:Name="ShortPercent" HorizontalAlignment="Right" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}" />
         </Grid>
         <ProgressBar x:Name="ShortBar" Style="{StaticResource Meter}" />
         <TextBlock x:Name="ShortDetail" Style="{StaticResource Caption}" />
 
         <Grid Margin="0,12,0,0">
             <TextBlock x:Name="LongLabel" />
-            <TextBlock x:Name="LongPercent" HorizontalAlignment="Right" FontWeight="SemiBold" />
+            <TextBlock x:Name="LongPercent" HorizontalAlignment="Right" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}" />
         </Grid>
         <ProgressBar x:Name="LongBar" Style="{StaticResource Meter}" />
         <TextBlock x:Name="LongDetail" Style="{StaticResource Caption}" />

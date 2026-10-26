@@ -72,5 +72,5 @@ public sealed class RollingCount(TextBlock text)
         if (progress >= 1) StopRolling();
     }
 
-    private void Render() => text.Text = _format(_shown);
+    private void Render() => NumericText.Show(text, _format(_shown));
 }

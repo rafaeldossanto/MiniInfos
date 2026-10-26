@@ -66,7 +66,18 @@ Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e de
 
 Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0 e OpenAI da 11.15.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
 
-Os temas ficam em `widget/Themes`, com recursos dinâmicos compartilhados pelo cartão, menus e configurações. Cada tema é um arquivo com os mesmos pincéis (`Simple.xaml`, `Classic.xaml`, `Light.xaml`), e `Design.xaml` guarda a fonte e o cabeçalho comuns a todos. A arte de Atena foi gerada para o MiniInfos. A fonte Manrope é distribuída com o app sob a licença SIL Open Font License, incluída em `widget/Assets/Fonts/OFL.txt`.
+Os temas ficam em `widget/Themes`, com recursos dinâmicos compartilhados pelo cartão, menus e configurações. Cada tema é um arquivo com os mesmos pincéis (`Simple.xaml`, `Classic.xaml`, `Light.xaml`), e `Design.xaml` guarda a fonte das configurações e o cabeçalho comuns a todos. A arte de Atena foi gerada para o MiniInfos.
+
+Em **Configurações → Aparência → Fontes**, textos e números têm seletores separados, com prévia imediata. As escolhas valem para todos os cartões, inclusive a visualização dividida, ficam salvas e continuam iguais ao trocar o tema. Combinações das prévias:
+
+| Estilo | Textos | Números |
+| --- | --- | --- |
+| Atual | Manrope | Manrope |
+| Monoespaçada | Manrope | Geist Mono |
+| Monumental | Cinzel | Bodoni Moda |
+| Digital | Chakra Petch | Orbitron |
+
+Também é possível misturar essas fontes. Percentuais, totais, horários e contagens nas legendas usam a fonte dos números; o restante usa a fonte dos textos. `AppFonts` mantém o catálogo e os recursos compartilhados, e `NumericText` separa números de letras sem alterar os valores ou a animação das contagens. As fontes ficam embutidas no aplicativo, sem instalação ou downloads durante o uso. Suas licenças SIL Open Font License acompanham a distribuição em `Assets/Fonts/OFL*.txt`.
 
 O `codex` é procurado no PATH (instalação nativa, ou o `codex.cmd` do npm) e, se não estiver lá, na cópia que o app do Codex guarda em `%LOCALAPPDATA%\OpenAI\Codex\bin`. É o caso do app da Microsoft Store, que não põe o `codex` no PATH.
 

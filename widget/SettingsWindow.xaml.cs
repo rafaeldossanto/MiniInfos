@@ -32,6 +32,10 @@ public partial class SettingsWindow : Window
 
         StartupToggle.IsChecked = startup.IsOn;
         ShowTheme();
+        BuildFontChoices(TextFontChoices, AppFonts.TextOptions, "TextFont", choice => _preferences.TextFont = choice);
+        BuildFontChoices(NumberFontChoices, AppFonts.NumberOptions, "NumberFont", choice => _preferences.NumberFont = choice);
+        NumericText.Show(FontPreview, "MiniInfos · 12.345.678 · 42%");
+        ShowFonts();
         ShowNumbers();
         preferences.PropertyChanged += OnPreferenceChanged;
         card.ViewChanged += ShowNumbers;
@@ -65,9 +69,37 @@ public partial class SettingsWindow : Window
 
     private void ShowNumbers() => (Card.IsDetailed ? DetailedNumbers : CompactNumbers).IsChecked = true;
 
+    private void BuildFontChoices(StackPanel panel, IReadOnlyList<FontOption> options, string group, Action<FontChoice> choose)
+    {
+        foreach (var option in options)
+        {
+            var button = new RadioButton
+            {
+                Content = option.Name,
+                Tag = option.Choice,
+                GroupName = group,
+                Style = (Style)FindResource("Segment"),
+                FontFamily = option.Family,
+            };
+            button.Checked += (_, _) => choose(option.Choice);
+            panel.Children.Add(button);
+        }
+    }
+
+    private void ShowFonts()
+    {
+        foreach (var (panel, selected) in new[]
+            { (TextFontChoices, _preferences.TextFont), (NumberFontChoices, _preferences.NumberFont) })
+        {
+            foreach (var choice in panel.Children.OfType<RadioButton>())
+                choice.IsChecked = (FontChoice)choice.Tag == selected;
+        }
+    }
+
     private void OnPreferenceChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Preferences.Theme)) ShowTheme();
+        if (e.PropertyName is nameof(Preferences.TextFont) or nameof(Preferences.NumberFont)) ShowFonts();
     }
 
     private void OnThemeChosen(object sender, RoutedEventArgs e) => _preferences.Theme = (ThemeChoice)((RadioButton)sender).Tag;
