@@ -12,12 +12,15 @@ public sealed class CardSet
     private readonly IReadOnlyList<IUsageProvider> _providers;
     private readonly Preferences _preferences;
     private readonly List<MainWindow> _extras = [];
+    private readonly DesktopPet _pet;
 
     public CardSet(IReadOnlyList<IUsageProvider> providers, Preferences preferences)
     {
         _providers = providers;
         _preferences = preferences;
         Main = Adopt(new MainWindow(providers, preferences));
+        _pet = new DesktopPet(preferences, BringBack, OpenPetSettings, Quit);
+        Main.UsageRead += _pet.Observe;
         foreach (var store in CardStore.Extras()) _extras.Add(Adopt(new MainWindow(providers, preferences, store, CardKind.Extra)));
         LightOpenPages();
     }
@@ -28,6 +31,8 @@ public sealed class CardSet
 
     /// <summary>The settings window, while it is open.</summary>
     public SettingsWindow? Settings { get; private set; }
+
+    public PetWindow? Pet => _pet.Window;
 
     public bool IsVisible => All.Any(card => card.IsVisible);
 
@@ -83,8 +88,16 @@ public sealed class CardSet
     /// <summary>Quits the app with every card saved as it is, so the extras come back next time.</summary>
     public void Quit()
     {
+        Main.UsageRead -= _pet.Observe;
+        _pet.Dispose();
         foreach (var card in All) card.PrepareToQuit();
         Application.Current.Shutdown();
+    }
+
+    private void OpenPetSettings()
+    {
+        OpenSettings(Main);
+        Settings?.ShowPetPage();
     }
 
     private MainWindow Adopt(MainWindow card)

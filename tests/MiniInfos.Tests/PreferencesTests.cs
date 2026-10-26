@@ -72,6 +72,15 @@ public sealed class PreferencesTests
         Assert.Equal((text, numbers, ThemeChoice.Classic), (reloaded.TextFont, reloaded.NumberFont, reloaded.Theme));
     }
 
+    [Theory]
+    [InlineData("MiniInfos", "Miniinfos")]
+    [InlineData("Codex (GPT)", "Codex (Gpt)")]
+    [InlineData("MiniInfos · contexto 38% · US$ 87,93", "Miniinfos · contexto 38% · Us$ 87,93")]
+    [InlineData("Janela 5h", "Janela 5h")]
+    [InlineData("atualizado há 6 min", "atualizado há 6 min")]
+    public void ASmallCapsFontKeepsOnlyTheCapitalsThatOpenAWord(string text, string shown) =>
+        Assert.Equal(shown, AppFonts.InitialCapitalsOnly(text));
+
     [Fact]
     public void TheStartupShortcutComesAndGoes()
     {

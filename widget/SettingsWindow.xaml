@@ -123,6 +123,44 @@
                     </ScrollViewer>
                 </TabItem>
 
+                <TabItem x:Name="PetPage" Header="Mascote" Tag="&#xE734;">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="144" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image x:Name="PetPreview" Width="144" Height="144"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Coruja de Atena" FontSize="16" FontWeight="SemiBold" />
+                                <TextBlock Text="Uma companhia para acompanhar seus tokens."
+                                           Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Mostrar mascote"
+                                                Tag="Fica solto na área de trabalho, mesmo com o cartão escondido.">
+                            <CheckBox x:Name="PetToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PetEnabled}" />
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Tamanho">
+                            <Border Style="{StaticResource SegmentGroup}">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="SmallPet" Style="{StaticResource Segment}" GroupName="PetSize"
+                                                 Content="Pequeno" Tag="{x:Static local:PetSizeChoice.Small}" Checked="OnPetSizeChosen" />
+                                    <RadioButton x:Name="MediumPet" Style="{StaticResource Segment}" GroupName="PetSize"
+                                                 Content="Médio" Tag="{x:Static local:PetSizeChoice.Medium}" Checked="OnPetSizeChosen" />
+                                    <RadioButton x:Name="LargePet" Style="{StaticResource Segment}" GroupName="PetSize"
+                                                 Content="Grande" Tag="{x:Static local:PetSizeChoice.Large}" Checked="OnPetSizeChosen" />
+                                </StackPanel>
+                            </Border>
+                        </HeaderedContentControl>
+                        <TextBlock Text="Arraste para mover. Clique duas vezes para mostrar o MiniInfos. Alt + roda do mouse muda o tamanho."
+                                   Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" Margin="0,0,0,12" />
+                        <TextBlock Text="Ela anima quando os tokens aumentam, fica atenta em 90% de uso e dorme após dois minutos sem novos tokens."
+                                   Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" />
+                    </StackPanel>
+                </TabItem>
+
                 <TabItem x:Name="AboutPage" Header="Sobre" Tag="&#xE946;">
                     <StackPanel>
                         <TextBlock Text="MiniInfos" FontSize="16" FontWeight="SemiBold" />

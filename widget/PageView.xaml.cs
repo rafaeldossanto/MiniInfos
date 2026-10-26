@@ -26,7 +26,7 @@ public partial class PageView : UserControl
     public void Show(UsagePage page, DateTimeOffset now, Func<long, string> countText)
     {
         // Beside the title, how fresh the limits are: each provider is read apart.
-        PageTitle.Text = page.Title;
+        NumericText.Show(PageTitle, page.Title);
         NumericText.Show(Note, page.Updated);
         ShowWindow(page.ShortWindow, page.TokensOrigin, now, countText, ShortLabel, ShortPercent, ShortBar, ShortDetail, _shortTokens);
         ShowWindow(page.LongWindow, page.TokensOrigin, now, countText, LongLabel, LongPercent, LongBar, LongDetail, _longTokens);
