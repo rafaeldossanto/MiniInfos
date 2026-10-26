@@ -18,6 +18,8 @@ public sealed class PetPendulum
     private double _angularVelocity;
 
     public double Angle => _angle * 180 / Math.PI;
+    public double AngularVelocity => _angularVelocity * 180 / Math.PI;
+    public Vector ScreenVelocity => _pointerVelocity * _screenScale;
 
     public void Reset(Point pointer, TimeSpan now, double screenScale)
     {

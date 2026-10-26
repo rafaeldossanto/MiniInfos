@@ -19,6 +19,7 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
     private TimeSpan _lastMove;
     private readonly PetPendulum _physics = new();
     private double _screenScale;
+    private Vector _releaseVelocity;
     private PetState? _feedback;
     private TimeSpan _feedbackUntil;
 
@@ -26,6 +27,8 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
     public bool IsHeld { get; private set; }
     public Point PointerScreen { get; private set; }
     public int AnimationRevision { get; private set; }
+    public double AngularVelocity => _physics.AngularVelocity;
+    public Vector ReleaseVelocity => IsHeld ? _physics.ScreenVelocity : _releaseVelocity;
 
     public static PetBodyPart PartAt(Point point) => PetAnatomy.Athena.PartAt(point);
 
@@ -37,6 +40,8 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
         _part = _anatomy.PartAt(canvasPoint);
         _pressedTime = _lastMove = now;
         _screenScale = screenScale;
+        _releaseVelocity = default;
+        _physics.Reset(screenPoint, now, screenScale);
     }
 
     public void Move(Point screenPoint, TimeSpan now)
@@ -75,7 +80,7 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
         if (!IsPressed) return false;
         HoldAt(now);
         var held = IsHeld;
-        IsPressed = IsHeld = false;
+        CancelPress();
         if (!held)
         {
             _feedback = _part is PetBodyPart.LeftEye or PetBodyPart.RightEye ? PetState.ProtectEyes : PetState.Active;
@@ -86,7 +91,11 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
         return held;
     }
 
-    public void CancelPress() => IsPressed = IsHeld = false;
+    public void CancelPress()
+    {
+        _releaseVelocity = IsHeld ? _physics.ScreenVelocity : default;
+        IsPressed = IsHeld = false;
+    }
 
     public static Point AnchorFor(PetState state) => PetAnatomy.Athena.AnchorFor(state);
 

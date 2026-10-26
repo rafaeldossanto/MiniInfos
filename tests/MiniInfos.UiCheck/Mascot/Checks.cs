@@ -70,13 +70,23 @@ internal static partial class Program
         var interaction = (PetInteraction)typeof(PetWindow).GetField("_interaction", flags)!.GetValue(pet)!;
         var started = (long)typeof(PetWindow).GetField("_startedAt", flags)!.GetValue(pet)!;
         var sprite = Find<Image>(pet, "Sprite");
+        var player = (PetAnimationPlayer)typeof(PetWindow).GetField("_player", flags)!.GetValue(pet)!;
         TimeSpan Now() => Stopwatch.GetElapsedTime(started);
+        Point VisibleCenter()
+        {
+            var bounds = PetPixels.Bounds(player.Pixels.Span, PetFrame.CanvasSize);
+            var local = new Point((bounds.Left + bounds.Width / 2) / PetFrame.CanvasSize * sprite.Width,
+                (bounds.Top + bounds.Height / 2) / PetFrame.CanvasSize * sprite.Height);
+            return pet.PointToScreen(sprite.RenderTransform.Transform(local));
+        }
         void Press(Point canvas)
         {
             var local = new Point(canvas.X / PetFrame.CanvasSize * sprite.Width, canvas.Y / PetFrame.CanvasSize * sprite.Height);
             var screen = pet.PointToScreen(sprite.RenderTransform.Transform(local));
             typeof(PetWindow).GetField("_grabMatrix", flags)!.SetValue(pet, sprite.RenderTransform.Value);
-            typeof(PetWindow).GetField("_releasedAt", flags)!.SetValue(pet, null);
+            var wasDropping = pet.IsDropping;
+            typeof(PetWindow).GetMethod("ClearDrop", flags)!.Invoke(pet, null);
+            typeof(PetWindow).GetField("_suspendedDrop", flags)!.SetValue(pet, wasDropping);
             interaction.Press(canvas, screen, Now());
         }
         void Release() => pet.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
@@ -114,10 +124,16 @@ internal static partial class Program
                 Check((anchor - interaction.PointerScreen).Length < 2, "the grabbed part stays attached to the cursor as the pose changes");
             }
             RenderElement(pet, System.IO.Path.Combine(pictures, $"pet-held-{name}.png"));
+            var beforeRelease = VisibleCenter();
             Release();
             Check(!interaction.IsPressed && !interaction.IsHeld && (int)pet.State < (int)PetState.ProtectEyes,
-                "releasing returns to the observed usage state");
-            Pump(TimeSpan.FromMilliseconds(350));
+                "releasing detaches the grip and starts the fall");
+            Check(pet.IsDropping && (VisibleCenter() - beforeRelease).Length < 2,
+                $"releasing from the {name} preserves its actual visible position");
+            Pump(TimeSpan.FromMilliseconds(100));
+            RenderElement(pet, System.IO.Path.Combine(pictures, $"pet-falling-{name}.png"));
+            PumpUntil(() => !pet.IsDropping, TimeSpan.FromSeconds(2.5));
+            Check(!pet.IsDropping, "the local landing and recovery finish");
         }
 
         Press(new Point(160, 100));
@@ -154,7 +170,20 @@ internal static partial class Program
         Check(rotatingSize is not null && stableSize, "rotation keeps the render surface stable instead of resizing it each frame");
         RenderElement(pet, System.IO.Path.Combine(pictures, "pet-physics-spin.png"));
         Release();
-        Pump(TimeSpan.FromMilliseconds(400));
+        Pump(TimeSpan.FromMilliseconds(80));
+        var caught = VisibleCenter();
+        Press(new Point(160, 100));
+        Pump(TimeSpan.FromMilliseconds(60));
+        Check(!pet.IsDropping && (VisibleCenter() - caught).Length < 3,
+            "catching the pet during a fall pauses it at its visible position");
+        interaction.Move(interaction.PointerScreen + new Vector(15, 0), Now());
+        Pump(TimeSpan.FromMilliseconds(350));
+        Check(interaction.IsHeld, "a falling pet can be picked up again without waiting for its landing");
+        var recaught = VisibleCenter();
+        Release();
+        Check(pet.IsDropping && (VisibleCenter() - recaught).Length < 2,
+            "a second release starts a new fall from the new grip");
+        PumpUntil(() => !pet.IsDropping, TimeSpan.FromSeconds(2.5));
         Check(Math.Abs(pet.Width - sprite.Width) < 1 && Math.Abs(pet.Height - sprite.Height) < 1
             && sprite.RenderTransform.Value.HasInverse, "dropping the owl restores its normal viewport without collapsing the sprite");
     }

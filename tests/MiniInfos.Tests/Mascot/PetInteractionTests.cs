@@ -90,6 +90,31 @@ public sealed class PetInteractionTests
         Assert.Null(interaction.StateAt(TimeSpan.FromMilliseconds(100)));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ReleaseAndCaptureLossPreserveMotionForTheDropButANewGripStartsFresh(bool lostCapture)
+    {
+        var interaction = new PetInteraction();
+        interaction.Press(new Point(160, 100), new Point(500, 500), TimeSpan.Zero);
+        for (var ms = 10; ms <= 100; ms += 10)
+        {
+            interaction.Move(new Point(500 + ms, 500), TimeSpan.FromMilliseconds(ms));
+            interaction.HoldAt(TimeSpan.FromMilliseconds(ms));
+        }
+        var velocity = interaction.ReleaseVelocity;
+        var spin = interaction.AngularVelocity;
+        Assert.True(velocity.Length > 1 && Math.Abs(spin) > 1);
+        if (lostCapture) interaction.CancelPress();
+        else interaction.Release(TimeSpan.FromMilliseconds(100));
+        Assert.Equal(velocity, interaction.ReleaseVelocity);
+        Assert.Equal(spin, interaction.AngularVelocity);
+
+        interaction.Press(new Point(160, 100), new Point(600, 500), TimeSpan.FromMilliseconds(200));
+        Assert.Equal(new Vector(), interaction.ReleaseVelocity);
+        Assert.Equal(0, interaction.AngularVelocity);
+    }
+
     [Fact]
     public void PokingAgainReplaysTheReactionInsteadOfSnappingToTheFirstFrame()
     {
