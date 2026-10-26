@@ -140,7 +140,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="MiniInfos" FontWeight="SemiBold" FontSize="{DynamicResource HeaderTitleSize}" VerticalAlignment="Center" />
+                    <TextBlock x:Name="AppTitle" FontWeight="SemiBold" FontSize="{DynamicResource HeaderTitleSize}" VerticalAlignment="Center" />
                     <Button x:Name="RefreshButton" Grid.Column="1" Style="{StaticResource HeaderButton}" Click="OnRefresh">
                         <TextBlock Text="&#xE72C;" RenderTransformOrigin="0.5,0.5">
                             <TextBlock.RenderTransform>

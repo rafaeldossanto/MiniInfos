@@ -76,6 +76,9 @@ public partial class MainWindow : Window
     /// <summary>What the tray icon reads when hovered: the first page's own numbers, in three lines.</summary>
     public event Action<string>? SummaryChanged;
 
+    /// <summary>All providers' latest reads, including while the card is hidden.</summary>
+    public event Action<IReadOnlyList<PetUsage>, DateTimeOffset>? UsageRead;
+
     /// <summary>"Nova janela" on a page's icon: whoever holds the cards opens one for that provider beside this card.</summary>
     public event Action<MainWindow, string>? NewWindowRequested;
 
@@ -126,6 +129,7 @@ public partial class MainWindow : Window
         _kind = kind;
         InitializeComponent();
         Card.SizeChanged += (_, e) => Card.Clip = new RectangleGeometry(new Rect(e.NewSize), 16, 16);
+        ShowTitle();
         Themes.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;
         Closed += (_, _) =>
@@ -307,6 +311,7 @@ public partial class MainWindow : Window
         }
 
         Show(pages, now);
+        UsageRead?.Invoke(pages.Select((page, index) => PetUsage.Of(_providers[index].Id, page, now)).ToArray(), now);
     }
 
     /// <summary>Draws the pages on screen, one or two.</summary>
@@ -410,9 +415,15 @@ public partial class MainWindow : Window
         MaxHeight = _designHeight * MaxScale;
     }
 
+    /// <summary>The app's name, in the capitals the text font wants.</summary>
+    private void ShowTitle() => NumericText.Show(AppTitle, "MiniInfos");
+
     private void OnAppearanceChanged()
     {
+        // The text font may want other capitals: the name now, the pages with a read of what is on screen.
+        ShowTitle();
         if (_designHeight <= 0) return;
+        _ = RefreshAsync();
         var scale = Width / _designWidth;
         Dispatcher.InvokeAsync(() =>
         {

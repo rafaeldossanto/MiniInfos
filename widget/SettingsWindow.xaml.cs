@@ -34,8 +34,9 @@ public partial class SettingsWindow : Window
         ShowTheme();
         BuildFontChoices(TextFontChoices, AppFonts.TextOptions, "TextFont", choice => _preferences.TextFont = choice);
         BuildFontChoices(NumberFontChoices, AppFonts.NumberOptions, "NumberFont", choice => _preferences.NumberFont = choice);
-        NumericText.Show(FontPreview, "MiniInfos · 12.345.678 · 42%");
         ShowFonts();
+        PetPreview.Source = PetSprites.Frame(PetState.Idle, 0).Source;
+        ShowPetSize();
         ShowNumbers();
         preferences.PropertyChanged += OnPreferenceChanged;
         card.ViewChanged += ShowNumbers;
@@ -49,6 +50,8 @@ public partial class SettingsWindow : Window
     }
 
     public MainWindow Card { get; }
+
+    public void ShowPetPage() => Pages.SelectedItem = PetPage;
 
     /// <summary>Centered on the card, kept on screen.</summary>
     private void PlaceOver(MainWindow card)
@@ -86,6 +89,7 @@ public partial class SettingsWindow : Window
         }
     }
 
+    /// <summary>Lights the chosen fonts and writes the preview in them, capitals included.</summary>
     private void ShowFonts()
     {
         foreach (var (panel, selected) in new[]
@@ -94,13 +98,25 @@ public partial class SettingsWindow : Window
             foreach (var choice in panel.Children.OfType<RadioButton>())
                 choice.IsChecked = (FontChoice)choice.Tag == selected;
         }
+
+        NumericText.Show(FontPreview, "MiniInfos · 12.345.678 · 42%");
     }
 
     private void OnPreferenceChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Preferences.Theme)) ShowTheme();
         if (e.PropertyName is nameof(Preferences.TextFont) or nameof(Preferences.NumberFont)) ShowFonts();
+        if (e.PropertyName == nameof(Preferences.PetSize)) ShowPetSize();
     }
+
+    private void ShowPetSize()
+    {
+        foreach (var choice in (RadioButton[])[SmallPet, MediumPet, LargePet])
+            choice.IsChecked = (PetSizeChoice)choice.Tag == _preferences.PetSize;
+    }
+
+    private void OnPetSizeChosen(object sender, RoutedEventArgs e) =>
+        _preferences.PetSize = (PetSizeChoice)((RadioButton)sender).Tag;
 
     private void OnThemeChosen(object sender, RoutedEventArgs e) => _preferences.Theme = (ThemeChoice)((RadioButton)sender).Tag;
 

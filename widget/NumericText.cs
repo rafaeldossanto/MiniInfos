@@ -4,11 +4,15 @@ using System.Windows.Documents;
 
 namespace MiniInfos;
 
-/// <summary>Mixed labels keep their text family while amounts, percentages and times use the number family.</summary>
+/// <summary>
+/// Mixed labels keep their text family while amounts, percentages and times use the number family; the
+/// letters take the capitals the text font wants (<see cref="AppFonts.Cased"/>).
+/// </summary>
 public static partial class NumericText
 {
-    public static void Show(TextBlock target, string value)
+    public static void Show(TextBlock target, string text)
     {
+        var value = AppFonts.Cased(text);
         if (target.Text == value) return;
 
         target.Inlines.Clear();

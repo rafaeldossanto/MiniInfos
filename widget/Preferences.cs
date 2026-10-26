@@ -29,7 +29,9 @@ public sealed record AppSettings(
     bool FollowsApps = true,
     ThemeChoice Theme = ThemeChoice.Simple,
     FontChoice TextFont = FontChoice.Manrope,
-    FontChoice NumberFont = FontChoice.Manrope);
+    FontChoice NumberFont = FontChoice.Manrope,
+    bool PetEnabled = false,
+    PetSizeChoice PetSize = PetSizeChoice.Medium);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -79,6 +81,18 @@ public sealed class Preferences : INotifyPropertyChanged
     {
         get => _settings.NumberFont;
         set => Change(_settings with { NumberFont = value });
+    }
+
+    public bool PetEnabled
+    {
+        get => _settings.PetEnabled;
+        set => Change(_settings with { PetEnabled = value });
+    }
+
+    public PetSizeChoice PetSize
+    {
+        get => _settings.PetSize;
+        set => Change(_settings with { PetSize = value });
     }
 
     private void Change(AppSettings next, [CallerMemberName] string property = "")

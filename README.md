@@ -28,6 +28,19 @@ Ele lê os registros locais a cada 3 segundos. Os limites da conta Codex são co
 
 Arraste o quadrado pra onde quiser, em qualquer direção. Pra mudar o tamanho, puxe uma borda ou um canto: tudo cresce ou encolhe junto, na mesma proporção. A posição e o tamanho ficam salvos. Botão direito: "Sempre por cima", "Voltar pro canto", "Tamanho padrão", "Esconder" e "Sair do MiniInfos".
 
+## Mascote na área de trabalho
+
+Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coruja de Atena. Ela fica numa janela transparente própria, funciona com todos os temas e continua disponível com o cartão escondido. É opcional e começa desativada.
+
+- Arraste a coruja para mover; posição e tamanho ficam salvos.
+- Clique duas vezes para mostrar o MiniInfos.
+- Escolha Pequeno, Médio ou Grande nas configurações, ou use Alt + roda do mouse sobre a coruja.
+- Botão direito: mostrar o cartão, configurar o mascote, voltar pro canto, esconder a coruja ou sair do MiniInfos.
+
+Ela pisca em repouso, bate as asas quando a contagem de tokens aumenta, fica atenta quando uma janela atual chega a 90% e dorme após dois minutos sem novos tokens. As reações usam as leituras que o MiniInfos já faz, inclusive com o cartão escondido; não identificam pensamento, conclusão ou erro de uma tarefa. O mascote não faz chamadas de IA nem gasta tokens. Ao sair do MiniInfos, ele fecha junto.
+
+`PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, e `PetSprites` carrega e anima a arte local. A coruja foi gerada para o MiniInfos; o atlas fica em `widget/Assets/athena-owl.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
+
 ## Junto com Claude ou Codex
 
 O MiniInfos inicia com o Windows, escondido (atalho em `shell:startup` com o argumento legado `--with-claude`). Ele aparece quando a janela do app Claude ou do app Codex abre, e some quando o último fecha. O app do Codex da Microsoft Store roda como `ChatGPT.exe`: só conta o que vem do pacote do Codex, então abrir o ChatGPT comum não mostra o quadrado. Também conta como Claude aberto qualquer chat do Claude Code rodando no terminal ou num editor: o mod avisa "estou vivo" a cada 30 s e "terminei" ao fechar. Um chat que morre sem avisar conta como fechado depois de 90 s. Chats do Codex CLI sem janela própria não acionam a abertura automática; você ainda pode abrir o MiniInfos pelo Menu Iniciar ou pela bandeja.
