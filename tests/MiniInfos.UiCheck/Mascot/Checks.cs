@@ -71,7 +71,7 @@ internal static partial class Program
         Find<RadioButton>(settings, "MediumPet").IsChecked = true;
     }
 
-    private static void CheckPetInteractions(PetWindow pet, string pictures)
+    private static void CheckPetInteractions(PetWindow pet, string pictures, PetAnatomy? anatomy = null)
     {
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
         var interaction = (PetInteraction)typeof(PetWindow).GetField("_interaction", flags)!.GetValue(pet)!;
@@ -81,6 +81,8 @@ internal static partial class Program
         var paint = typeof(PetWindow).GetMethod("Paint", flags)!;
         TimeSpan Now() => Stopwatch.GetElapsedTime(started);
         void PaintAt(TimeSpan at) => paint.Invoke(pet, [at]);
+        Point Part(PetBodyPart part, Point fallback) => anatomy?.Regions.FirstOrDefault(region => region.Part == part) is { } region
+            ? new(region.X, region.Y) : fallback;
         Point VisibleCenter()
         {
             var bounds = PetPixels.Bounds(player.Pixels.Span, PetFrame.CanvasSize);
@@ -105,22 +107,23 @@ internal static partial class Program
 
         pet.Left = SystemParameters.WorkArea.Left + 120;
         pet.Top = SystemParameters.WorkArea.Top + 100;
-        foreach (var x in new[] { 130, 192 })
+        foreach (var (point, name) in new[]
+            { (Part(PetBodyPart.LeftEye, new(130, 194)), "left"), (Part(PetBodyPart.RightEye, new(192, 194)), "right") })
         {
-            Press(new Point(x, 194));
+            Press(point);
             Release();
-            Check(pet.State == PetState.ProtectEyes, $"a quick poke in the {(x == 130 ? "left" : "right")} eye raises the protective wings");
+            Check(pet.State == PetState.ProtectEyes, $"a quick poke in the {name} eye protects the face");
             Pump(TimeSpan.FromMilliseconds(500));
-            RenderElement(pet, System.IO.Path.Combine(pictures, $"pet-poked-{x}.png"));
+            RenderElement(pet, System.IO.Path.Combine(pictures, $"pet-poked-{name}.png"));
         }
 
         foreach (var (part, expected, name) in new[]
         {
-            (new Point(160, 100), PetState.HeldHead, "head"),
-            (new Point(90, 245), PetState.HeldLeftWing, "left-wing"),
-            (new Point(230, 245), PetState.HeldRightWing, "right-wing"),
-            (new Point(144, 292), PetState.HeldFeet, "feet"),
-            (new Point(160, 250), PetState.HeldBody, "body"),
+            (Part(PetBodyPart.Head, new(160, 100)), PetState.HeldHead, "head"),
+            (Part(PetBodyPart.LeftWing, new(90, 245)), PetState.HeldLeftWing, "left-wing"),
+            (Part(PetBodyPart.RightWing, new(230, 245)), PetState.HeldRightWing, "right-wing"),
+            (Part(PetBodyPart.Feet, new(144, 292)), PetState.HeldFeet, "feet"),
+            (Part(PetBodyPart.Body, new(160, 250)), PetState.HeldBody, "body"),
         })
         {
             Press(part);
@@ -148,7 +151,7 @@ internal static partial class Program
             Check(!pet.IsDropping, "the local landing and recovery finish");
         }
 
-        Press(new Point(160, 100));
+        Press(Part(PetBodyPart.Head, new(160, 100)));
         var center = interaction.PointerScreen - new Vector(70, 0);
         interaction.Move(interaction.PointerScreen + new Vector(5, 0), Now());
         var orbit = Stopwatch.StartNew();
@@ -186,7 +189,7 @@ internal static partial class Program
         Release();
         Pump(TimeSpan.FromMilliseconds(80));
         var caught = VisibleCenter();
-        var caughtAt = Press(new Point(160, 100));
+        var caughtAt = Press(Part(PetBodyPart.Head, new(160, 100)));
         // Sample the exact press instant instead of waiting past the hold threshold on a busy machine.
         PaintAt(caughtAt);
         var drift = (VisibleCenter() - caught).Length;

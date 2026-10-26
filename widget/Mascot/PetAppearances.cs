@@ -20,12 +20,20 @@ public interface IPetAppearance
     PetPose PoseAt(PetState state, TimeSpan elapsed);
 }
 
+public sealed record BuiltInPet(string? Id, IPetAppearance Appearance);
+
 public static class PetAppearances
 {
     public static IPetAppearance Athena { get; } = new AthenaAppearance();
+    /// <summary>The mascots that ship with the app; the owl, the default, has no id. Others come as packages.</summary>
+    public static IReadOnlyList<BuiltInPet> BuiltIns { get; } = [new(null, Athena)];
+
+    public static IPetAppearance? BuiltIn(string? id) => BuiltIns.FirstOrDefault(pet => pet.Id == id)?.Appearance;
+    public static bool IsBuiltIn(string? id) => BuiltIn(id) is not null;
 
     public static IPetAppearance Load(string? id, PackageLibrary? library = null)
     {
+        if (BuiltIn(id) is { } builtin) return builtin;
         var package = (library ?? PackageLibrary.Shared).Find(PackageKind.Mascot, id);
         if (package is null) return Athena;
         try { return new CommunityPet(package); }

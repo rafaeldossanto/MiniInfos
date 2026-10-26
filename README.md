@@ -34,25 +34,25 @@ Arraste o quadrado pra onde quiser, em qualquer direção. Pra mudar o tamanho, 
 
 ## Mascote na área de trabalho
 
-Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coruja de Atena. Ela fica numa janela transparente própria, funciona com todos os temas e continua disponível com o cartão escondido. É opcional e começa desativada.
+Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coruja de Atena, que vem incluída no aplicativo. Outros mascotes chegam como pacotes, pelo **+** da galeria ou pela página **Comunidade**; a escolha fica salva. O mascote fica numa janela transparente própria, funciona com todos os temas e continua disponível com o cartão escondido. É opcional e começa desativado.
 
-- Clique rapidamente em um dos olhos: a coruja fecha os olhinhos e levanta as asas para protegê-los.
-- Segure pela cabeça, por uma das asas, pela barriga ou pelos pés para mover. Ela fica pendurada pela região escolhida; pelos pés, vira de cabeça para baixo. O ponto segurado acompanha o cursor.
-- Enquanto segura, os movimentos do mouse aplicam impulso à coruja. Movimentos circulares podem fazê-la dar voltas completas ao redor do ponto segurado; ao parar o mouse, ela continua balançando e perde força aos poucos.
-- Ao soltar, ela faz uma queda curta perto do cursor, preservando a posição, a inclinação e parte do embalo. A aterrissagem muda conforme chega pelos pés, de lado ou de cabeça para baixo; depois ela se levanta e fica no novo lugar, que é salvo. Você pode pegá-la novamente durante a queda.
+- Clique rapidamente em um dos olhos: o mascote protege o rosto com as asas ou as patas.
+- Segure pela cabeça, por um dos braços ou asas, pela barriga ou pelos pés para mover. O mascote fica pendurado pela região escolhida; pelos pés, vira de cabeça para baixo. O ponto segurado acompanha o cursor.
+- Enquanto segura, os movimentos do mouse aplicam impulso ao mascote. Movimentos circulares podem fazê-lo dar voltas completas ao redor do ponto segurado; ao parar o mouse, ele continua balançando e perde força aos poucos.
+- Ao soltar, ele faz uma queda curta perto do cursor, preservando a posição, a inclinação e parte do embalo. A aterrissagem muda conforme chega pelos pés, de lado ou de cabeça para baixo; depois ele se levanta e fica no novo lugar, que é salvo. Você pode pegá-lo novamente durante a queda.
 - Clique duas vezes para mostrar o MiniInfos.
-- Escolha Pequeno, Médio ou Grande nas configurações, ou use Alt + roda do mouse sobre a coruja.
-- Botão direito: mostrar o cartão, configurar o mascote, voltar pro canto, esconder a coruja ou sair do MiniInfos.
+- Escolha Pequeno, Médio ou Grande nas configurações, ou use Alt + roda do mouse sobre o mascote.
+- Botão direito: mostrar o cartão, configurar o mascote, voltar pro canto, esconder o mascote ou sair do MiniInfos.
 
-Ela pisca em repouso, bate as asas quando a contagem de tokens aumenta, fica atenta quando uma janela atual chega a 90% e dorme após dois minutos sem novos tokens. As reações usam as leituras que o MiniInfos já faz, inclusive com o cartão escondido; não identificam pensamento, conclusão ou erro de uma tarefa. O mascote não faz chamadas de IA nem gasta tokens. Ao sair do MiniInfos, ele fecha junto.
+O mascote pisca em repouso, se anima quando a contagem de tokens aumenta, fica atento quando uma janela atual chega a 90% e dorme após dois minutos sem novos tokens. As reações usam as leituras que o MiniInfos já faz, inclusive com o cartão escondido; não identificam pensamento, conclusão ou erro de uma tarefa. O mascote não faz chamadas de IA nem gasta tokens. Ao sair do MiniInfos, ele fecha junto.
 
-Em repouso, a coruja também respira e balança suavemente sem mudar a posição da janela. Cada estado usa oito poses desenhadas, interpoladas a até 60 quadros por segundo em repouso. Durante a interação, a queda e a recuperação, a animação acompanha os quadros de renderização do monitor, sem o limite de 60 Hz. As mudanças de estado partem da imagem que já está na tela, com uma transição de 300 ms. O relógio usa o tempo transcorrido, para não desacelerar a animação quando um quadro demora mais. O processamento para quando a janela do mascote fecha.
+Em repouso, o mascote também respira e balança suavemente sem mudar a posição da janela. Cada estado usa oito poses desenhadas, interpoladas a até 60 quadros por segundo em repouso. Durante a interação, a queda e a recuperação, a animação acompanha os quadros de renderização do monitor, sem o limite de 60 Hz. As mudanças de estado partem da imagem que já está na tela, com uma transição de 300 ms. O relógio usa o tempo transcorrido, para não desacelerar a animação quando um quadro demora mais. O processamento para quando a janela do mascote fecha.
 
-`PetInteraction` distingue o clique, um toque segurado de 220 ms e o arraste, identifica a região da coruja e mantém o ponto de apoio. O mouse fica capturado durante o gesto para permitir mover para fora da janela. Ao perder a captura ou soltar um arraste, começa a queda; depois da recuperação, ela volta ao estado de uso observado, sem alterar as contagens. As poses de interação ficam em `widget/Assets/athena-owl-interactions.png`; a asa direita é espelhada em memória, e a pose pelos pés usa uma rotação da animação de asas.
+`PetInteraction` distingue o clique, um toque segurado de 220 ms e o arraste, identifica a região do mascote e mantém o ponto de apoio. O mouse fica capturado durante o gesto para permitir mover para fora da janela. Ao perder a captura ou soltar um arraste, começa a queda; depois da recuperação, o mascote volta ao estado de uso observado, sem alterar as contagens. As poses de interação da coruja ficam em `widget/Assets/athena-owl-interactions.png`; a asa direita é espelhada em memória, e a pose pelos pés usa uma rotação da animação de asas. Um mascote da comunidade traz as suas no próprio pacote.
 
 `PetPendulum` simula a rotação ao redor do ponto de apoio usando gravidade, aceleração do cursor, inércia e amortecimento. O ângulo não fica limitado a uma pequena inclinação; a integração usa passos de até 1/240 s e limita impulsos de retomadas após pausas da interface. A posição do mouse é normalizada pela escala da coruja e da tela. A aceleração é filtrada e interpolada entre os passos para reduzir trancos. `PetGeometry` mantém as transições de rotação sem achatar a imagem e usa uma área transparente de tamanho estável durante o giro, evitando recriar a superfície da janela a cada ângulo. O ponto de apoio também compensa o arredondamento da posição da janela aos pixels da tela. `PetDrop` calcula a queda a partir da imagem e do movimento reais da soltura, com gravidade, giro amortecido, contato e recuperação conforme a orientação. A distância é proporcional ao tamanho do mascote e limitada pelo espaço até a borda inferior da área de trabalho. A área da janela volta ao normal no fim da recuperação, e somente a posição final é salva.
 
-`PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
+`PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetAppearances` resolve a aparência escolhida e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. `PetAtlas` compartilha o recorte e o alinhamento das artes embutidas, e `PetSprites` define as poses e os pontos de interação da coruja. A coruja foi gerada para o MiniInfos; os atlas ficam em `widget/Assets/athena-owl-*.png`, com dez estados de oito quadros, incluindo poses derivadas em memória. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
 
 ## Temas e mascotes da comunidade
 
@@ -64,7 +64,7 @@ Na biblioteca de mascotes, o primeiro quadrado tem um bonequinho de contorno tra
 
 As miniaturas são recortadas pelo conteúdo visível e salvas em 128 × 128, fora dos pacotes, em `%LOCALAPPDATA%\MiniInfos\previews\mascots`. A instalação gera a prévia, e as Configurações reaproveitam esse PNG tanto na galeria quanto na imagem maior. Se o cache faltar ou estiver corrompido, a prévia é refeita em segundo plano; o quadrado fica vazio até a imagem ficar pronta. A exportação não inclui o cache.
 
-**Exportar** permite compartilhar um pacote instalado. Com um tema embutido ou a Coruja de Atena selecionados, cria um modelo editável com o manifesto e as imagens; o modelo de mascote inclui todas as poses e os pontos de interação. **Remover** apaga o pacote selecionado e volta à alternativa embutida. Um pacote ausente ou inválido não impede abrir o aplicativo.
+**Exportar** permite compartilhar um pacote instalado. Com um tema ou mascote embutido selecionado, cria um modelo editável com o manifesto e as imagens da opção escolhida; o modelo de mascote inclui todas as poses e os pontos de interação. **Remover** fica disponível para pacotes instalados e volta à alternativa embutida. Um pacote ausente ou inválido não impede abrir o aplicativo.
 
 O formato é aberto, versionado e feito de JSON e PNG. Autores podem criar suas próprias paletas, cabeçalhos, animações e anatomia do mascote, aproveitando a física e as interações do MiniInfos. Os arquivos são compartilháveis pelos canais da comunidade e importados localmente; o aplicativo não executa scripts ou XAML dos pacotes. Veja o [guia de criação](marketplace/README.md), o [JSON Schema](marketplace/manifest.schema.json) e o [tema Oceano de exemplo](marketplace/examples/ocean/manifest.json).
 
@@ -126,7 +126,7 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `Sources/` | Descoberta e catálogo das pastas de registros, com os modelos de entrada e resultado da busca. |
 | `Community/` | Contrato de pacotes, validação, biblioteca, importação, exportação e modelos para autores. |
 | `Community/Catalog/` | Índice, consulta à publicação `catalog`, cache, prévias sob demanda e instalação verificada. |
-| `Mascot/` | Estados, gestos, animação, sprites, posição e coordenação da coruja. |
+| `Mascot/` | Aparências, estados, gestos, animação, sprites, posição e coordenação dos mascotes. |
 | `Settings/` | Preferências compartilhadas, configurações dos cartões e escolhas de tema e fontes. |
 | `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |
 | `Infrastructure/Network/` | Identidade do repositório e cliente de releases e assets compartilhado pelo atualizador e pelo catálogo. |

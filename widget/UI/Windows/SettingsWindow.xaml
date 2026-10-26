@@ -211,9 +211,9 @@
                                 </StackPanel>
                             </Border>
                         </HeaderedContentControl>
-                        <TextBlock Text="Toque nos olhos para brincar. Segure pela cabeça, asas ou pés para mover. Clique duplo para mostrar o MiniInfos. Alt + roda muda o tamanho."
+                        <TextBlock Text="Toque nos olhos para brincar. Segure pela cabeça, braços ou asas, barriga ou pés para mover. Clique duplo para mostrar o MiniInfos. Alt + roda muda o tamanho."
                                    Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" Margin="0,0,0,12" />
-                        <TextBlock Text="Ela anima quando os tokens aumentam, fica atenta em 90% de uso e dorme após dois minutos sem novos tokens."
+                        <TextBlock Text="O mascote se anima quando os tokens aumentam, fica atento em 90% de uso e dorme após dois minutos sem novos tokens."
                                    Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" />
                     </StackPanel>
                     </ScrollViewer>

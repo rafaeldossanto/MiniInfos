@@ -7,6 +7,7 @@ using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows;
+using System.Windows.Automation;
 using MiniInfos.Infrastructure.Storage;
 using MiniInfos.Mascot;
 using MiniInfos.Settings;
@@ -53,6 +54,7 @@ public partial class PetWindow : Window
             PetFrame.CanvasSize * PetFrame.CanvasSize * 4, _appearance.PoseAt);
         InitializeComponent();
         Title = _appearance.Name + " — MiniInfos";
+        AutomationProperties.SetName(Sprite, $"{_appearance.Name}. Toque nos olhos para brincar. Segure pela cabeça, braços ou asas, barriga ou pés para mover. Clique duas vezes para mostrar o MiniInfos.");
         Sprite.Source = _surface;
         Sprite.RenderTransform = _motion;
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
@@ -192,8 +194,8 @@ public partial class PetWindow : Window
             PetState.Alert => "Uma janela de uso está em 90% ou mais",
             PetState.Sleep => "Sem novos tokens há alguns minutos",
             PetState.ProtectEyes => "Ei! Protegendo os olhinhos",
-            PetState.HeldHead => "Pendurada pela cabeça",
-            PetState.HeldLeftWing or PetState.HeldRightWing => "Pendurada pela asa",
+            PetState.HeldHead => "Segurando pela cabeça",
+            PetState.HeldLeftWing or PetState.HeldRightWing => "Segurando pelo braço ou asa",
             PetState.HeldFeet => "De cabeça para baixo!",
             PetState.HeldBody => "Segurando pela barriguinha",
             _ => "De olho nos seus tokens",

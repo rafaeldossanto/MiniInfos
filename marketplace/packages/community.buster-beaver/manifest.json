@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "kind": "mascot",
+  "id": "community.buster-beaver",
+  "name": "Buster Beaver",
+  "author": "MiniInfos Community",
+  "version": "1.0.0",
+  "license": "Fan art não oficial, uso não comercial; o personagem pertence aos donos de The Boys",
+  "description": "Fan art não oficial do Buster Beaver, mascote da pizzaria da série The Boys, com as poses de repouso, atividade, alerta, sono e interações. Sem afiliação com os donos da série; sai do catálogo se houver pedido.",
+  "mascot": {
+    "spriteSheet": "sprites.png",
+    "columns": 8,
+    "rows": 10,
+    "states": {
+      "idle": {
+        "row": 0,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          3500,
+          260,
+          240,
+          95,
+          55,
+          95,
+          360,
+          395
+        ],
+        "blendMs": 160
+      },
+      "active": {
+        "row": 1,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          130,
+          100,
+          90,
+          90,
+          110,
+          100,
+          110,
+          150
+        ],
+        "blendMs": 0
+      },
+      "alert": {
+        "row": 2,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260
+        ],
+        "blendMs": 0
+      },
+      "sleep": {
+        "row": 3,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          450,
+          450,
+          450,
+          450,
+          450,
+          450,
+          450,
+          450
+        ],
+        "blendMs": 0
+      },
+      "protectEyes": {
+        "row": 4,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          90,
+          100,
+          110,
+          180,
+          300,
+          200,
+          180,
+          290
+        ],
+        "blendMs": 0
+      },
+      "heldHead": {
+        "row": 5,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260
+        ],
+        "blendMs": 0
+      },
+      "heldLeftWing": {
+        "row": 6,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260
+        ],
+        "blendMs": 0
+      },
+      "heldRightWing": {
+        "row": 7,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260
+        ],
+        "blendMs": 0
+      },
+      "heldFeet": {
+        "row": 8,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260
+        ],
+        "blendMs": 0
+      },
+      "heldBody": {
+        "row": 9,
+        "frameDurationMs": 160,
+        "durationsMs": [
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260,
+          260
+        ],
+        "blendMs": 0
+      }
+    },
+    "anatomy": {
+      "regions": [
+        {
+          "part": "leftEye",
+          "x": 142,
+          "y": 155,
+          "radiusX": 18,
+          "radiusY": 23
+        },
+        {
+          "part": "rightEye",
+          "x": 184,
+          "y": 138,
+          "radiusX": 18,
+          "radiusY": 23
+        },
+        {
+          "part": "feet",
+          "x": 160,
+          "y": 287,
+          "radiusX": 53,
+          "radiusY": 22
+        },
+        {
+          "part": "leftWing",
+          "x": 119,
+          "y": 235,
+          "radiusX": 20,
+          "radiusY": 28
+        },
+        {
+          "part": "rightWing",
+          "x": 217,
+          "y": 235,
+          "radiusX": 20,
+          "radiusY": 28
+        },
+        {
+          "part": "head",
+          "x": 162,
+          "y": 157,
+          "radiusX": 75,
+          "radiusY": 89
+        },
+        {
+          "part": "body",
+          "x": 165,
+          "y": 248,
+          "radiusX": 46,
+          "radiusY": 37
+        },
+        {
+          "part": "body",
+          "x": 75,
+          "y": 248,
+          "radiusX": 53,
+          "radiusY": 28
+        }
+      ],
+      "anchors": {
+        "heldHead": {
+          "x": 160,
+          "y": 82
+        },
+        "heldLeftWing": {
+          "x": 85,
+          "y": 38
+        },
+        "heldRightWing": {
+          "x": 235,
+          "y": 38
+        },
+        "heldFeet": {
+          "x": 160,
+          "y": 24
+        },
+        "heldBody": {
+          "x": 160,
+          "y": 225
+        }
+      },
+      "massCenter": {
+        "x": 160,
+        "y": 230
+      },
+      "upsideDownMassCenter": {
+        "x": 160,
+        "y": 90
+      }
+    }
+  }
+}
