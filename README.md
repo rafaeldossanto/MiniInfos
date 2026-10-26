@@ -307,3 +307,7 @@ Quando o mod mudar, o runner informa a necessidade de executar seu teste no ambi
 ```bash
 claude plugin test mod
 ```
+
+## Marcas e afiliação
+
+O MiniInfos é um projeto independente e de código aberto, sem afiliação, patrocínio ou endosso da Anthropic ou da OpenAI. Claude é marca da Anthropic; ChatGPT, Codex e OpenAI são marcas da OpenAI. Os nomes aparecem só para indicar com quais apps o MiniInfos funciona. Os símbolos dessas marcas mostrados no app pertencem às respectivas empresas e não fazem parte da licença deste repositório.
