@@ -32,7 +32,8 @@ Arraste o quadrado pra onde quiser, em qualquer direção. Pra mudar o tamanho, 
 
 Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coruja de Atena. Ela fica numa janela transparente própria, funciona com todos os temas e continua disponível com o cartão escondido. É opcional e começa desativada.
 
-- Arraste a coruja para mover; posição e tamanho ficam salvos.
+- Clique rapidamente em um dos olhos: a coruja fecha os olhinhos e levanta as asas para protegê-los.
+- Segure pela cabeça, por uma das asas, pela barriga ou pelos pés para mover. Ela fica pendurada pela região escolhida; pelos pés, vira de cabeça para baixo. O ponto segurado acompanha o cursor, e a posição fica salva ao soltar.
 - Clique duas vezes para mostrar o MiniInfos.
 - Escolha Pequeno, Médio ou Grande nas configurações, ou use Alt + roda do mouse sobre a coruja.
 - Botão direito: mostrar o cartão, configurar o mascote, voltar pro canto, esconder a coruja ou sair do MiniInfos.
@@ -40,6 +41,8 @@ Em **Configurações → Mascote**, ative **Mostrar mascote** para adotar a Coru
 Ela pisca em repouso, bate as asas quando a contagem de tokens aumenta, fica atenta quando uma janela atual chega a 90% e dorme após dois minutos sem novos tokens. As reações usam as leituras que o MiniInfos já faz, inclusive com o cartão escondido; não identificam pensamento, conclusão ou erro de uma tarefa. O mascote não faz chamadas de IA nem gasta tokens. Ao sair do MiniInfos, ele fecha junto.
 
 Em repouso, a coruja também respira e balança suavemente sem mudar a posição da janela. Cada estado usa oito poses desenhadas, interpoladas a até 60 quadros por segundo; as mudanças de estado partem da imagem que já está na tela, com uma transição de 300 ms. O relógio usa o tempo transcorrido, para não desacelerar a animação quando um quadro demora mais. O processamento para quando a janela do mascote fecha.
+
+`PetInteraction` distingue o clique, um toque segurado de 220 ms e o arraste, identifica a região da coruja e mantém o ponto de apoio. O mouse fica capturado durante o gesto para permitir mover para fora da janela. Ao perder a captura ou soltar, ela volta ao estado de uso observado, sem alterar as contagens. As poses de interação ficam em `widget/Assets/athena-owl-interactions.png`; a asa direita é espelhada em memória, e a pose pelos pés usa uma rotação da animação de asas.
 
 `PetActivity` cuida das reações, `DesktopPet` acompanha as preferências e mantém uma única `PetWindow`, `PetSprites` carrega a arte local e `PetAnimationPlayer` interpola os quadros com transparência premultiplicada. A coruja foi gerada para o MiniInfos; o atlas atual de 32 poses fica em `widget/Assets/athena-owl-smooth.png`. A posição fica em `%LOCALAPPDATA%\MiniInfos\mascot.json`.
 
