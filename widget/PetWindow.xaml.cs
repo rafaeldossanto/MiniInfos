@@ -5,7 +5,8 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Threading;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace MiniInfos;
 
@@ -18,9 +19,12 @@ public partial class PetWindow : Window
     private readonly Action _openSettings;
     private readonly Action _quit;
     private readonly JsonFile<PetPlacement> _placement = new(Path.Combine(AppPaths.Data, "mascot.json"));
-    private readonly DispatcherTimer _animation = new(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(100) };
+    private readonly PetAnimationPlayer _player = new((state, index) => PetSprites.Frame(state, index).Pixels,
+        PetFrame.CanvasSize * PetFrame.CanvasSize * 4);
+    private readonly WriteableBitmap _surface = new(PetFrame.CanvasSize, PetFrame.CanvasSize, 96, 96, PixelFormats.Pbgra32, null);
+    private readonly MatrixTransform _motion = new();
     private readonly long _startedAt = Stopwatch.GetTimestamp();
-    private PetFrame? _frame;
+    private long _lastRenderFrame = -1;
     private PetState? _state;
 
     public PetWindow(Preferences preferences, PetActivity activity, Action showCards, Action openSettings, Action quit)
@@ -31,6 +35,8 @@ public partial class PetWindow : Window
         _openSettings = openSettings;
         _quit = quit;
         InitializeComponent();
+        Sprite.Source = _surface;
+        Sprite.RenderTransform = _motion;
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
         Width = Height = PetPlacement.Size(preferences.PetSize);
         SourceInitialized += (_, _) =>
@@ -42,12 +48,11 @@ public partial class PetWindow : Window
         Loaded += (_, _) =>
         {
             RestorePosition(_placement.Load());
-            Paint();
-            _animation.Start();
+            Paint(Stopwatch.GetElapsedTime(_startedAt));
+            CompositionTarget.Rendering += OnRendering;
         };
-        _animation.Tick += (_, _) => Paint();
-        Closed += (_, _) => { _animation.Stop(); SavePosition(); };
-        Paint();
+        Closed += (_, _) => { CompositionTarget.Rendering -= OnRendering; SavePosition(); };
+        Paint(Stopwatch.GetElapsedTime(_startedAt));
     }
 
     public PetState State => _activity.StateAt(DateTimeOffset.UtcNow);
@@ -66,11 +71,28 @@ public partial class PetWindow : Window
 
     public void BackToCorner() { RestorePosition(null); SavePosition(); }
 
-    private void Paint()
+    private void OnRendering(object? sender, EventArgs e)
+    {
+        // Match display rendering, capped at 60 updates/s on high-refresh monitors.
+        var frame = (long)(((RenderingEventArgs)e).RenderingTime.TotalSeconds * 60);
+        if (frame == _lastRenderFrame) return;
+        _lastRenderFrame = frame;
+        Paint(Stopwatch.GetElapsedTime(_startedAt));
+    }
+
+    private void Paint(TimeSpan elapsed)
     {
         var state = State;
-        var next = PetSprites.Frame(state, PetSprites.IndexAt(state, Stopwatch.GetElapsedTime(_startedAt)));
-        if (next != _frame) { _frame = next; Sprite.Source = next.Source; }
+        if (_player.Draw(state, elapsed))
+            _surface.WritePixels(new Int32Rect(0, 0, PetFrame.CanvasSize, PetFrame.CanvasSize),
+                _player.Buffer, PetFrame.CanvasSize * 4, 0);
+
+        var pose = PetAnimation.MotionAt(elapsed);
+        var matrix = Matrix.Identity;
+        matrix.ScaleAt(pose.ScaleX, pose.ScaleY, Width / 2, Height * 0.94);
+        matrix.RotateAt(pose.Angle, Width / 2, Height * 0.94);
+        matrix.Translate(pose.X * Width, pose.Y * Height);
+        _motion.Matrix = matrix;
         if (state == _state) return;
         _state = state;
         var status = state switch
@@ -133,11 +155,16 @@ public partial class PetWindow : Window
             handled = true;
             return 3; // MA_NOACTIVATE
         }
-        if (message != 0x0084 || _frame is null) return 0; // WM_NCHITTEST
+        if (message != 0x0084 || _state is null) return 0; // WM_NCHITTEST
         var value = lParam.ToInt64();
         var local = PointFromScreen(new Point((short)(value & 0xFFFF), (short)((value >> 16) & 0xFFFF)));
-        var pixel = new Point(local.X / Width * PetFrame.CanvasSize, local.Y / Height * PetFrame.CanvasSize);
-        if (_frame.Hits(pixel)) return 0;
+        var inverse = _motion.Matrix;
+        inverse.Invert();
+        local = inverse.Transform(local);
+        var x = local.X / Width * PetFrame.CanvasSize;
+        var y = local.Y / Height * PetFrame.CanvasSize;
+        if (x >= 0 && x < PetFrame.CanvasSize && y >= 0 && y < PetFrame.CanvasSize
+            && _player.Pixels.Span[((int)y * PetFrame.CanvasSize + (int)x) * 4 + 3] >= 32) return 0;
         handled = true;
         return -1; // HTTRANSPARENT: desktop clicks pass through the transparent padding.
     }

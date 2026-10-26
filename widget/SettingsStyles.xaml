@@ -37,8 +37,9 @@
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="Row" Height="30" Margin="0,0,0,2" Padding="10,0" CornerRadius="6" Background="Transparent">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="12"
-                                       VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <ContentControl Content="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="12"
+                                            Foreground="{TemplateBinding Foreground}" Width="14" Height="14" Focusable="False"
+                                            VerticalAlignment="Center" Margin="0,0,10,0" />
                             <ContentPresenter ContentSource="Header" VerticalAlignment="Center" />
                         </StackPanel>
                     </Border>

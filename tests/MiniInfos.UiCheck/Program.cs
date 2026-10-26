@@ -313,7 +313,7 @@ internal static partial class Program
             "enabling the owl opens an independent transparent desktop window");
         if (pet is null) return;
         Check(Preferences.Load().PetEnabled, "the enabled choice is saved");
-        Check(Enum.GetValues<PetState>().All(state => Enumerable.Range(0, 4).All(index =>
+        Check(Enum.GetValues<PetState>().All(state => Enumerable.Range(0, PetSprites.FrameCount).All(index =>
         {
             var frame = PetSprites.Frame(state, index);
             return frame.Source.IsFrozen && !frame.Hits(new Point(0, 0)) && frame.Hits(new Point(160, 200));
@@ -326,6 +326,11 @@ internal static partial class Program
         cards.Hide();
         Check(pet.IsVisible && !cards.Main.IsVisible, "hiding the card leaves the owl available on the desktop");
         var sprite = Find<Image>(pet, "Sprite");
+        var positionBeforeBreath = new Point(pet.Left, pet.Top);
+        var beforeBreath = sprite.RenderTransform.Value;
+        Pump(TimeSpan.FromMilliseconds(200));
+        Check(sprite.RenderTransform.Value != beforeBreath && new Point(pet.Left, pet.Top) == positionBeforeBreath,
+            "the owl breathes continuously between sprite frames without moving its desktop window");
         var menu = sprite.ContextMenu!;
         menu.PlacementTarget = sprite;
         menu.IsOpen = true;
