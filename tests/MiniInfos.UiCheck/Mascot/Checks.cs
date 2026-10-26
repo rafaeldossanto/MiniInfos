@@ -126,6 +126,8 @@ internal static partial class Program
         var orbit = Stopwatch.StartNew();
         double minimum = 0, maximum = 0, gripError = 0;
         var staysInside = true;
+        Size? rotatingSize = null;
+        var stableSize = true;
         while (orbit.Elapsed.TotalSeconds < 3)
         {
             var phase = orbit.Elapsed.TotalSeconds * Math.Tau / 0.6;
@@ -139,10 +141,17 @@ internal static partial class Program
             gripError = Math.Max(gripError, (attached - interaction.PointerScreen).Length);
             var bounds = sprite.RenderTransform.TransformBounds(new Rect(0, 0, sprite.Width, sprite.Height));
             staysInside &= bounds.Left >= -1 && bounds.Top >= -1 && bounds.Right <= pet.ActualWidth + 1 && bounds.Bottom <= pet.ActualHeight + 1;
+            if (hold.Progress >= 1)
+            {
+                var size = new Size(pet.ActualWidth, pet.ActualHeight);
+                rotatingSize ??= size;
+                stableSize &= size == rotatingSize.Value;
+            }
         }
         Check(maximum - minimum > 360, "circular mouse motion drives complete revolutions around the grip");
         Check(gripError < 2, $"the pivot remains attached throughout the spin ({gripError:0.0} px)");
         Check(staysInside, "the rotating owl is never clipped by its transparent window");
+        Check(rotatingSize is not null && stableSize, "rotation keeps the render surface stable instead of resizing it each frame");
         RenderElement(pet, System.IO.Path.Combine(pictures, "pet-physics-spin.png"));
         Release();
         Pump(TimeSpan.FromMilliseconds(400));
