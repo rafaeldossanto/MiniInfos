@@ -162,18 +162,37 @@
                                            Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" />
                             </StackPanel>
                         </Grid>
-                        <WrapPanel Margin="0,0,0,4">
-                            <RadioButton x:Name="AthenaPet" Content="Coruja de Atena" GroupName="MascotChoice"
-                                         Style="{StaticResource Segment}" Checked="OnAthenaChosen" />
+                        <WrapPanel x:Name="CommunityPetChoices" Margin="0,0,0,4">
+                            <Button x:Name="AddPetPackage" Style="{StaticResource PetLibraryAdd}" Click="OnAddPet"
+                                    ToolTip="Adicionar mascote" AutomationProperties.Name="Adicionar mascote">
+                                <Viewbox Width="40" Height="48" IsHitTestVisible="False">
+                                    <Canvas Width="40" Height="48">
+                                        <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              StrokeThickness="1.2" StrokeDashArray="2.5,2.5" StrokeDashCap="Round"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              Data="M20,2 C8,2 5,4 5,15 C2,15 2,22 5,22
+                                                    C5,26 7,28 13,29 L10,33 L8,40 Q8,42 11,42
+                                                    L13,36 L14,42 L11,44 Q9,46 15,46 L18,46
+                                                    L20,39 L22,46 L25,46 Q31,46 29,44 L26,42
+                                                    L27,36 L29,42 Q32,42 32,40 L30,33 L27,29
+                                                    C33,28 35,26 35,22 C38,22 38,15 35,15
+                                                    C35,4 32,2 20,2 Z" />
+                                        <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              Data="M16,17 H24 M20,13 V21" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Button>
+                            <RadioButton x:Name="AthenaPet" GroupName="MascotChoice"
+                                         Style="{StaticResource PetLibraryChoice}" Checked="OnAthenaChosen"
+                                         ToolTip="Coruja de Atena · Incluída no MiniInfos" AutomationProperties.Name="Coruja de Atena" />
                         </WrapPanel>
-                        <WrapPanel x:Name="CommunityPetChoices" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <Button x:Name="AddPetPackage" Content="Adicionar mascote" Style="{StaticResource SettingsButton}" Click="OnAddPet" />
-                            <Button x:Name="ExportPetPackage" Content="Exportar" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnExportPet" />
+                            <Button x:Name="ExportPetPackage" Content="Exportar" Style="{StaticResource SettingsButton}" Click="OnExportPet" />
                             <Button x:Name="RemovePetPackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemovePet" />
                         </StackPanel>
                         <TextBlock x:Name="PetPackageStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12"
-                                   Text="Adicione mascotes da comunidade ou exporte um modelo com as animações e a anatomia." />
+                                   Text="Use + para adicionar um mascote e clique em uma miniatura para selecionar. Exporte para compartilhar ou criar o seu." />
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Mostrar mascote"
                                                 Tag="Fica solto na área de trabalho, mesmo com o cartão escondido.">
                             <CheckBox x:Name="PetToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PetEnabled}" />
@@ -195,6 +214,28 @@
                         <TextBlock Text="Ela anima quando os tokens aumentam, fica atenta em 90% de uso e dorme após dois minutos sem novos tokens."
                                    Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" />
                     </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="CommunityPage" Header="Comunidade" Tag="&#xE716;">
+                    <ScrollViewer x:Name="CatalogScroll" Style="{StaticResource SettingsScroll}" ScrollChanged="OnCatalogScrolled">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <Button x:Name="RefreshCatalog" DockPanel.Dock="Right" Content="Atualizar lista"
+                                        Style="{StaticResource SettingsButton}" Click="OnRefreshCatalog" Margin="8,0,0,0" />
+                                <Border Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="CatalogMascots" GroupName="CatalogKind" Content="Mascotes"
+                                                     Style="{StaticResource Segment}" IsChecked="True" Checked="OnCatalogKindChosen" />
+                                        <RadioButton x:Name="CatalogThemes" GroupName="CatalogKind" Content="Temas"
+                                                     Style="{StaticResource Segment}" Checked="OnCatalogKindChosen" />
+                                    </StackPanel>
+                                </Border>
+                            </DockPanel>
+                            <TextBlock x:Name="CatalogStatus" Text="Explore mascotes e temas da comunidade."
+                                       Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                            <WrapPanel x:Name="CatalogChoices" />
+                        </StackPanel>
                     </ScrollViewer>
                 </TabItem>
 

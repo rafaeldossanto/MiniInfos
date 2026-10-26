@@ -1,0 +1,63 @@
+name: Publicar catálogo
+on:
+  push:
+    branches: [main]
+    paths: ['marketplace/packages/**']
+permissions:
+  contents: write
+concurrency:
+  group: marketplace-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet build tools/MiniInfos.Catalog -c Release
+      - name: Baixar o índice anterior
+        shell: pwsh
+        run: ./tools/Get-CatalogIndex.ps1 -Output "$env:RUNNER_TEMP/previous/index.json"
+      - name: Validar alterações e gerar os assets
+        shell: pwsh
+        env:
+          CATALOG_BASE: ${{ github.event.before }}
+        run: |
+          $arguments = @{ Output = "$env:RUNNER_TEMP/catalog"; Base = $env:CATALOG_BASE }
+          if (Test-Path "$env:RUNNER_TEMP/previous/index.json") { $arguments.Previous = "$env:RUNNER_TEMP/previous/index.json" }
+          ./tools/Build-Marketplace.ps1 @arguments
+      - name: Publicar na tag fixa sem alterar latest
+        shell: pwsh
+        run: |
+          $title = 'Catálogo da comunidade (usado pelo app, não é o instalador)'
+          if (Test-Path "$env:RUNNER_TEMP/previous/index.json") {
+            gh release edit catalog --prerelease --latest=false --title $title
+          } else {
+            gh release create catalog --target $env:GITHUB_SHA --prerelease --latest=false --title $title
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível preparar a release catalog.' }
+          $files = @(Get-ChildItem "$env:RUNNER_TEMP/catalog" -File)
+          $payloads = @($files | Where-Object Name -ne 'index.json' | ForEach-Object FullName)
+          if ($payloads.Count) {
+            gh release upload catalog @payloads --clobber
+            if ($LASTEXITCODE -ne 0) { throw 'Não foi possível enviar os pacotes e prévias.' }
+          }
+          gh release upload catalog "$env:RUNNER_TEMP/catalog/index.json" --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível publicar o índice.' }
+          $expected = @($files | ForEach-Object Name)
+          $existing = @(gh release view catalog --json assets --jq '.assets[].name')
+          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível conferir os assets publicados.' }
+          foreach ($name in $existing) {
+            if ($name -notin $expected) {
+              gh release delete-asset catalog --yes -- $name
+              if ($LASTEXITCODE -ne 0) { throw "Não foi possível remover o asset obsoleto: $name" }
+            }
+          }

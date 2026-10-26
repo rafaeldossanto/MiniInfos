@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows;
 using MiniInfos.Infrastructure.Windows;
 using MiniInfos.Infrastructure;
+using MiniInfos.Community.Catalog;
 using MiniInfos.Mascot;
 using MiniInfos.Settings;
 using MiniInfos.UI.Controls;
@@ -25,11 +26,12 @@ public partial class SettingsWindow : Window
 
     /// <param name="card">The card whose gear opened it: it stays above it, and closes with it.</param>
     /// <param name="quit">Quits the app, every card saved.</param>
-    public SettingsWindow(Preferences preferences, StartupShortcut startup, MainWindow card, Action quit)
+    public SettingsWindow(Preferences preferences, StartupShortcut startup, MainWindow card, Action quit, CatalogBrowser? catalog = null)
     {
         _preferences = preferences;
         _startup = startup;
         _quit = quit;
+        _catalogBrowser = catalog ?? CatalogBrowser.CreateDefault();
         Card = card;
         InitializeComponent();
         DataContext = preferences;
@@ -42,6 +44,7 @@ public partial class SettingsWindow : Window
         BuildFontChoices(NumberFontChoices, AppFonts.NumberOptions, "NumberFont", choice => _preferences.NumberFont = choice);
         ShowFonts();
         InitializeCommunity();
+        InitializeCatalog();
         ShowPetSize();
         ShowNumbers();
         preferences.PropertyChanged += OnPreferenceChanged;

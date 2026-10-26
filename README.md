@@ -1,5 +1,7 @@
 # MiniInfos
 
+**Para usar, baixe o `MiniInfos-Setup.exe` da última versão.** O catálogo de mascotes e temas é separado do instalador, mesmo estando no mesmo repositório.
+
 Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para Claude e outra para Codex (GPT). Pra trocar de página: as setinhas ou os ícones das IAs no rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. Os ícones são monocromáticos, com o selecionado branco e os demais cinza. A página escolhida fica salva.
 
 Cada página só aparece com o app dela instalado no PC: o app da Microsoft Store, o comando no terminal (`claude`, `codex`), a extensão no VS Code (ou Cursor, Windsurf) ou o app aberto. Desinstalado, o ícone some em até um minuto, ou na hora com ↻, e volta do mesmo jeito quando o app é instalado de novo. A pasta de dados não conta, porque ela fica no PC depois de desinstalar. Com um app só, o ícone dele continua no rodapé; se nenhum for encontrado, aparecem as duas páginas. Os ícones ficam sempre no centro do cartão, quantos forem.
@@ -56,9 +58,17 @@ Em repouso, a coruja também respira e balança suavemente sem mudar a posição
 
 Em **Configurações → Aparência**, use **Adicionar tema** para importar um pacote `.miniinfos` ou `.zip`; em **Mascote**, use **Adicionar mascote**. O conteúdo importado aparece junto das opções instaladas, pode ser selecionado na hora e fica salvo para as próximas aberturas. A seleção é independente para tema e mascote. Autor, versão e licença aparecem no tooltip da opção.
 
+Na biblioteca de mascotes, o primeiro quadrado tem um bonequinho de contorno tracejado com **+** para adicionar um pacote. À direita ficam as miniaturas da Coruja de Atena e dos mascotes instalados; clique para selecionar. O escolhido fica destacado, e os demais ficam um pouco mais transparentes. As opções continuam em novas linhas quando necessário. A biblioteca é local: os pacotes e a seleção ficam salvos no computador, sem conta ou banco de dados online.
+
+As miniaturas são recortadas pelo conteúdo visível e salvas em 128 × 128, fora dos pacotes, em `%LOCALAPPDATA%\MiniInfos\previews\mascots`. A instalação gera a prévia, e as Configurações reaproveitam esse PNG tanto na galeria quanto na imagem maior. Se o cache faltar ou estiver corrompido, a prévia é refeita em segundo plano; o quadrado fica vazio até a imagem ficar pronta. A exportação não inclui o cache.
+
 **Exportar** permite compartilhar um pacote instalado. Com um tema embutido ou a Coruja de Atena selecionados, cria um modelo editável com o manifesto e as imagens; o modelo de mascote inclui todas as poses e os pontos de interação. **Remover** apaga o pacote selecionado e volta à alternativa embutida. Um pacote ausente ou inválido não impede abrir o aplicativo.
 
-O formato é aberto, versionado e feito de JSON e PNG. Autores podem criar suas próprias paletas, cabeçalhos, animações e anatomia do mascote, aproveitando a física e as interações do MiniInfos. Os arquivos são compartilháveis pelos canais da comunidade e importados localmente; o aplicativo não executa scripts ou XAML dos pacotes. Veja o [guia de criação](community/README.md), o [JSON Schema](community/manifest.schema.json) e o [tema Oceano de exemplo](community/examples/ocean/manifest.json).
+O formato é aberto, versionado e feito de JSON e PNG. Autores podem criar suas próprias paletas, cabeçalhos, animações e anatomia do mascote, aproveitando a física e as interações do MiniInfos. Os arquivos são compartilháveis pelos canais da comunidade e importados localmente; o aplicativo não executa scripts ou XAML dos pacotes. Veja o [guia de criação](marketplace/README.md), o [JSON Schema](marketplace/manifest.schema.json) e o [tema Oceano de exemplo](marketplace/examples/ocean/manifest.json).
+
+Em **Configurações → Comunidade**, escolha **Mascotes** ou **Temas** para explorar o catálogo. Os cartões mostram nome, autor, licença e versão. **Instalar** baixa e seleciona o pacote; **Atualizar** aparece quando a versão publicada é maior; **Instalado** identifica o que já está em dia. **Atualizar lista** permite tentar novamente ou buscar uma publicação recente. A página explica quando não há conexão, o GitHub limita consultas, a categoria está vazia ou o catálogo ainda não foi publicado.
+
+O aplicativo consulta a release de tag fixa `catalog` no mesmo repositório do MiniInfos, sem banco de dados ou servidor próprio. Só o índice é baixado ao abrir a página; as prévias dos cartões visíveis chegam sob demanda, e o pacote completo só é baixado quando você escolhe instalar ou atualizar. Índice e prévias têm cache de uma hora. Os downloads são limitados e conferidos pelo SHA-256 do índice e pelo digest da release.
 
 ## Atualizações
 
@@ -99,6 +109,8 @@ São duas partes:
 | `mod/` (plugin `miniinfos`) | Roda dentro de cada chat do Claude Code. A cada resposta do modelo, grava na pasta de configuração desse Claude os limites do plano (5h e semanal), o contexto e o custo daquele chat, e informa automaticamente sua localização ao widget. |
 | `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude e do Codex, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
+| `tools/MiniInfos.Catalog/` | Ferramenta separada para validar e gerar o catálogo da comunidade; não entra no instalador. |
+| `marketplace/` | Guia, contratos, exemplos e fontes dos pacotes publicados em `marketplace/packages/`. |
 
 ### Organização do código
 
@@ -111,9 +123,11 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `Providers/Codex/` | Históricos, conta, app-server, caminhos e detecção do Codex. |
 | `Sources/` | Descoberta e catálogo das pastas de registros, com os modelos de entrada e resultado da busca. |
 | `Community/` | Contrato de pacotes, validação, biblioteca, importação, exportação e modelos para autores. |
+| `Community/Catalog/` | Índice, consulta à publicação `catalog`, cache, prévias sob demanda e instalação verificada. |
 | `Mascot/` | Estados, gestos, animação, sprites, posição e coordenação da coruja. |
 | `Settings/` | Preferências compartilhadas, configurações dos cartões e escolhas de tema e fontes. |
 | `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |
+| `Infrastructure/Network/` | Identidade do repositório e cliente de releases e assets compartilhado pelo atualizador e pelo catálogo. |
 | `UI/Windows/` | Janelas, coordenação dos cartões e seleção de páginas. Cada XAML fica junto de seu code-behind. |
 | `UI/Controls/` | Controles compartilhados, menus e apresentação animada dos números. |
 | `UI/Formatting/` | Formatação dos números, horários, custos e legendas. |
@@ -164,11 +178,27 @@ Os tokens locais do Codex ficam em `%LOCALAPPDATA%\MiniInfos\codex-ledger.json`.
 O MiniInfos não pede login e não lê credenciais. O widget acessa somente arquivos locais para os tokens; para os limites da conta Codex, ele inicia o `codex app-server`, que usa a autenticação já configurada no Codex e consulta o serviço da OpenAI:
 
 - **Lê:** os históricos do Claude Code, as sessões ativas e arquivadas do Codex e os arquivos que o mod escreve, nas pastas descobertas automaticamente. Examina nomes e estrutura das pastas locais para localizar essas fontes. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
-- **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, catálogo de fontes, posição, tamanho e página da janela) e `<pasta do Claude>/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
-- **Internet:** além do `codex app-server`, só pra procurar versões novas: uma consulta à página de versões do MiniInfos no GitHub a cada 6 horas e, quando você clica pra atualizar, o download do instalador. Nada seu é enviado.
+- **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, catálogo de fontes, posição, tamanho, preferências, pacotes instalados e caches de prévias e catálogo) e `<pasta do Claude>/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
+- **Internet:** além do `codex app-server`, procura versões novas do MiniInfos no GitHub a cada 6 horas e baixa o instalador quando você clica para atualizar. A página Comunidade baixa a lista e as prévias dos cartões visíveis do catálogo no GitHub quando você a abre ou atualiza; um pacote só é baixado ao clicar em Instalar ou Atualizar. Nada seu é enviado. Não há consultas de catálogo em segundo plano nem atualização automática de pacotes.
 - **Desinstalar** apaga os dados do MiniInfos em `%LOCALAPPDATA%\MiniInfos` e os arquivos do mod no caminho padrão `~/.claude/miniinfos`.
 
 O que é distribuído não leva nada da máquina onde foi gerado: a compilação Release sai sem arquivo de símbolos e com os caminhos de build trocados por `MiniInfos`.
+
+### Desenvolvimento sem baixar os pacotes
+
+Para trabalhar no app com uma cópia local do repositório, deixe os pacotes fora do checkout:
+
+```powershell
+git sparse-checkout set --no-cone '/*' '!/marketplace/packages/'
+```
+
+O ZIP automático de código das releases também exclui `marketplace/packages/` por meio de `.gitattributes`. O instalador publica somente o app e o mod; o build falha se encontrar arquivos do marketplace ou da ferramenta em `installer/out`.
+
+### Publicações no GitHub
+
+As releases do aplicativo usam a tag `vX.Y.Z`, **sempre com `--latest`**, e têm um único asset: `MiniInfos-Setup.exe`. O workflow `release-app.yml` confere a versão da tag, o conteúdo do instalador e a lista de assets.
+
+O catálogo usa somente a tag **`catalog`**, marcada com **`--prerelease --latest=false`**, com o título **Catálogo da comunidade (usado pelo app, não é o instalador)**. São publicados `index.json`, uma prévia PNG por pacote e um `.miniinfos` por pacote; não há um ZIP com o catálogo inteiro. Os workflows do marketplace validam o mesmo commit e publicam apenas quando `marketplace/packages/` muda na `main`. A publicação remota só acontece depois que essas mudanças forem enviadas ao GitHub.
 
 ## Variáveis de ambiente
 

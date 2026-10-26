@@ -1,0 +1,36 @@
+name: Validar marketplace
+on:
+  pull_request:
+    paths: ['marketplace/**', 'tools/MiniInfos.Catalog/**', 'tools/*Marketplace*', 'tools/Get-CatalogIndex.ps1', '.github/workflows/marketplace-*.yml']
+permissions:
+  contents: read
+jobs:
+  catalog:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Compilar o validador do mesmo commit
+        run: dotnet build tools/MiniInfos.Catalog -c Release
+      - name: Testes da ferramenta do catálogo
+        shell: pwsh
+        run: ./tests/run.ps1 -Domain CatalogTool
+      - name: Baixar o índice publicado
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: ./tools/Get-CatalogIndex.ps1 -Output "$env:RUNNER_TEMP/previous/index.json"
+      - name: Validar pacotes alterados e gerar o catálogo
+        shell: pwsh
+        env:
+          CATALOG_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $arguments = @{ Output = "$env:RUNNER_TEMP/catalog"; Base = $env:CATALOG_BASE }
+          if (Test-Path "$env:RUNNER_TEMP/previous/index.json") { $arguments.Previous = "$env:RUNNER_TEMP/previous/index.json" }
+          ./tools/Build-Marketplace.ps1 @arguments

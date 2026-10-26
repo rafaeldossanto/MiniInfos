@@ -21,7 +21,7 @@ public static class PackageTemplates
         if (resources["HeaderArtworkVisibility"] is Visibility.Visible && resources["HeaderArtwork"] is BitmapSource image)
         {
             header = "header.png";
-            assets[header] = Encode(image);
+            assets[header] = PackageImages.Encode(image);
         }
         var definition = new ThemeDefinition(Colors: colors, HeaderImage: header,
             HeaderHeight: (double)resources["HeaderHeight"], HeaderTitleSize: (double)resources["HeaderTitleSize"]);
@@ -47,20 +47,11 @@ public static class PackageTemplates
             await Dispatcher.Yield(DispatcherPriority.Background);
         }
         bitmap.Freeze();
-        var bytes = await Task.Run(() => Encode(bitmap));
+        var bytes = await Task.Run(() => PackageImages.Encode(bitmap));
         return new(new(1, PackageKind.Mascot, "community.meu-mascote", "Meu mascote", "Seu nome", "1.0.0", "UNLICENSED",
             "Substitua as ilustrações, ajuste a anatomia e edite sua identificação antes de publicar.",
             Mascot: new("sprites.png", PetSprites.FrameCount, states.Length, tracks, PetAnatomy.Athena)),
             new Dictionary<string, byte[]> { ["sprites.png"] = bytes, ["README.md"] = Instructions(PackageKind.Mascot) });
-    }
-
-    private static byte[] Encode(BitmapSource bitmap)
-    {
-        var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(bitmap));
-        using var stream = new MemoryStream();
-        encoder.Save(stream);
-        return stream.ToArray();
     }
 
     private static byte[] Instructions(PackageKind kind) => Encoding.UTF8.GetBytes("""

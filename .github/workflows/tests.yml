@@ -5,7 +5,9 @@ name: Testes
 on:
   push:
     branches: [dev, main]
+    paths-ignore: ['marketplace/**']
   pull_request:
+    paths-ignore: ['marketplace/**']
 
 permissions:
   contents: read
@@ -24,6 +26,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/marketplace/packages/
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -32,6 +38,10 @@ jobs:
       - name: Validar seleção de testes
         shell: pwsh
         run: ./tests/TestSelection.Tests.ps1
+
+      - name: Conferir isolamento do instalador e do ZIP de código
+        shell: pwsh
+        run: ./tests/Packaging.Tests.ps1
 
       - name: Testes dos domínios afetados
         shell: pwsh

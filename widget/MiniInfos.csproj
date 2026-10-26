@@ -36,4 +36,5 @@
     <InternalsVisibleTo Include="MiniInfos.Tests" />
   </ItemGroup>
 
+  <Import Project="..\installer\PublicationBoundary.targets" />
 </Project>

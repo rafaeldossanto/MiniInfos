@@ -18,6 +18,15 @@ Assert-Selection (($theme.Suites -join ',') -eq 'Themes') 'Tema selecionou cená
 $community = Get-TestSelection -Paths @('widget/Community/PackageLibrary.cs')
 Assert-Selection (($community.Domains -join ',') -eq 'Community,Mascot,Settings,Themes') 'Pacotes perderam consumidores ou selecionaram provedores não relacionados'
 
+$catalog = Get-TestSelection -Paths @('tools/MiniInfos.Catalog/MiniInfos.Catalog.csproj', 'tools/MiniInfos.Catalog/CatalogBuilder.cs', 'marketplace/catalog.schema.json')
+Assert-Selection (($catalog.Domains -join ',') -eq 'CatalogTool' -and -not $catalog.All) 'Ferramenta do catálogo perdeu seu domínio'
+
+$github = Get-TestSelection -Paths @('widget/Infrastructure/Network/GitHubReleaseClient.cs')
+Assert-Selection (($github.Domains -join ',') -eq 'Community,Updates') 'Cliente GitHub perdeu consumidores'
+
+$packagesOnly = Get-TestSelection -Paths @('marketplace/packages/autor.pet/manifest.json', 'marketplace/packages/autor.pet/sprites.png')
+Assert-Selection (($packagesOnly.Domains -join ',') -eq 'CatalogTool' -and $packagesOnly.Suites.Count -eq 0) 'Pacotes acionaram os testes do app'
+
 $tail = Get-TestSelection -Paths @('widget/Infrastructure/Storage/JsonlTail.cs')
 Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Storage') 'Leitura compartilhada não incluiu os dois provedores'
 
@@ -42,4 +51,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 17 cenários passaram.'
+Write-Host 'Seleção de testes: 20 cenários passaram.'

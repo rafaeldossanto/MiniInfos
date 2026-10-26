@@ -43,7 +43,7 @@ internal static partial class Program
 
         var pages = Find<TabControl>(settings, "Pages");
         var names = pages.Items.OfType<TabItem>().Select(page => page.Header as string).ToList();
-        Check(names.SequenceEqual(["Geral", "Aparência", "Mascote", "Sobre"]), $"with its pages ({string.Join(", ", names)})");
+        Check(names.SequenceEqual(["Geral", "Aparência", "Mascote", "Comunidade", "Sobre"]), $"with its pages ({string.Join(", ", names)})");
         var rowsWidth = ((FrameworkElement)((TabItem)pages.Items[0]).Content).ActualWidth;
         RenderPages(settings, pages, pictures, "dark");
         CheckLongPageScrolls(pages, rowsWidth);
