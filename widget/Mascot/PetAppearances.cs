@@ -38,7 +38,7 @@ public static class PetAppearances
         public int FrameCount => PetSprites.FrameCount;
         public PetAnatomy Anatomy => PetAnatomy.Athena;
 
-        // The painted owl sits above the mass center her swing uses (160, 230): she lands where she always has.
+        // The painted owl's body sits above the mass center used by her pendulum.
         public Point RestCenter => new(160, 200);
 
         public bool HasPose(PetState state) => true;

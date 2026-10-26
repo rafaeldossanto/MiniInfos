@@ -52,7 +52,7 @@
                 </TabItem>
 
                 <TabItem x:Name="AppearancePage" Header="Aparência" Tag="&#xE790;">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer Style="{StaticResource SettingsScroll}">
                     <StackPanel>
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Tema" />
@@ -147,7 +147,7 @@
                             </Canvas>
                         </Viewbox>
                     </TabItem.Tag>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer Style="{StaticResource SettingsScroll}">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>

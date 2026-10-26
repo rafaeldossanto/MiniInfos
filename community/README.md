@@ -142,6 +142,8 @@ Estados ausentes usam `idle`. `protectEyes` usa `active` quando disponível. Sem
 
 As regiões são elipses, testadas na ordem do vetor; coloque olhos e partes específicas antes do corpo. Uma área sem região usa a divisão padrão de cabeça, lados, corpo e pés. Os pontos ficam entre 0 e 320, independentemente da resolução do PNG. As âncoras posicionam as poses laterais; cabeça e corpo preservam o ponto clicado, e os pés refletem esse ponto na pose invertida. O centro de massa controla o balanço e o giro. A captura do mouse, a física, a transparência e as mudanças de tamanho continuam sendo responsabilidade do MiniInfos.
 
+Ao soltar, o MiniInfos aplica uma queda curta perto do cursor, conservando a posição, a inclinação e parte do movimento. O contato e a recuperação variam conforme o mascote chega pelos pés, de lado ou de cabeça para baixo. Essa animação reaproveita as poses existentes (`active` e, para proteger a cabeça, `protectEyes`) e seus substitutos; não exige novos estados nem alterações nos pacotes atuais.
+
 ## Limites e compatibilidade
 
 - Até 128 entradas no ZIP e 64 MB descompactados, com até 32 MB por arquivo.

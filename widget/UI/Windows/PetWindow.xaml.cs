@@ -28,14 +28,17 @@ public partial class PetWindow : Window
     private readonly MatrixTransform _motion = new();
     private readonly PetInteraction _interaction;
     private Matrix _grabMatrix;
-    private Matrix _releaseMatrix;
     private Point _releaseOrigin;
+    private Point _dropStartCenter;
+    private PetDrop? _drop;
+    private bool _suspendedDrop;
     private PetPlacement? _dropPlacement;
     private TimeSpan? _releasedAt;
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private readonly PetFrameClock _frameClock = new();
     private PetState? _state;
     private bool _wasReaction;
+    private PetDropPhase? _lastDropPhase;
 
     public PetWindow(Preferences preferences, PetActivity activity, Action showCards, Action openSettings, Action quit)
     {
@@ -72,7 +75,9 @@ public partial class PetWindow : Window
 
     private TimeSpan Elapsed => Stopwatch.GetElapsedTime(_startedAt);
     private double SpriteSize => Sprite.Width;
-    public PetState State => _interaction.StateAt(Elapsed) ?? _activity.StateAt(DateTimeOffset.UtcNow);
+    public PetState State => DropAt(Elapsed) is { IsSettled: false } drop ? DropState(drop)
+        : _interaction.StateAt(Elapsed) ?? _activity.StateAt(DateTimeOffset.UtcNow);
+    public bool IsDropping => _drop is not null && _releasedAt is not null;
 
     public void ResizePet()
     {
@@ -81,8 +86,7 @@ public partial class PetWindow : Window
         var bottom = position.Top + SpriteSize;
         _interaction.CancelPress();
         if (IsMouseCaptured) ReleaseMouseCapture();
-        _releasedAt = null;
-        _dropPlacement = null;
+        ClearDrop();
         Width = Height = Sprite.Width = Sprite.Height = PetPlacement.Size(_preferences.PetSize);
         if (!IsLoaded) return;
         Left = center - Width / 2;
@@ -96,8 +100,7 @@ public partial class PetWindow : Window
     {
         _interaction.CancelPress();
         if (IsMouseCaptured) ReleaseMouseCapture();
-        _releasedAt = null;
-        _dropPlacement = null;
+        ClearDrop();
         Width = Height = SpriteSize;
         RestorePosition(null);
         Paint(Elapsed);
@@ -114,8 +117,14 @@ public partial class PetWindow : Window
     {
         if (_interaction.IsPressed && IsMouseCaptured) _interaction.Move(CursorScreen(), elapsed);
         var hold = _interaction.HoldAt(elapsed);
+        var falling = DropAt(elapsed);
+        if (falling is { IsSettled: true } && IsLoaded)
+        {
+            CompleteDrop();
+            falling = null;
+        }
         var reaction = hold?.State ?? _interaction.StateAt(elapsed);
-        var state = reaction ?? _activity.StateAt(DateTimeOffset.UtcNow);
+        var state = falling is { } dropPose ? DropState(dropPose) : reaction ?? _activity.StateAt(DateTimeOffset.UtcNow);
         if (_player.Draw(state, elapsed, _interaction.AnimationRevision))
             _surface.WritePixels(new Int32Rect(0, 0, PetFrame.CanvasSize, PetFrame.CanvasSize),
                 _player.Buffer, PetFrame.CanvasSize * 4, 0);
@@ -128,23 +137,18 @@ public partial class PetWindow : Window
             matrix.RotateAt(grip.Angle, anchor.X, anchor.Y);
             matrix = PetGeometry.Blend(_grabMatrix, matrix, grip.Progress, grip.Angle);
         }
+        else if (falling is { } releasedPose) matrix = DropMatrix(releasedPose);
+        else if (_suspendedDrop && _interaction.IsPressed) matrix = _grabMatrix;
         else
         {
             var pose = PetAnimation.MotionAt(elapsed);
             matrix.ScaleAt(pose.ScaleX, pose.ScaleY, SpriteSize / 2, SpriteSize * 0.94);
             matrix.RotateAt(pose.Angle, SpriteSize / 2, SpriteSize * 0.94);
             matrix.Translate(pose.X * SpriteSize, pose.Y * SpriteSize);
-            if (_releasedAt is { } released)
-            {
-                var progress = (elapsed - released) / PetAnimation.StateTransition;
-                matrix = PetGeometry.Blend(_releaseMatrix, matrix, PetAnimation.Ease(progress));
-            }
         }
-        var returning = _releasedAt is not null;
-        var settled = returning && elapsed - _releasedAt!.Value >= PetAnimation.StateTransition;
         var viewport = hold is { } holding
             ? PetGeometry.Around(matrix, SpriteSize, ToWindow(holding.Anchor))
-            : returning && !settled
+            : falling is not null || (_suspendedDrop && _interaction.IsPressed)
                 ? PetGeometry.Around(matrix, SpriteSize, ToWindow(_appearance.RestCenter))
                 : PetGeometry.Fit(matrix, SpriteSize, rotating: false);
         matrix = viewport.Transform;
@@ -160,28 +164,28 @@ public partial class PetWindow : Window
             var residual = PointFromScreen(_interaction.PointerScreen) - matrix.Transform(ToWindow(attachedGrip.Anchor));
             matrix.Translate(residual.X, residual.Y);
         }
-        else if (IsLoaded && returning)
+        else if (IsLoaded && falling is not null)
         {
             var origin = PointFromScreen(_releaseOrigin);
             Left += origin.X + viewport.Bounds.X;
             Top += origin.Y + viewport.Bounds.Y;
             var residual = PointFromScreen(_releaseOrigin) + (Vector)viewport.Bounds.TopLeft;
             matrix.Translate(residual.X, residual.Y);
-            if (settled)
-            {
-                _releasedAt = null;
-                _dropPlacement = null;
-                // The final rest transform only moves transparent padding beyond the original canvas.
-                Width = Height = SpriteSize;
-                SavePosition();
-            }
         }
         _motion.Matrix = matrix;
         Sprite.Cursor = hold is null ? Cursors.Hand : Cursors.SizeAll;
-        if (state == _state && _wasReaction == (reaction is not null)) return;
+        if (state == _state && _wasReaction == (reaction is not null) && _lastDropPhase == falling?.Phase) return;
         _state = state;
         _wasReaction = reaction is not null;
-        var status = state switch
+        _lastDropPhase = falling?.Phase;
+        var status = falling is { } flight ? flight.Phase switch
+        {
+            PetDropPhase.Falling => "Caindo!",
+            PetDropPhase.Impact when flight.Landing == PetLanding.Head => "Opa! Protegendo a cabeça",
+            PetDropPhase.Impact when flight.Landing is PetLanding.LeftSide or PetLanding.RightSide => "Aterrissando de lado",
+            PetDropPhase.Impact => "Pousando nos pezinhos",
+            _ => "Levantando de novo",
+        } : state switch
         {
             PetState.Active when reaction is not null => "Brincando com você",
             PetState.Active => "Tokens aumentaram recentemente",
@@ -201,7 +205,10 @@ public partial class PetWindow : Window
     {
         if (e.ClickCount == 2)
         {
+            var wasHeld = _interaction.IsHeld || _suspendedDrop;
             _interaction.CancelPress();
+            _suspendedDrop = false;
+            if (wasHeld) FinishDrop(Elapsed);
             if (IsMouseCaptured) ReleaseMouseCapture();
             _showCards();
         }
@@ -213,10 +220,16 @@ public partial class PetWindow : Window
             var canvas = unposed.Transform(local);
             canvas = new Point(canvas.X / SpriteSize * PetFrame.CanvasSize, canvas.Y / SpriteSize * PetFrame.CanvasSize);
             _grabMatrix = _motion.Matrix;
-            _releasedAt = null;
-            _dropPlacement = null;
+            var wasDropping = IsDropping;
+            ClearDrop();
+            _suspendedDrop = wasDropping;
             _interaction.Press(canvas, PointToScreen(local), Elapsed, SpriteSize / PetFrame.CanvasSize * VisualTreeHelper.GetDpi(this).DpiScaleX);
-            if (!CaptureMouse()) _interaction.CancelPress();
+            if (!CaptureMouse())
+            {
+                _interaction.CancelPress();
+                if (_suspendedDrop) FinishDrop(Elapsed);
+                _suspendedDrop = false;
+            }
         }
         e.Handled = true;
     }
@@ -238,7 +251,9 @@ public partial class PetWindow : Window
             _interaction.Move(CursorScreen(), elapsed);
             Paint(elapsed);
         }
-        if (_interaction.Release(elapsed)) FinishDrop(elapsed);
+        var wasHeld = _interaction.Release(elapsed);
+        if (wasHeld || _suspendedDrop) FinishDrop(elapsed);
+        _suspendedDrop = false;
         if (IsMouseCaptured) ReleaseMouseCapture();
         Paint(elapsed);
         e.Handled = true;
@@ -247,21 +262,10 @@ public partial class PetWindow : Window
     private void OnCaptureLost(object sender, MouseEventArgs e)
     {
         if (!_interaction.IsPressed) return;
-        var wasHeld = _interaction.IsHeld;
+        var wasHeld = _interaction.IsHeld || _suspendedDrop;
         _interaction.CancelPress();
+        _suspendedDrop = false;
         if (wasHeld) FinishDrop(Elapsed);
-    }
-
-    private void FinishDrop(TimeSpan now)
-    {
-        var target = CurrentPlacement();
-        var offset = new Vector(target.Left - Left, target.Top - Top);
-        _releaseMatrix = _motion.Matrix;
-        _releaseMatrix.Translate(-offset.X, -offset.Y);
-        _releaseOrigin = PointToScreen(new Point(offset.X, offset.Y));
-        _dropPlacement = target;
-        _releasedAt = now;
-        SavePosition();
     }
 
     private Point ToWindow(Point canvas) => new(canvas.X / PetFrame.CanvasSize * SpriteSize, canvas.Y / PetFrame.CanvasSize * SpriteSize);

@@ -54,6 +54,26 @@ public static class PetAnimation
 /// <summary>Interpolates premultiplied pixels, retaining opacity instead of stacking two translucent images.</summary>
 public static class PetPixels
 {
+    public static void HalfTurn(Span<byte> pixels)
+    {
+        if (pixels.Length % 4 != 0) throw new ArgumentException("Pet pixels must use BGRA buffers.");
+        MemoryMarshal.Cast<byte, uint>(pixels).Reverse();
+    }
+
+    public static System.Windows.Rect Bounds(ReadOnlySpan<byte> pixels, int size)
+    {
+        if (pixels.Length != size * size * 4) throw new ArgumentException("Pet pixels do not match the canvas.");
+        var left = size; var top = size; var right = 0; var bottom = 0;
+        for (var y = 0; y < size; y++)
+        for (var x = 0; x < size; x++)
+        {
+            if (pixels[(y * size + x) * 4 + 3] < 32) continue;
+            left = Math.Min(left, x); right = Math.Max(right, x + 1);
+            top = Math.Min(top, y); bottom = Math.Max(bottom, y + 1);
+        }
+        return right > left ? new(left, top, right - left, bottom - top) : new(0, 0, size, size);
+    }
+
     public static int Weight(double amount) => (int)Math.Round(Math.Clamp(amount, 0, 1) * 256);
 
     public static void Mix(ReadOnlySpan<byte> from, ReadOnlySpan<byte> to, Span<byte> output, int weight)
@@ -92,6 +112,13 @@ public sealed class PetAnimationPlayer(Func<PetState, int, ReadOnlyMemory<byte>>
 
     public ReadOnlyMemory<byte> Pixels => _pixels;
     internal byte[] Buffer => _pixels;
+
+    /// <summary>Rebase an upside-down hold into the normal artwork orientation without changing its on-screen pose.</summary>
+    public void HalfTurn()
+    {
+        PetPixels.HalfTurn(_pixels);
+        _last = null;
+    }
 
     public bool Draw(PetState state, TimeSpan elapsed, int revision = 0)
     {
