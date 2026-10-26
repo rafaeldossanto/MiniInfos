@@ -112,10 +112,10 @@ test('/miniinfos opens the installed app apart from the chat', async ($, on) => 
   expect(result).toEqual(expect.objectContaining({ text: 'MiniInfos aberto.' }))
 })
 
-test('a chat says it is still open every 30 s, and when it closes, under a moved config folder', async ($, on) => {
+test('a chat registers its private config location and publishes heartbeats there', async ($, on) => {
   const written: { path: string; text: string }[] = []
   const clock = mock.clock(on, { now: NOW })
-  mock.env(on, { USERPROFILE: 'C:\\Users\\usuario', CLAUDE_CONFIG_DIR: 'D:\\claude-config' })
+  mock.env(on, { USERPROFILE: 'C:\\Users\\usuario', CLAUDE_CONFIG_DIR: 'D:\\claude-config', LOCALAPPDATA: 'C:\\Users\\usuario\\AppData\\Local' })
   on('session.id', () => ({ value: 'abc-123' }))
   on('session.cwd', () => ({ value: 'C:\\Users\\usuario\\Work' }))
   on('session.usage', () => ({ value: USAGE }))
@@ -130,8 +130,10 @@ test('a chat says it is still open every 30 s, and when it closes, under a moved
   })
 
   await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
-  expect(written[0]?.path).toBe('D:\\claude-config\\miniinfos\\sessions\\abc-123.json')
-  expect(JSON.parse(written[0]?.text ?? '{}').aliveAt).toBe(NOW)
+  expect(written[0]?.path.startsWith('C:\\Users\\usuario\\AppData\\Local\\MiniInfos\\sources\\claude-')).toBe(true)
+  expect(JSON.parse(written[0]?.text ?? '{}')).toEqual({ Provider: 'claude', Root: 'D:\\claude-config' })
+  expect(written[1]?.path).toBe('D:\\claude-config\\miniinfos\\sessions\\abc-123.json')
+  expect(JSON.parse(written[1]?.text ?? '{}').aliveAt).toBe(NOW)
 
   await clock.advance(30_000)
   const alive = JSON.parse(written.at(-1)?.text ?? '{}')

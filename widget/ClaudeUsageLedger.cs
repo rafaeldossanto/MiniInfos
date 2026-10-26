@@ -13,14 +13,14 @@ public sealed class ClaudeUsageLedger
     private static readonly byte[] UsageMarker = "\"usage\""u8.ToArray();
 
     private readonly Lock _gate = new();
-    private readonly string _projectsPath;
+    private readonly Func<IReadOnlyList<string>> _projects;
     private readonly LedgerStore<StoredLedger> _store;
     private readonly Dictionary<string, long> _offsets;
     private readonly Dictionary<string, LedgerEntry> _messages;
 
-    private ClaudeUsageLedger(string projectsPath, string storePath)
+    private ClaudeUsageLedger(Func<IReadOnlyList<string>> projects, string storePath)
     {
-        _projectsPath = projectsPath;
+        _projects = projects;
         _store = new LedgerStore<StoredLedger>(storePath);
         var stored = _store.Load();
         _offsets = stored?.Offsets ?? [];
@@ -28,14 +28,16 @@ public sealed class ClaudeUsageLedger
     }
 
     public static ClaudeUsageLedger Load(string? projectsPath = null, string? storePath = null) => new(
-        projectsPath ?? ClaudePaths.Projects,
+        projectsPath is null ? () => ClaudePaths.ProjectFolders : () => [projectsPath],
         storePath ?? Path.Combine(AppPaths.Data, "ledger.json"));
+
+    public static ClaudeUsageLedger LoadSources(Func<IReadOnlyList<string>> projects, string storePath) => new(projects, storePath);
 
     public void Scan()
     {
         lock (_gate)
         {
-            JsonlTail.ReadFolder(_projectsPath, _offsets, ReadFile);
+            JsonlTail.ReadFolders(_projects(), _offsets, ReadFile);
             _store.SaveIfDue(Stored());
         }
     }

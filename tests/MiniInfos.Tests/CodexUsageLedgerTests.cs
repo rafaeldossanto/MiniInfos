@@ -77,6 +77,86 @@ public sealed class CodexUsageLedgerTests : IDisposable
     }
 
     [Fact]
+    public void CopiesInDifferentHomesCountOnceAndNewGrowthStillCounts()
+    {
+        var original = WriteLog(Meta(id: "same-session"), Reading(At, 100, 20, 50, 150));
+        var copy = _folder.File("other-home", "copied.jsonl");
+        File.Copy(original, copy);
+        IReadOnlyList<string> sources = [Path.Combine(_folder.Path, "sessions"), Path.Combine(_folder.Path, "other-home")];
+        var ledger = CodexUsageLedger.LoadSources(() => sources, Path.Combine(_folder.Path, "codex-ledger.json"));
+        ledger.Scan();
+        Assert.Equal(150, Total(ledger));
+
+        File.AppendAllText(copy, Reading(At.AddSeconds(1), 200, 40, 80, 280) + "\n");
+        ledger.Scan();
+        Assert.Equal(280, Total(ledger));
+
+        // Sources can disappear between reads; the session's maximum survives cursor cleanup and app restarts.
+        sources = [];
+        ledger.Scan();
+        ledger.Flush();
+        sources = [Path.Combine(_folder.Path, "other-home")];
+        var restarted = CodexUsageLedger.LoadSources(() => sources, Path.Combine(_folder.Path, "codex-ledger.json"));
+        restarted.Scan();
+        Assert.Equal(280, Total(restarted));
+        File.AppendAllText(copy, Reading(At.AddSeconds(2), 300, 60, 100, 400) + "\n");
+        restarted.Scan();
+        Assert.Equal(400, Total(restarted));
+    }
+
+    [Fact]
+    public void MovingASessionToTheArchiveDoesNotLoseOrRepeatTokens()
+    {
+        var original = WriteLog(Meta(id: "archive-me"), Reading(At, 100, 0, 0, 100));
+        IReadOnlyList<string> sources = [Path.Combine(_folder.Path, "sessions")];
+        var ledger = CodexUsageLedger.LoadSources(() => sources, Path.Combine(_folder.Path, "codex-ledger.json"));
+        ledger.Scan();
+        var archive = _folder.File("archived_sessions", "archived.jsonl");
+        File.Move(original, archive);
+        File.AppendAllText(archive, Reading(At.AddSeconds(1), 150, 0, 0, 150) + "\n");
+        sources = [sources[0], Path.Combine(_folder.Path, "archived_sessions")];
+        ledger.Scan();
+
+        Assert.Equal(150, Total(ledger));
+    }
+
+    [Fact]
+    public void FullCopiesProvideTheHistoricalDatesBeforePartialCopies()
+    {
+        WriteLog(Meta(id: "partial-copy"), Reading(At.AddDays(-1), 100, 0, 0, 100), Reading(At, 200, 0, 0, 200));
+        File.WriteAllText(_folder.File("other", "partial.jsonl"), Meta(id: "partial-copy") + "\n" + Reading(At, 200, 0, 0, 200) + "\n");
+        var ledger = CodexUsageLedger.LoadSources(() => [Path.Combine(_folder.Path, "other"), Path.Combine(_folder.Path, "sessions")],
+            Path.Combine(_folder.Path, "codex-ledger.json"));
+        ledger.Scan();
+
+        var tokens = ledger.Summarize(At, At.AddHours(-5), At.AddDays(-7)).Tokens;
+        Assert.Equal(200, tokens.Total.Total);
+        Assert.Equal(100, tokens.Today.Total);
+    }
+
+    [Fact]
+    public void AnOldLedgerWithAMissingCursorRecognizesAMovedRolloutByItsUuid()
+    {
+        const string id = "019a1234-abcd-7000-8000-123456789012";
+        var store = Path.Combine(_folder.Path, "codex-ledger.json");
+        var oldPath = Path.Combine(_folder.Path, "gone", $"rollout-2026-10-25T12-00-00-{id}.jsonl");
+        File.WriteAllText(store, JsonSerializer.Serialize(new
+        {
+            Cursors = new Dictionary<string, object>(),
+            Readings = new Dictionary<string, LedgerEntry> { [$"{oldPath}:150"] = new(At.ToUnixTimeSeconds(), 80, 50, 20, 0) },
+        }));
+        var moved = _folder.File("sessions", $"rollout-{id}.jsonl");
+        File.WriteAllText(moved, Meta(id: id) + "\n" + Reading(At, 100, 20, 50, 150) + "\n" + Reading(At.AddSeconds(1), 200, 40, 80, 280) + "\n");
+
+        var ledger = Ledger();
+        ledger.Scan();
+
+        Assert.Equal(280, Total(ledger));
+    }
+
+    private static long Total(CodexUsageLedger ledger) => ledger.Summarize(At, At.AddHours(-5), At.AddDays(-7)).Tokens.Total.Total;
+
+    [Fact]
     public void ALogRewrittenShorterIsReadAgainWithoutCountingTwice()
     {
         var log = WriteLog(Reading(At, input: 100, cached: 0, output: 0, total: 100), Reading(At.AddSeconds(1), input: 300, cached: 0, output: 0, total: 300));
@@ -106,8 +186,8 @@ public sealed class CodexUsageLedgerTests : IDisposable
         return log;
     }
 
-    private static string Meta(string cwd = @"C:\code\project") =>
-        JsonSerializer.Serialize(new { timestamp = At, type = "session_meta", payload = new { cwd } });
+    private static string Meta(string cwd = @"C:\code\project", string? id = null) =>
+        JsonSerializer.Serialize(new { timestamp = At, type = "session_meta", payload = new { cwd, id } });
 
     private static string Reading(DateTimeOffset at, long input, long cached, long output, long total, long lastInput = 0, long window = 0) =>
         JsonSerializer.Serialize(new

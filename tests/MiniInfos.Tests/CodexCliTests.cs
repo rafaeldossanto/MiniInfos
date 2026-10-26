@@ -43,6 +43,15 @@ public sealed class CodexCliTests : IDisposable
     }
 
     [Fact]
+    public void ARunningPortableCliIsFoundOutsideTheInstallFolders()
+    {
+        var portable = Touch("portable", "codex.exe");
+        Assert.Equal(portable, CodexCli.Find(null, Folder("local"), [portable]));
+        var installed = Touch("path", "codex.cmd");
+        Assert.Equal(installed, CodexCli.Find(Folder("path"), Folder("local"), [portable]));
+    }
+
+    [Fact]
     public void NoCodexAnywhereIsNull()
     {
         Assert.Null(CodexCli.Find($"{Folder("empty")};\"bad|entry\"", Folder("local")));

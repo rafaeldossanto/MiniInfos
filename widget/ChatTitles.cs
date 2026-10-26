@@ -12,9 +12,7 @@ public static class ChatTitles
 
     private static string? FindCustomTitle(string sessionId)
     {
-        if (!Directory.Exists(ClaudePaths.Projects)) return null;
-
-        foreach (var project in Directory.EnumerateDirectories(ClaudePaths.Projects))
+        foreach (var project in ClaudePaths.ProjectFolders.SelectMany(root => SourceFiles.Directories(root)))
         {
             var file = Path.Combine(project, sessionId, "custom-title.json");
             if (!File.Exists(file)) continue;

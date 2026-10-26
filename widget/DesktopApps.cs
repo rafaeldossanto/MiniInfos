@@ -38,6 +38,23 @@ public static partial class DesktopApps
         }
     }
 
+    public static IReadOnlyList<string> ExecutablePaths(params string[] names) => ExecutablePaths(false, names);
+
+    public static IReadOnlyList<string> ExecutablePaths(bool withoutWindow, params string[] names)
+    {
+        var paths = new List<string>();
+        foreach (var name in names.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            foreach (var process in Process.GetProcessesByName(name))
+            using (process)
+            {
+                try { if ((!withoutWindow || process.MainWindowHandle == 0) && PathOf(process.Id) is { } path) paths.Add(path); }
+                catch (InvalidOperationException) { }
+            }
+        }
+        return paths.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
     private static string? PathOf(int processId)
     {
         var handle = OpenProcess(QueryLimitedInformation, inheritHandle: false, processId);

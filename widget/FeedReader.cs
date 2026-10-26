@@ -51,12 +51,14 @@ public static class FeedReader
     private static readonly TimeSpan SilentFor = TimeSpan.FromSeconds(90);
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);
 
-    public static FeedState Read(DateTimeOffset now)
+    public static FeedState Read(DateTimeOffset now) => Read(now, ClaudePaths.FeedFolders);
+
+    public static FeedState Read(DateTimeOffset now, IReadOnlyList<string> folders)
     {
         var entries = new List<FeedEntry>();
-        if (Directory.Exists(ClaudePaths.Feed))
+        foreach (var folder in folders)
         {
-            foreach (var file in Directory.EnumerateFiles(ClaudePaths.Feed, "*.json"))
+            foreach (var file in SourceFiles.Files(folder, "*.json"))
             {
                 if (TryRead(file) is not { } entry) continue;
 

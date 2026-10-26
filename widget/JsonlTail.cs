@@ -55,24 +55,17 @@ public static class JsonlTail
     public static void ReadFolder<TCursor>(string root, Dictionary<string, TCursor> cursors, Action<string> readFile)
     {
         if (!Directory.Exists(root)) return;
+        ReadFolders([root], cursors, readFile);
+    }
 
-        try
-        {
-            var seen = new HashSet<string>();
-            foreach (var file in Directory.EnumerateFiles(root, "*.jsonl", SearchOption.AllDirectories))
-            {
-                seen.Add(file);
-                readFile(file);
-            }
-
-            foreach (var gone in cursors.Keys.Where(path => !seen.Contains(path)).ToList())
-            {
-                cursors.Remove(gone);
-            }
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            // A folder busy right now is read again on the next scan.
-        }
+    /// <summary>One scan of all sources: no source can remove another source's cursors.</summary>
+    public static void ReadFolders<TCursor>(IReadOnlyList<string> roots, Dictionary<string, TCursor> cursors, Action<string> readFile)
+    {
+        var files = roots.SelectMany(root => SourceFiles.Files(root, "*.jsonl", recursive: true))
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        // A full copy supplies historical deltas before a shorter, partially copied session is read.
+        foreach (var file in files.OrderByDescending(SourceFiles.Length)) readFile(file);
+        var seen = files.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var gone in cursors.Keys.Where(path => !seen.Contains(path)).ToArray()) cursors.Remove(gone);
     }
 }

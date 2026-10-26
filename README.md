@@ -82,8 +82,8 @@ São duas partes:
 
 | Parte | O que faz |
 | --- | --- |
-| `mod/` (plugin `miniinfos`) | Roda dentro de cada chat do Claude Code. A cada resposta do modelo, grava em `~/.claude/miniinfos/sessions/<sessão>.json` os limites do plano (5h e semanal), o contexto e o custo daquele chat. |
-| `widget/` (app WPF, .NET 10) | Lê os arquivos do mod e os históricos em `~/.claude/projects/**/*.jsonl`. Também lê as sessões locais do Codex em `~/.codex/sessions/**/*.jsonl` e consulta os limites da conta pelo `codex app-server`. |
+| `mod/` (plugin `miniinfos`) | Roda dentro de cada chat do Claude Code. A cada resposta do modelo, grava na pasta de configuração desse Claude os limites do plano (5h e semanal), o contexto e o custo daquele chat, e informa automaticamente sua localização ao widget. |
+| `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude e do Codex, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 
 Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
@@ -103,22 +103,30 @@ Em **Configurações → Aparência → Fontes**, textos e números têm seletor
 
 Também é possível misturar essas fontes. Percentuais, totais, horários e contagens nas legendas usam a fonte dos números; o restante usa a fonte dos textos. `AppFonts` mantém o catálogo e os recursos compartilhados, e `NumericText` separa números de letras sem alterar os valores ou a animação das contagens. As fontes ficam embutidas no aplicativo, sem instalação ou downloads durante o uso. Suas licenças SIL Open Font License acompanham a distribuição em `Assets/Fonts/OFL*.txt`.
 
-O `codex` é procurado no PATH (instalação nativa, ou o `codex.cmd` do npm) e, se não estiver lá, na cópia que o app do Codex guarda em `%LOCALAPPDATA%\OpenAI\Codex\bin`. É o caso do app da Microsoft Store, que não põe o `codex` no PATH.
+O `codex` é procurado no PATH (instalação nativa, ou o `codex.cmd` do npm), nos processos de CLI em execução e na cópia que o app do Codex guarda em `%LOCALAPPDATA%\OpenAI\Codex\bin`, inclusive dentro do pacote da Microsoft Store. O app-server recebe a pasta de configuração detectada, respeitando `CODEX_HOME` quando definido.
+
+### Descoberta automática dos registros
+
+`UsageSources` mantém um catálogo compartilhado pelas duas páginas. A busca roda em segundo plano ao abrir e a cada 10 minutos; **Atualizar agora** também refaz a busca na hora. Ela considera `CLAUDE_CONFIG_DIR` e `CODEX_HOME` do processo, do usuário e do sistema, as pastas padrão, os dados de instalações da Microsoft Store e pastas próximas dos aplicativos em execução. Uma busca limitada por estrutura no perfil do usuário e nos discos locais também reconhece pastas movidas, pelos arquivos que só o Claude Code (`.credentials.json`, `.claude.json`) e o Codex (`installation_id`, `.codex-global-state.json`) guardam; uma pasta de projeto comum com `projects` ou `sessions` não é confundida com elas. Ela evita pastas de sistema, dependências e links recursivos; não faz uma varredura recursiva completa dos discos.
+
+Quando um chat do Claude usa um `CLAUDE_CONFIG_DIR` próprio, o mod publica somente o caminho em `%LOCALAPPDATA%\MiniInfos\sources`. O widget lê esses avisos, inclusive os redirecionados pelo pacote da Store. As localizações encontradas ficam em `%LOCALAPPDATA%\MiniInfos\usage-sources.json`, para continuarem disponíveis nas próximas aberturas. Uma pasta inacessível ou ausente não interrompe as outras fontes nem apaga as contagens salvas.
+
+Os leitores acompanham todas as fontes descobertas, sem precisar reiniciar ou preencher caminhos nas configurações. No Claude, usam `projects` e `miniinfos/sessions`; no Codex, `sessions` e `archived_sessions`. A busca depende de pastas locais acessíveis e de sinais reconhecíveis, como as variáveis, os avisos do mod e a estrutura de dados dessas ferramentas.
 
 Os limites são da conta, não de um chat. Cada chat guarda a leitura da última resposta que recebeu, então um chat parado fica com uma leitura velha. Dentro de uma mesma janela o uso só cresce, então o app fica com a maior leitura da janela que reinicia por último.
 
 Os tokens do Claude ficam num livro-caixa próprio em `%LOCALAPPDATA%\MiniInfos\ledger.json`. Assim o total não cai quando o Claude Code apaga históricos antigos. Cada resposta conta uma vez só, pelo id da mensagem, e o total soma entrada, saída, cache lido e cache escrito.
 
-Os tokens locais do Codex ficam em `%LOCALAPPDATA%\MiniInfos\codex-ledger.json`. Cada evento de uso registra o acumulado da sessão; o MiniInfos acrescenta somente a diferença em relação à leitura anterior, e o total segue o `total_tokens` do Codex, inclusive nos eventos (como os de compactação) que trazem só o total, sem entrada e saída. O cache já está incluído nos tokens de entrada do Codex, então não é somado duas vezes. Os percentuais são da conta e podem abranger atividade fora desta máquina; por isso os tokens locais nas janelas não são uma conversão direta desses percentuais. Sem `codex` instalado ou sem autenticação ativa, a página continua exibindo os tokens locais e deixa os limites indisponíveis.
+Os tokens locais do Codex ficam em `%LOCALAPPDATA%\MiniInfos\codex-ledger.json`. Cada evento de uso registra o acumulado da sessão; o MiniInfos acrescenta somente a diferença em relação à maior leitura daquela sessão, identificada pelo ID nos metadados ou pelo UUID do arquivo. Mover, arquivar ou copiar a mesma sessão para outra fonte não soma seus tokens novamente. O histórico das versões anteriores é preservado. O total segue o `total_tokens` do Codex, inclusive nos eventos (como os de compactação) que trazem só o total, sem entrada e saída. O cache já está incluído nos tokens de entrada do Codex, então não é somado duas vezes. Os percentuais são da conta e podem abranger atividade fora desta máquina; por isso os tokens locais nas janelas não são uma conversão direta desses percentuais. Sem `codex` instalado ou sem autenticação ativa, a página continua exibindo os tokens locais e deixa os limites indisponíveis.
 
 ## Privacidade
 
 O MiniInfos não pede login e não lê credenciais. O widget acessa somente arquivos locais para os tokens; para os limites da conta Codex, ele inicia o `codex app-server`, que usa a autenticação já configurada no Codex e consulta o serviço da OpenAI:
 
-- **Lê:** os históricos do Claude Code (`~/.claude/projects`), os registros do Codex (`~/.codex/sessions`) e os arquivos que o mod escreve. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
-- **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, posição, tamanho e página da janela) e `~/.claude/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
+- **Lê:** os históricos do Claude Code, as sessões ativas e arquivadas do Codex e os arquivos que o mod escreve, nas pastas descobertas automaticamente. Examina nomes e estrutura das pastas locais para localizar essas fontes. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
+- **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, catálogo de fontes, posição, tamanho e página da janela) e `<pasta do Claude>/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
 - **Internet:** além do `codex app-server`, só pra procurar versões novas: uma consulta à página de versões do MiniInfos no GitHub a cada 6 horas e, quando você clica pra atualizar, o download do instalador. Nada seu é enviado.
-- **Desinstalar** apaga as duas pastas.
+- **Desinstalar** apaga os dados do MiniInfos em `%LOCALAPPDATA%\MiniInfos` e os arquivos do mod no caminho padrão `~/.claude/miniinfos`.
 
 O que é distribuído não leva nada da máquina onde foi gerado: a compilação Release sai sem arquivo de símbolos e com os caminhos de build trocados por `MiniInfos`.
 

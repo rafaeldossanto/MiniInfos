@@ -50,6 +50,24 @@ public sealed class ClaudeUsageLedgerTests : IDisposable
     }
 
     [Fact]
+    public void AChangedSourceIsReadWithoutRestartingAndACopiedResponseCountsOnce()
+    {
+        var first = WriteTranscript(Response("msg_1", input: 10, output: 5));
+        IReadOnlyList<string> sources = [Path.Combine(_folder.Path, "projects")];
+        var ledger = ClaudeUsageLedger.LoadSources(() => sources, Path.Combine(_folder.Path, "ledger.json"));
+        Assert.Equal(15, Summarize(ledger).Total.Total);
+
+        var moved = _folder.File("moved", "project", "session.jsonl");
+        File.Copy(first, moved);
+        File.AppendAllText(moved, Response("msg_2", input: 20, output: 10) + "\n");
+        sources = [sources[0], Path.Combine(_folder.Path, "moved")];
+
+        Assert.Equal(45, Summarize(ledger).Total.Total);
+        File.Delete(first);
+        Assert.Equal(45, Summarize(ledger).Total.Total);
+    }
+
+    [Fact]
     public void TheLedgerOutlivesItsTranscripts()
     {
         var transcript = WriteTranscript(Response("msg_1", input: 10, output: 5));

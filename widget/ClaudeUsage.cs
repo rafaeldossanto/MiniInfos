@@ -13,15 +13,18 @@ public sealed class ClaudeUsage : IUsageProvider
     private static readonly TimeSpan Week = TimeSpan.FromDays(7);
 
     private readonly ClaudeUsageLedger _ledger = ClaudeUsageLedger.Load();
+    private FeedState? _lastFeed;
 
     public string Id => "claude";
 
     /// <summary>The desktop app's window, or any Claude Code chat still running: in a terminal, an editor or the app.</summary>
-    public bool IsInUse() => ClaudeApp.IsOpen() || FeedReader.Read(DateTimeOffset.Now).HasOpenChat;
+    public bool IsInUse() => ClaudeApp.IsOpen() || _lastFeed?.HasOpenChat == true;
 
     public async Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force)
     {
-        var feed = FeedReader.Read(now);
+        if (force) await UsageSources.Shared.RefreshAsync();
+        var feed = await Task.Run(() => FeedReader.Read(now));
+        _lastFeed = feed;
         var fiveHour = new PlanWindow(FiveHours, feed.Limits.GetValueOrDefault(FiveHourKind));
         var week = new PlanWindow(Week, feed.Limits.GetValueOrDefault(WeekKind));
 
@@ -37,7 +40,7 @@ public sealed class ClaudeUsage : IUsageProvider
             new WindowLine(week, tokens.LongWindow),
             tokens.Today,
             tokens.Total,
-            "De todos os chats guardados em ~/.claude/projects.",
+            "Dos históricos locais do Claude encontrados automaticamente.",
             Activity(feed.Latest),
             "Chat que respondeu por último",
             feed.LimitsUpdated is { } updated ? $"atualizado {Format.Ago(updated, now)}" : "sem dados ainda",

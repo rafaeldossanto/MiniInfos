@@ -18,6 +18,7 @@ public sealed class CodexUsage : IUsageProvider
 
     public async Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force)
     {
+        if (force) await UsageSources.Shared.RefreshAsync();
         // Reading the limits starts a process that asks OpenAI: only for a page on screen, and
         // waited for only when the person asked; otherwise the page draws the last reading.
         if (force) await _account.RefreshAsync();
@@ -39,7 +40,7 @@ public sealed class CodexUsage : IUsageProvider
             new WindowLine(secondary, snapshot.Tokens.LongWindow),
             snapshot.Tokens.Today,
             snapshot.Tokens.Total,
-            "Das sessões locais do Codex em ~/.codex/sessions.",
+            "Das sessões locais e arquivadas do Codex encontradas automaticamente.",
             Activity(snapshot),
             "Sessão local mais recente",
             Updated(account, now),

@@ -41,6 +41,24 @@ public sealed class JsonlTailTests : IDisposable
         Assert.Equal(42, JsonlTail.Read(Path.Combine(_folder.Path, "missing.jsonl"), 42, _ => { }));
 
     [Fact]
+    public void OverlappingRootsReadEachFileOnceAndKeepBothSetsOfCursors()
+    {
+        var a = _folder.File("a", "one.jsonl");
+        var b = _folder.File("b", "two.jsonl");
+        File.WriteAllText(a, "one\n");
+        File.WriteAllText(b, "two\n");
+        var cursors = new Dictionary<string, long> { [a] = 4, [b] = 4 };
+        var read = new List<string>();
+
+        JsonlTail.ReadFolders([Path.Combine(_folder.Path, "a"), Path.Combine(_folder.Path, "b"), _folder.Path], cursors, read.Add);
+
+        Assert.Equal(2, read.Count);
+        Assert.Equal(2, cursors.Count);
+        Assert.Contains(a, read);
+        Assert.Contains(b, read);
+    }
+
+    [Fact]
     public void AFolderReadDropsTheCursorsOfGoneFiles()
     {
         var kept = _folder.File("logs", "kept.jsonl");

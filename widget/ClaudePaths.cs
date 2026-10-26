@@ -4,11 +4,11 @@ namespace MiniInfos;
 
 public static class ClaudePaths
 {
-    public static string ConfigRoot { get; } =
-        Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR")
-        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude");
+    public static IReadOnlyList<string> ConfigRoots => UsageSources.Shared.Current.ClaudeRoots;
+    public static IReadOnlyList<string> ProjectFolders => UsageSources.Shared.Current.ClaudeProjects;
+    public static IReadOnlyList<string> FeedFolders => UsageSources.Shared.Current.ClaudeFeeds;
 
-    public static string Projects { get; } = Path.Combine(ConfigRoot, "projects");
-
-    public static string Feed { get; } = Path.Combine(ConfigRoot, "miniinfos", "sessions");
+    public static string ConfigRoot => ConfigRoots[0];
+    public static string Projects => Path.Combine(ConfigRoot, "projects");
+    public static string Feed => Path.Combine(ConfigRoot, "miniinfos", "sessions");
 }

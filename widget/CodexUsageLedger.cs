@@ -19,29 +19,35 @@ public sealed class CodexUsageLedger
     private static readonly byte[] SessionMarker = "\"session_meta\""u8.ToArray();
 
     private readonly Lock _gate = new();
-    private readonly string _sessionsPath;
+    private readonly Func<IReadOnlyList<string>> _sources;
     private readonly LedgerStore<StoredLedger> _store;
     private readonly Dictionary<string, Cursor> _cursors;
     private readonly Dictionary<string, LedgerEntry> _readings;
+    private readonly Dictionary<string, Cursor> _sessions;
 
-    private CodexUsageLedger(string sessionsPath, string storePath)
+    private CodexUsageLedger(Func<IReadOnlyList<string>> sources, string storePath)
     {
-        _sessionsPath = sessionsPath;
+        _sources = sources;
         _store = new LedgerStore<StoredLedger>(storePath);
         var stored = _store.Load();
         _cursors = stored?.Cursors ?? [];
         _readings = stored?.Readings ?? [];
+        _sessions = stored?.Sessions ?? [];
+        foreach (var (path, cursor) in _cursors) Remember(cursor with { SessionId = cursor.SessionId ?? SessionKey(path) });
+        if (stored is not null && stored.Sessions is null) { RecoverSessions(); _store.Changed(); }
     }
 
     public static CodexUsageLedger Load(string? sessionsPath = null, string? storePath = null) => new(
-        sessionsPath ?? CodexPaths.Sessions,
+        sessionsPath is null ? () => CodexPaths.SessionFolders : () => [sessionsPath],
         storePath ?? Path.Combine(AppPaths.Data, "codex-ledger.json"));
+
+    public static CodexUsageLedger LoadSources(Func<IReadOnlyList<string>> sources, string storePath) => new(sources, storePath);
 
     public void Scan()
     {
         lock (_gate)
         {
-            JsonlTail.ReadFolder(_sessionsPath, _cursors, ReadFile);
+            JsonlTail.ReadFolders(_sources(), _cursors, ReadFile);
             _store.SaveIfDue(Stored());
         }
     }
@@ -50,7 +56,7 @@ public sealed class CodexUsageLedger
     {
         lock (_gate)
         {
-            var latest = _cursors.Values.MaxBy(cursor => cursor.LastAt);
+            var latest = _sessions.Values.MaxBy(cursor => cursor.LastAt);
             DateTimeOffset? updated = latest is { LastAt: > 0 } ? DateTimeOffset.FromUnixTimeSeconds(latest.LastAt) : null;
 
             return new CodexUsageSnapshot(
@@ -72,15 +78,17 @@ public sealed class CodexUsageLedger
     private void ReadFile(string path)
     {
         var known = _cursors.GetValueOrDefault(path) ?? new Cursor();
-        var cursor = known;
+        var id = known.SessionId ?? SessionKey(path);
+        var cursor = Rebase(known with { SessionId = id });
         var next = JsonlTail.Read(
             path,
             known.Offset,
             line => cursor = Record(path, cursor, line),
-            onRestart: () => cursor = new Cursor());
-        if (next == known.Offset && ReferenceEquals(cursor, known)) return;
+            onRestart: () => cursor = Rebase(new Cursor { SessionId = id }));
+        if (next == known.Offset && cursor == known) return;
 
         _cursors[path] = cursor with { Offset = next };
+        Remember(cursor);
         _store.Changed();
     }
 
@@ -97,7 +105,9 @@ public sealed class CodexUsageLedger
             if (type.GetString() == "session_meta")
             {
                 var cwd = ReadString(payload, "cwd");
-                return cursor with { Project = cwd is null ? null : Path.GetFileName(Path.TrimEndingDirectorySeparator(cwd)) };
+                var id = ReadString(payload, "id") ?? cursor.SessionId ?? SessionKey(path);
+                if (Guid.TryParse(id, out var guid)) id = guid.ToString("D");
+                return Rebase(cursor with { SessionId = id, Project = cwd is null ? null : Path.GetFileName(Path.TrimEndingDirectorySeparator(cwd)) });
             }
 
             if (type.GetString() != "event_msg" || !payload.TryGetProperty("type", out var payloadType)
@@ -116,8 +126,12 @@ public sealed class CodexUsageLedger
             if (totals.Total <= cursor.Totals.Total) return cursor;
 
             var delta = totals - cursor.Totals;
-            _readings[$"{path}:{totals.Total}"] = new LedgerEntry(
-                at.ToUnixTimeSeconds(), UncachedInput(delta), delta.Output, delta.CacheRead, delta.CacheWrite);
+            // The ID belongs to the session, not its directory. A moved/copied file only contributes growth.
+            var output = Math.Min(delta.Output, delta.Total);
+            var cacheRead = Math.Min(delta.CacheRead, delta.Total - output);
+            var cacheWrite = Math.Min(delta.CacheWrite, delta.Total - output - cacheRead);
+            _readings[$"session:{cursor.SessionId}:{totals.Total}"] = new LedgerEntry(
+                at.ToUnixTimeSeconds(), delta.Total - output - cacheRead - cacheWrite, output, cacheRead, cacheWrite);
 
             double? contextPercent = cursor.ContextPercent;
             if (info.TryGetProperty("last_token_usage", out var last) && last.ValueKind == JsonValueKind.Object
@@ -132,13 +146,47 @@ public sealed class CodexUsageLedger
         }
     }
 
-    /// <summary>
-    /// Codex's input counts its cached part too, and some readings (a compaction's) carry only
-    /// total_tokens: the uncached input is what the total leaves after output and cache, so the
-    /// entry adds up to total_tokens whichever parts a reading fills in.
-    /// </summary>
-    private static long UncachedInput(Totals delta) =>
-        Math.Max(0, Math.Max(delta.Input, delta.Total - delta.Output) - delta.CacheRead - delta.CacheWrite);
+    /// <summary>A second path for a known session starts from the session's greatest saved reading.</summary>
+    private Cursor Rebase(Cursor cursor) => cursor.SessionId is { } id && _sessions.TryGetValue(id, out var session)
+        && session.Totals.Total > cursor.Totals.Total
+            ? cursor with { Totals = session.Totals, LastAt = session.LastAt, Project = cursor.Project ?? session.Project, ContextPercent = session.ContextPercent }
+            : cursor;
+
+    private void Remember(Cursor cursor)
+    {
+        if (cursor.SessionId is not { } id) return;
+        if (!_sessions.TryGetValue(id, out var previous) || previous.Totals.Total < cursor.Totals.Total) _sessions[id] = cursor;
+    }
+
+    private static string SessionKey(string path)
+    {
+        var name = Path.GetFileNameWithoutExtension(path);
+        return name.Length >= 36 && Guid.TryParse(name[^36..], out var id) ? id.ToString("D") : Path.GetFullPath(path).ToUpperInvariant();
+    }
+
+    /// <summary>Old ledgers may have dropped a moved file's cursor; recover its high-water mark from its saved entries.</summary>
+    private void RecoverSessions()
+    {
+        var files = new Dictionary<string, (long Total, TokenCount Counts, long At)>();
+        foreach (var (key, reading) in _readings)
+        {
+            var separator = key.LastIndexOf(':');
+            if (separator < 0 || !long.TryParse(key[(separator + 1)..], out var total)) continue;
+            var prefix = key[..separator];
+            var known = files.GetValueOrDefault(prefix);
+            files[prefix] = (Math.Max(total, known.Total), known.Counts + reading.Count, Math.Max(known.At, reading.At));
+        }
+        foreach (var (prefix, known) in files)
+        {
+            var id = prefix.StartsWith("session:", StringComparison.Ordinal) ? prefix[8..] : SessionKey(prefix);
+            Remember(new Cursor
+            {
+                SessionId = id, LastAt = known.At,
+                Totals = new(known.Counts.Input + known.Counts.CacheRead + known.Counts.CacheWrite,
+                    known.Counts.CacheRead, known.Counts.CacheWrite, known.Counts.Output, known.Total),
+            });
+        }
+    }
 
     private static long ReadLong(JsonElement value, string name) =>
         value.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.Number
@@ -148,7 +196,7 @@ public sealed class CodexUsageLedger
         value.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.String
             ? property.GetString() : null;
 
-    private StoredLedger Stored() => new(_cursors, _readings);
+    private StoredLedger Stored() => new(_cursors, _readings, _sessions);
 
     private sealed record Totals(long Input, long CacheRead, long CacheWrite, long Output, long Total)
     {
@@ -162,6 +210,7 @@ public sealed class CodexUsageLedger
 
     private sealed record Cursor
     {
+        public string? SessionId { get; init; }
         public long Offset { get; init; }
         public Totals Totals { get; init; } = new(0, 0, 0, 0, 0);
         public long LastAt { get; init; }
@@ -169,5 +218,5 @@ public sealed class CodexUsageLedger
         public double? ContextPercent { get; init; }
     }
 
-    private sealed record StoredLedger(Dictionary<string, Cursor> Cursors, Dictionary<string, LedgerEntry> Readings);
+    private sealed record StoredLedger(Dictionary<string, Cursor> Cursors, Dictionary<string, LedgerEntry> Readings, Dictionary<string, Cursor>? Sessions = null);
 }

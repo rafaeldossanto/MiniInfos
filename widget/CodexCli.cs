@@ -16,20 +16,27 @@ public static class CodexCli
     public static ProcessStartInfo? AppServer()
     {
         var codex = Find(
-            Environment.GetEnvironmentVariable("PATH"),
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+            string.Join(';', new[] { EnvironmentVariableTarget.Process, EnvironmentVariableTarget.User, EnvironmentVariableTarget.Machine }
+                .Select(target => Environment.GetEnvironmentVariable("PATH", target))),
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            DesktopApps.ExecutablePaths(true, "codex").Where(path => !DesktopApps.HasWindow("codex", window =>
+                string.Equals(path, window, StringComparison.OrdinalIgnoreCase))));
         if (codex is null) return null;
 
         // A batch file runs through cmd.exe: a process can't start one by itself.
-        return Path.GetExtension(codex).Equals(".cmd", StringComparison.OrdinalIgnoreCase)
+        var start = Path.GetExtension(codex).Equals(".cmd", StringComparison.OrdinalIgnoreCase)
             ? new ProcessStartInfo(Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe", $"/d /s /c \"\"{codex}\" {AppServerArguments}\"")
             : new ProcessStartInfo(codex, AppServerArguments);
+        start.Environment["CODEX_HOME"] = CodexPaths.Root;
+        return start;
     }
 
     /// <summary>The codex to run: the first on <paramref name="path"/>, else the desktop app's newest copy.</summary>
     /// <param name="path">A PATH value: folders separated by ';'.</param>
     /// <param name="localAppData">The %LOCALAPPDATA% the desktop app keeps its copy under.</param>
-    public static string? Find(string? path, string localAppData) => OnPath(path) ?? DesktopCopy(localAppData);
+    public static string? Find(string? path, string localAppData, IEnumerable<string>? runningExecutables = null) =>
+        OnPath(path) ?? runningExecutables?.FirstOrDefault(candidate => File.Exists(candidate)
+            && Path.GetFileName(candidate).Equals("codex.exe", StringComparison.OrdinalIgnoreCase)) ?? DesktopCopy(localAppData);
 
     private static string? OnPath(string? path)
     {
@@ -53,15 +60,12 @@ public static class CodexCli
     {
         var roots = new List<string> { Path.Combine(localAppData, "OpenAI", "Codex", "bin") };
         var packages = Path.Combine(localAppData, "Packages");
-        if (Directory.Exists(packages))
-        {
-            roots.AddRange(Directory.EnumerateDirectories(packages, "OpenAI.Codex_*")
+        roots.AddRange(SourceFiles.Directories(packages, "OpenAI.Codex_*")
                 .Select(package => Path.Combine(package, "LocalCache", "Local", "OpenAI", "Codex", "bin")));
-        }
 
         return roots
             .Where(Directory.Exists)
-            .SelectMany(root => Directory.EnumerateDirectories(root))
+            .SelectMany(root => SourceFiles.Directories(root))
             .Select(build => new FileInfo(Path.Combine(build, "codex.exe")))
             .Where(file => file.Exists)
             .OrderByDescending(file => file.LastWriteTimeUtc)
