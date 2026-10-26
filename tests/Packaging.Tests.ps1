@@ -58,7 +58,12 @@ try {
     $catalogWorkflow = Get-Content -LiteralPath (Join-Path $repository '.github/workflows/marketplace-publish.yml') -Raw
     $appWorkflow = Get-Content -LiteralPath (Join-Path $repository '.github/workflows/release-app.yml') -Raw
     if ([regex]::Matches($catalogWorkflow, '--prerelease --latest=false').Count -ne 2) { throw 'Criar e editar catalog precisam manter prerelease e latest=false.' }
-    if ($appWorkflow -notmatch '--latest --title' -or $appWorkflow -notmatch 'assets.Count -ne 1') { throw 'A publicação do app perdeu latest ou a checagem de asset único.' }
+    # The app's release starts as a draft, out of the update banner's sight until it is reviewed and published as latest.
+    $create = [regex]::Match($appWorkflow, 'gh release create [^
+]*').Value
+    if ($create -notmatch ' --draft ' -or $create -match '--latest' -or $appWorkflow -notmatch 'assets.Count -ne 1') {
+        throw 'A release do app precisa nascer como rascunho, sem latest, e só com o instalador.'
+    }
     Write-Host 'Empacotamento: app/mod isolados e pacotes excluídos do ZIP de código.'
 }
 finally {

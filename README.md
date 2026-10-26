@@ -196,7 +196,7 @@ O ZIP automático de código das releases também exclui `marketplace/packages/`
 
 ### Publicações no GitHub
 
-As releases do aplicativo usam a tag `vX.Y.Z`, **sempre com `--latest`**, e têm um único asset: `MiniInfos-Setup.exe`. O workflow `release-app.yml` confere a versão da tag, o conteúdo do instalador e a lista de assets.
+As releases do aplicativo usam a tag `vX.Y.Z` e têm um único asset: `MiniInfos-Setup.exe`. Ao receber a tag, o workflow `release-app.yml` confere a versão, gera o instalador a partir dela, confere o conteúdo e cria a release **como rascunho**, com as notas geradas pelo GitHub. Rascunho não aparece para a atualização pela faixa: depois de revisada, a release é publicada com `gh release edit vX.Y.Z --draft=false --latest`, **sempre com `--latest`**.
 
 O catálogo usa somente a tag **`catalog`**, marcada com **`--prerelease --latest=false`**, com o título **Catálogo da comunidade (usado pelo app, não é o instalador)**. São publicados `index.json`, uma prévia PNG por pacote e um `.miniinfos` por pacote; não há um ZIP com o catálogo inteiro. Os workflows do marketplace validam o mesmo commit e publicam apenas quando `marketplace/packages/` muda na `main`. A publicação remota só acontece depois que essas mudanças forem enviadas ao GitHub.
 

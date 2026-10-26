@@ -13,7 +13,7 @@ Siga também as instruções do diretório pai: DRY, Clean Code, SOLID e código
 - Separe contratos e persistência dos controles visuais. Extraia responsabilidades quando necessário, sem introduzir camadas ou interfaces que não resolvam um problema concreto.
 - Ao mover arquivos, atualize namespaces, referências XAML, URIs de recursos, documentação e caminhos usados pelo instalador.
 - O formato de temas e mascotes da comunidade fica em `Community/` e é documentado em `marketplace/`. Preserve a compatibilidade do `schemaVersion`; novos recursos precisam acompanhar validação, JSON Schema e testes. Pacotes são dados declarativos locais: não carregue código, XAML ou recursos remotos fornecidos por um pacote.
-- O `index.json` segue a mesma regra de compatibilidade de `schemaVersion` dos pacotes. O marketplace pertence ao mesmo monorepo, em `marketplace/`; o ID numérico do repositório é compartilhado com o atualizador. Releases do app usam `--latest`; a tag `catalog` usa `--prerelease --latest=false`, nunca latest.
+- O `index.json` segue a mesma regra de compatibilidade de `schemaVersion` dos pacotes. O marketplace pertence ao mesmo monorepo, em `marketplace/`; o ID numérico do repositório é compartilhado com o atualizador. Releases do app nascem como rascunho no CI, ao enviar a tag `vX.Y.Z`, e são publicadas depois de revisadas, com `--draft=false --latest`; a tag `catalog` usa `--prerelease --latest=false`, nunca latest.
 
 ## Validação
 

@@ -33,13 +33,15 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Não foi possível instalar o Inno Setup.' }
           }
           ./installer/build.ps1 -InnoCompiler $compiler
-      - name: Publicar somente o instalador como latest
+      # A draft is invisible to the update banner: it is reviewed, then published with
+      # gh release edit <tag> --draft=false --latest
+      - name: Criar a release como rascunho, somente com o instalador
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create $env:GITHUB_REF_NAME installer/dist/MiniInfos-Setup.exe --latest --title "MiniInfos $env:GITHUB_REF_NAME" --generate-notes
-          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível publicar o instalador.' }
+          gh release create $env:GITHUB_REF_NAME installer/dist/MiniInfos-Setup.exe --draft --title "MiniInfos $env:GITHUB_REF_NAME" --generate-notes
+          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível criar o rascunho da release.' }
           $assets = @(gh release view $env:GITHUB_REF_NAME --json assets --jq '.assets[].name')
           if ($LASTEXITCODE -ne 0 -or $assets.Count -ne 1 -or $assets[0] -ne 'MiniInfos-Setup.exe') { throw 'A release do app precisa conter somente MiniInfos-Setup.exe.' }
