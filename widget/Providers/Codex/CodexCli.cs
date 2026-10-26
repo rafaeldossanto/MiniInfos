@@ -18,8 +18,7 @@ public static class CodexCli
     public static ProcessStartInfo? AppServer()
     {
         var codex = Find(
-            string.Join(';', new[] { EnvironmentVariableTarget.Process, EnvironmentVariableTarget.User, EnvironmentVariableTarget.Machine }
-                .Select(target => Environment.GetEnvironmentVariable("PATH", target))),
+            CommandPath.Current(),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             DesktopApps.ExecutablePaths(true, "codex").Where(path => !DesktopApps.HasWindow("codex", window =>
                 string.Equals(path, window, StringComparison.OrdinalIgnoreCase))));
@@ -37,22 +36,8 @@ public static class CodexCli
     /// <param name="path">A PATH value: folders separated by ';'.</param>
     /// <param name="localAppData">The %LOCALAPPDATA% the desktop app keeps its copy under.</param>
     public static string? Find(string? path, string localAppData, IEnumerable<string>? runningExecutables = null) =>
-        OnPath(path) ?? runningExecutables?.FirstOrDefault(candidate => File.Exists(candidate)
+        CommandPath.Find(path, "codex") ?? runningExecutables?.FirstOrDefault(candidate => File.Exists(candidate)
             && Path.GetFileName(candidate).Equals("codex.exe", StringComparison.OrdinalIgnoreCase)) ?? DesktopCopy(localAppData);
-
-    private static string? OnPath(string? path)
-    {
-        foreach (var folder in (path ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            foreach (var name in (string[])["codex.exe", "codex.cmd"])
-            {
-                var candidate = TryCombine(folder.Trim('"'), name);
-                if (candidate is not null && File.Exists(candidate)) return candidate;
-            }
-        }
-
-        return null;
-    }
 
     /// <summary>
     /// The Codex desktop app keeps codex at %LOCALAPPDATA%\OpenAI\Codex\bin\&lt;build&gt;\codex.exe; a
@@ -73,18 +58,5 @@ public static class CodexCli
             .OrderByDescending(file => file.LastWriteTimeUtc)
             .Select(file => file.FullName)
             .FirstOrDefault();
-    }
-
-    private static string? TryCombine(string folder, string name)
-    {
-        try
-        {
-            return Path.Combine(folder, name);
-        }
-        catch (ArgumentException)
-        {
-            // A PATH entry with characters no path can hold.
-            return null;
-        }
     }
 }

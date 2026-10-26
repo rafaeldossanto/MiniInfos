@@ -21,6 +21,8 @@ public sealed class ClaudeUsage : IUsageProvider
 
     public string Id => "claude";
 
+    public bool IsInstalled() => ClaudeInstall.IsPresent();
+
     /// <summary>The desktop app's window, or any Claude Code chat still running: in a terminal, an editor or the app.</summary>
     public bool IsInUse() => ClaudeApp.IsOpen() || _lastFeed?.HasOpenChat == true;
 

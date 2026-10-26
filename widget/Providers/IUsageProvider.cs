@@ -6,6 +6,9 @@ public interface IUsageProvider
     /// <summary>Saved with the card's settings so it reopens on the same page; never shown.</summary>
     string Id { get; }
 
+    /// <summary>Whether its app is on this PC: only installed providers get a page (<see cref="InstalledProviders"/>).</summary>
+    bool IsInstalled();
+
     /// <summary>Whether its app or one of its chats is open now: the card shows when one opens.</summary>
     bool IsInUse();
 

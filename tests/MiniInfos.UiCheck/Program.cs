@@ -87,6 +87,7 @@ internal static partial class Program
                 CheckPages(window, handle, providers.Count, pictures);
                 CheckSplit(window, handle, pictures);
                 CheckNewWindow(cards, pictures);
+                CheckInstalls(cards, pictures);
                 CheckDragKeepsProportions(window, handle, "one page");
             });
             RunSuite("Settings", () => CheckSettings(cards, preferences, pictures));
