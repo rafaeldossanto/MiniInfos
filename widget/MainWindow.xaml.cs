@@ -47,6 +47,9 @@ public partial class MainWindow : Window
     private const double ColumnWidth = 262;
     private const double ColumnGap = 25;
 
+    /// <summary>The card's corner radius (16) less its border, for what is drawn inside it.</summary>
+    private const double ArtCornerRadius = 15;
+
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan SpinTurn = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan MinSpin = TimeSpan.FromMilliseconds(600);
@@ -131,7 +134,8 @@ public partial class MainWindow : Window
         _store = store ?? CardStore.Main;
         _kind = kind;
         InitializeComponent();
-        Card.SizeChanged += (_, e) => Card.Clip = new RectangleGeometry(new Rect(e.NewSize), 16, 16);
+        // The artwork's rounded top, inside the card's 1-pixel border: the clip runs past the bottom so only the top corners round.
+        HeaderArt.SizeChanged += (_, e) => HeaderArt.Clip = new RectangleGeometry(new Rect(0, 0, e.NewSize.Width, e.NewSize.Height + ArtCornerRadius), ArtCornerRadius, ArtCornerRadius);
         ShowTitle();
         Themes.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;

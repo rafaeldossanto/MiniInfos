@@ -87,6 +87,7 @@
                 BorderBrush="{DynamicResource CardBorder}"
                 BorderThickness="1"
                 Padding="0"
+                RenderOptions.ClearTypeHint="Enabled"
                 Focusable="True"
                 MouseLeftButtonDown="OnCardPressed"
                 PreviewMouseWheel="OnCardWheel">
@@ -107,6 +108,9 @@
 
             <StackPanel>
                 <Grid x:Name="HeaderRegion" Height="{DynamicResource HeaderHeight}">
+                    <!-- Only the artwork is clipped to the card's rounded top: text under a clip loses ClearType
+                         and turns grainy at small sizes, so nothing written sits inside this one. -->
+                    <Grid x:Name="HeaderArt" IsHitTestVisible="False">
                     <!-- One centered illustration for the whole card, including split view. -->
                     <Image x:Name="AthenaArtwork" Source="{DynamicResource HeaderArtwork}"
                            Visibility="{DynamicResource HeaderArtworkVisibility}"
@@ -133,6 +137,7 @@
                             </RadialGradientBrush>
                         </Ellipse.Fill>
                     </Ellipse>
+                    </Grid>
                     <!-- How fresh the limits are sits beside each page's title, one page or two. -->
                     <Grid Margin="16,12" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>

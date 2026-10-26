@@ -1,7 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Claro: the same brushes as Simple.xaml, for a light desktop. -->
-    <SolidColorBrush x:Key="CardBackground" Color="#F2F8F8FA" />
+    <!-- Opaque, as in the other themes: ClearType needs a solid background under the text. -->
+    <SolidColorBrush x:Key="CardBackground" Color="#F8F8FA" />
     <SolidColorBrush x:Key="CardBorder" Color="#24000000" />
     <SolidColorBrush x:Key="PrimaryText" Color="#1D1D1F" />
     <SolidColorBrush x:Key="DimText" Color="#6B6B70" />
