@@ -86,11 +86,36 @@ São duas partes:
 | `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude e do Codex, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 
+### Organização do código
+
+Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`App.xaml.cs`, que conecta os componentes e controla o ciclo de vida do aplicativo. As implementações ficam agrupadas por responsabilidade:
+
+| Pasta em `widget/` | Responsabilidade |
+| --- | --- |
+| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders` e modelos de tokens, limites e páginas compartilhados. |
+| `Providers/Claude/` | Históricos, feeds, títulos, caminhos e detecção do Claude. |
+| `Providers/Codex/` | Históricos, conta, app-server, caminhos e detecção do Codex. |
+| `Sources/` | Descoberta e catálogo das pastas de registros, com os modelos de entrada e resultado da busca. |
+| `Mascot/` | Estados, gestos, animação, sprites, posição e coordenação da coruja. |
+| `Settings/` | Preferências compartilhadas, configurações dos cartões e escolhas de tema e fontes. |
+| `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |
+| `UI/Windows/` | Janelas, coordenação dos cartões e seleção de páginas. Cada XAML fica junto de seu code-behind. |
+| `UI/Controls/` | Controles compartilhados, menus e apresentação animada dos números. |
+| `UI/Formatting/` | Formatação dos números, horários, custos e legendas. |
+| `UI/Themes/` | Dicionários de temas, `ThemeManager` e tipografia compartilhada. |
+| `UI/Styles/` e `UI/Icons/` | Estilos e símbolos vetoriais compartilhados. |
+| `Infrastructure/Storage/` | Caminhos do aplicativo, arquivos JSON, livros-caixa, leitura incremental e acesso defensivo aos arquivos. |
+| `Infrastructure/Windows/` | Processos, atalhos, bandeja e geometria de janelas do Windows. |
+| `Infrastructure/AppInfo.cs` | Versão do aplicativo obtida do assembly. |
+| `Assets/` | Ícone do aplicativo, ilustrações, sprites, fontes e respectivas licenças. |
+
+Os namespaces acompanham as pastas (`MiniInfos.Providers.Claude`, por exemplo). `tests/MiniInfos.Tests` espelha esses grupos, e `Support` contém o suporte compartilhado aos testes. Contratos usados por mais de um provedor ficam fora das implementações específicas; a persistência compartilhada fica em infraestrutura. As convenções para futuras mudanças também estão no `AGENTS.md` do projeto.
+
 Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
 
 Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0 e OpenAI da 11.15.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
 
-Os temas ficam em `widget/Themes`, com recursos dinâmicos compartilhados pelo cartão, menus e configurações. Cada tema é um arquivo com os mesmos pincéis (`Simple.xaml`, `Classic.xaml`, `Light.xaml`), e `Design.xaml` guarda a fonte das configurações e o cabeçalho comuns a todos. A arte de Atena foi gerada para o MiniInfos.
+Os temas ficam em `widget/UI/Themes`, com recursos dinâmicos compartilhados pelo cartão, menus e configurações. Cada tema é um arquivo com os mesmos pincéis (`Simple.xaml`, `Classic.xaml`, `Light.xaml`), e `Design.xaml` guarda a fonte das configurações e o cabeçalho comuns a todos. `ThemeManager` aplica a escolha a todas as janelas. A arte de Atena foi gerada para o MiniInfos.
 
 Em **Configurações → Aparência → Fontes**, textos e números têm seletores separados, com prévia imediata. As escolhas valem para todos os cartões, inclusive a visualização dividida, ficam salvas e continuam iguais ao trocar o tema. Combinações das prévias:
 

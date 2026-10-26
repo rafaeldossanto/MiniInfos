@@ -1,5 +1,12 @@
-using System.Windows;
 using System.Windows.Threading;
+using System.Windows;
+using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure;
+using MiniInfos.Providers;
+using MiniInfos.Settings;
+using MiniInfos.UI.Themes;
+using MiniInfos.UI.Windows;
+using MiniInfos.Updates;
 
 namespace MiniInfos;
 
@@ -39,7 +46,7 @@ public partial class App : Application
 
         base.OnStartup(e);
         var preferences = Preferences.Load();
-        Themes.Follow(preferences);
+        ThemeManager.Follow(preferences);
         AppFonts.Follow(preferences);
         var providers = UsageProviders.Create();
         var cards = new CardSet(providers, preferences);

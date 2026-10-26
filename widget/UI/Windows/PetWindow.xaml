@@ -1,0 +1,24 @@
+<Window x:Class="MiniInfos.UI.Windows.PetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MiniInfos.UI.Controls"
+        Title="Coruja de Atena — MiniInfos" Width="160" Height="160"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False"
+        FontFamily="{DynamicResource AppFont}" Foreground="{DynamicResource PrimaryText}"
+        MouseLeftButtonDown="OnPressed" MouseLeftButtonUp="OnReleased" MouseMove="OnMoved"
+        LostMouseCapture="OnCaptureLost" PreviewMouseWheel="OnWheel">
+    <Image x:Name="Sprite" Stretch="Uniform" Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality"
+           AutomationProperties.Name="Coruja de Atena. Toque nos olhos para brincar. Segure pela cabeça, asas ou pés para mover. Clique duas vezes para mostrar o MiniInfos.">
+        <Image.ContextMenu>
+            <local:CardContextMenu>
+                <MenuItem Header="Mostrar MiniInfos" Click="OnShowCards" />
+                <MenuItem Header="Configurar mascote" Click="OnSettings" />
+                <MenuItem Header="Voltar pro canto" Click="OnBackToCorner" />
+                <Separator />
+                <MenuItem Header="Esconder mascote" Click="OnHidePet" />
+                <MenuItem Header="Sair do MiniInfos" Click="OnQuit" />
+            </local:CardContextMenu>
+        </Image.ContextMenu>
+    </Image>
+</Window>
