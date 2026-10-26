@@ -2,16 +2,26 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Interop;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
 using System.Windows.Threading;
-using MiniInfos;
+using System.Windows;
+using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure;
+using MiniInfos.Mascot;
+using MiniInfos.Providers.Claude;
+using MiniInfos.Providers.Codex;
+using MiniInfos.Providers;
+using MiniInfos.Settings;
+using MiniInfos.UI.Controls;
+using MiniInfos.UI.Themes;
+using MiniInfos.UI.Windows;
+using MiniInfos.Updates;
 
 /// <summary>
 /// Opens the real card with the real providers, its data kept apart in a temporary folder, and
@@ -55,7 +65,7 @@ internal static partial class Program
     {
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var preferences = Preferences.Load();
-        Themes.Follow(preferences);
+        ThemeManager.Follow(preferences);
         AppFonts.Follow(preferences);
         var providers = UsageProviders.Create();
         var cards = new CardSet(providers, preferences);
@@ -258,9 +268,9 @@ internal static partial class Program
 
     private static void CheckSettings(CardSet cards, Preferences preferences, string pictures)
     {
-        var simple = ThemeKeys(Themes.Load(ThemeChoice.Simple));
+        var simple = ThemeKeys(ThemeManager.Load(ThemeChoice.Simple));
         Check(simple.Length > 0 && new[] { ThemeChoice.Light, ThemeChoice.Classic }
-            .All(theme => simple.SequenceEqual(ThemeKeys(Themes.Load(theme)))),
+            .All(theme => simple.SequenceEqual(ThemeKeys(ThemeManager.Load(theme)))),
             "all themes provide the same resources, including merged dictionaries");
 
         var card = cards.Main;

@@ -32,6 +32,21 @@ async function locateFeed($: EngineInterface) {
   const path = `${root}/${FEED_FOLDER}/${sessionId}.json`
   feed = { path, sessionId, cwd: await $.session.cwd() }
   answeredAt = await lastAnswer($, path)
+  await registerSource($, root)
+}
+
+// A chat can use a private CLAUDE_CONFIG_DIR that the widget did not inherit. Publish the location only.
+async function registerSource($: EngineInterface, root: string) {
+  const local = await $.env.get('LOCALAPPDATA')
+  if (local === undefined) return
+  let hash = 0xcbf29ce484222325n
+  for (const char of root) hash = BigInt.asUintN(64, (hash ^ BigInt(char.codePointAt(0) ?? 0)) * 0x100000001b3n)
+  try {
+    await $.fs.write(`${local}/MiniInfos/sources/claude-${hash.toString(16)}.json`,
+      JSON.stringify({ Provider: 'claude', Root: root }))
+  } catch {
+    // A blocked registration folder must not stop the chat or its existing feed.
+  }
 }
 
 // A reload starts the module over: the chat's last answer is kept in its own feed file.
