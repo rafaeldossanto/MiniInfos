@@ -118,7 +118,7 @@ internal static partial class Program
         Check(IconIsLit(icons, 0) && IconIsLit(icons, 1), "and lights both their icons");
         Check(Find<TextBlock>(Columns(window)[0], "PageTitle").Text != Find<TextBlock>(Columns(window)[1], "PageTitle").Text,
             $"each column shows its own provider ({Find<TextBlock>(Columns(window)[0], "PageTitle").Text} | {Find<TextBlock>(Columns(window)[1], "PageTitle").Text})");
-        Check(Find<TextBlock>(window, "UpdatedText").Text == "" && Find<TextBlock>(Columns(window)[1], "Note").Text != "",
+        Check(Find<TextBlock>(Columns(window)[0], "Note").Text != "" && Find<TextBlock>(Columns(window)[1], "Note").Text != "",
             "each column says how fresh its own limits are");
         Check(window.Width > singleWidth * 1.8 && window.Width < singleWidth * 2.1, $"the card widens to hold them ({singleWidth:0} -> {window.Width:0})");
         Check(window.Left >= SystemParameters.VirtualScreenLeft
@@ -410,7 +410,7 @@ internal static partial class Program
         _ = window.ForceRefreshAsync();
         Pump(TimeSpan.FromMilliseconds(100));
         PumpUntil(() => Find<Button>(window, "RefreshButton").IsEnabled, TimeSpan.FromSeconds(20));
-        Console.WriteLine($"     page 2: {Find<TextBlock>(Columns(window)[0], "ShortPercent").Text} / {Find<TextBlock>(Columns(window)[0], "LongPercent").Text} | {Find<TextBlock>(window, "UpdatedText").Text} | {Find<TextBlock>(Columns(window)[0], "ChatText").Text}");
+        Console.WriteLine($"     page 2: {Find<TextBlock>(Columns(window)[0], "ShortPercent").Text} / {Find<TextBlock>(Columns(window)[0], "LongPercent").Text} | {Find<TextBlock>(Columns(window)[0], "Note").Text} | {Find<TextBlock>(Columns(window)[0], "ChatText").Text}");
         Check(Math.Abs(window.ActualHeight - height) < 1, "both pages keep the card's size");
         Render(window, System.IO.Path.Combine(pictures, "page-2.png"));
 

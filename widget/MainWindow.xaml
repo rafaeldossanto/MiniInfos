@@ -133,31 +133,22 @@
                             </RadialGradientBrush>
                         </Ellipse.Fill>
                     </Ellipse>
+                    <!-- How fresh the limits are sits beside each page's title, one page or two. -->
                     <Grid Margin="16,12" VerticalAlignment="Top">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="MiniInfos" FontWeight="SemiBold" FontSize="{DynamicResource HeaderTitleSize}" VerticalAlignment="Center" />
-                    <TextBlock x:Name="UpdatedText" Grid.Column="{DynamicResource HeaderNoteColumn}"
-                               Grid.Row="{DynamicResource HeaderNoteRow}" Grid.ColumnSpan="{DynamicResource HeaderNoteSpan}"
-                               Style="{StaticResource Caption}" Margin="{DynamicResource HeaderNoteMargin}"
-                               MaxWidth="{DynamicResource HeaderNoteWidth}" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" />
-                    <Button x:Name="RefreshButton" Grid.Column="2" Style="{StaticResource HeaderButton}" Click="OnRefresh">
+                    <Button x:Name="RefreshButton" Grid.Column="1" Style="{StaticResource HeaderButton}" Click="OnRefresh">
                         <TextBlock Text="&#xE72C;" RenderTransformOrigin="0.5,0.5">
                             <TextBlock.RenderTransform>
                                 <RotateTransform x:Name="RefreshSpin" />
                             </TextBlock.RenderTransform>
                         </TextBlock>
                     </Button>
-                    <Button x:Name="DismissButton" Grid.Column="3" Style="{StaticResource HeaderButton}" Click="OnDismiss">
+                    <Button x:Name="DismissButton" Grid.Column="2" Style="{StaticResource HeaderButton}" Click="OnDismiss">
                         <TextBlock Text="&#xE711;" />
                     </Button>
                     </Grid>

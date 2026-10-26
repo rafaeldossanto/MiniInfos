@@ -304,20 +304,15 @@ public partial class MainWindow : Window
         Show(pages, now);
     }
 
-    /// <summary>
-    /// Draws the pages on screen. One page keeps its freshness note in the header; split, each column
-    /// notes its own, since the providers are read apart.
-    /// </summary>
+    /// <summary>Draws the pages on screen, one or two.</summary>
     private void Show(UsagePage[] pages, DateTimeOffset now)
     {
         for (var column = 0; column < _columns.Count; column++)
         {
-            var page = pages[_selection.Shown[column]];
-            _columns[column].Show(page, now, CountText, _selection.IsSplit ? page.Updated : null);
+            _columns[column].Show(pages[_selection.Shown[column]], now, CountText);
         }
 
         var first = pages[_selection.Shown[0]];
-        UpdatedText.Text = _selection.IsSplit ? "" : first.Updated;
         RefreshButton.ToolTip = _selection.IsSplit ? "Atualizar agora as páginas na tela." : first.RefreshHint;
         SummaryChanged?.Invoke($"MiniInfos · {first.Title}\n{_columns[0].LimitsLine}\nHoje {Format.Count(first.Today.Total)} tokens");
 

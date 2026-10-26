@@ -5,11 +5,6 @@
     <FontFamily x:Key="AppFont">pack://application:,,,/MiniInfos;component/Assets/Fonts/#Manrope</FontFamily>
     <sys:Double x:Key="HeaderHeight">44</sys:Double>
     <sys:Double x:Key="HeaderTitleSize">14</sys:Double>
-    <sys:Double x:Key="HeaderNoteWidth">160</sys:Double>
-    <sys:Int32 x:Key="HeaderNoteRow">0</sys:Int32>
-    <sys:Int32 x:Key="HeaderNoteColumn">1</sys:Int32>
-    <sys:Int32 x:Key="HeaderNoteSpan">1</sys:Int32>
-    <Thickness x:Key="HeaderNoteMargin">8,0,0,0</Thickness>
     <Visibility x:Key="HeaderArtworkVisibility">Collapsed</Visibility>
     <DrawingImage x:Key="HeaderArtwork" />
 </ResourceDictionary>

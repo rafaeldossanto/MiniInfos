@@ -23,11 +23,11 @@ public partial class PageView : UserControl
     public string LimitsLine => $"{ShortLabel.Text} {ShortPercent.Text} · {LongLabel.Text} {LongPercent.Text}";
 
     /// <param name="countText">How the chosen view writes a count: 1,4B, or every digit.</param>
-    /// <param name="note">A short note beside the title (how fresh the limits are), or null for none.</param>
-    public void Show(UsagePage page, DateTimeOffset now, Func<long, string> countText, string? note)
+    public void Show(UsagePage page, DateTimeOffset now, Func<long, string> countText)
     {
+        // Beside the title, how fresh the limits are: each provider is read apart.
         PageTitle.Text = page.Title;
-        Note.Text = note ?? "";
+        Note.Text = page.Updated;
         ShowWindow(page.ShortWindow, page.TokensOrigin, now, countText, ShortLabel, ShortPercent, ShortBar, ShortDetail, _shortTokens);
         ShowWindow(page.LongWindow, page.TokensOrigin, now, countText, LongLabel, LongPercent, LongBar, LongDetail, _longTokens);
 

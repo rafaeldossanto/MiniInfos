@@ -20,11 +20,6 @@
     <SolidColorBrush x:Key="Danger" Color="#D7786B" />
     <sys:Double x:Key="HeaderHeight">96</sys:Double>
     <sys:Double x:Key="HeaderTitleSize">20</sys:Double>
-    <sys:Double x:Key="HeaderNoteWidth">110</sys:Double>
-    <sys:Int32 x:Key="HeaderNoteRow">1</sys:Int32>
-    <sys:Int32 x:Key="HeaderNoteColumn">0</sys:Int32>
-    <sys:Int32 x:Key="HeaderNoteSpan">2</sys:Int32>
-    <Thickness x:Key="HeaderNoteMargin">0,4,0,0</Thickness>
     <Visibility x:Key="HeaderArtworkVisibility">Visible</Visibility>
     <BitmapImage x:Key="HeaderArtwork" UriSource="pack://application:,,,/MiniInfos;component/Assets/athena-header.png" />
 </ResourceDictionary>
