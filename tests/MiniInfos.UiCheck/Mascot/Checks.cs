@@ -173,9 +173,12 @@ internal static partial class Program
         Pump(TimeSpan.FromMilliseconds(80));
         var caught = VisibleCenter();
         Press(new Point(160, 100));
-        Pump(TimeSpan.FromMilliseconds(60));
-        Check(!pet.IsDropping && (VisibleCenter() - caught).Length < 3,
-            "catching the pet during a fall pauses it at its visible position");
+        // The next frame, painted at once: pumping for it could outlast the 220 ms after which a press becomes a grip
+        // on a busy machine, and a grip rightly moves the pet.
+        typeof(PetWindow).GetMethod("Paint", flags)!.Invoke(pet, [Now()]);
+        var drift = (VisibleCenter() - caught).Length;
+        Check(!pet.IsDropping && !interaction.IsHeld && drift < 3,
+            $"catching the pet during a fall pauses it at its visible position ({drift:0.0} px{(pet.IsDropping ? ", still falling" : "")})");
         interaction.Move(interaction.PointerScreen + new Vector(15, 0), Now());
         Pump(TimeSpan.FromMilliseconds(350));
         Check(interaction.IsHeld, "a falling pet can be picked up again without waiting for its landing");
