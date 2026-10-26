@@ -112,6 +112,7 @@ São duas partes:
 | `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude e do Codex, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 | `tools/MiniInfos.Catalog/` | Ferramenta separada para validar e gerar o catálogo da comunidade; não entra no instalador. |
+| `front/` | Landing page do MiniInfos; fora do instalador, do zip de código das releases e dos testes do app (`front/README.md`). |
 | `marketplace/` | Guia, contratos, exemplos e fontes dos pacotes publicados em `marketplace/packages/`. |
 
 ### Organização do código

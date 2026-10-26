@@ -5,9 +5,9 @@ name: Testes
 on:
   push:
     branches: [dev, main]
-    paths-ignore: ['marketplace/**']
+    paths-ignore: ['marketplace/**', 'front/**']
   pull_request:
-    paths-ignore: ['marketplace/**']
+    paths-ignore: ['marketplace/**', 'front/**']
 
 permissions:
   contents: read

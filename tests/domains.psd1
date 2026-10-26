@@ -21,6 +21,8 @@
     Rules = @(
         @{ Path = '*.md'; Ignore = $true }
         @{ Path = '.gitignore'; Ignore = $true }
+        # The landing page: no app tests until it has code and a domain of its own.
+        @{ Path = 'front/*'; Ignore = $true }
         @{ Path = 'tools/MiniInfos.Catalog/*'; Domains = @('CatalogTool') }
         @{ Path = 'widget/Community/*'; Domains = @('Community', 'Themes', 'Mascot', 'Settings') }
         @{ Path = 'marketplace/*'; Domains = @('CatalogTool') }

@@ -42,6 +42,8 @@ $mod = Get-TestSelection -Paths @('mod/hooks/register.ts')
 Assert-Selection ($mod.Mod -and $mod.Domains.Count -eq 0) 'Mod selecionou testes do widget'
 Assert-Selection ((Get-TestSelection -Paths @('.claude-plugin/marketplace.json')).Mod) 'Marketplace não selecionou o mod'
 Assert-Selection ((Get-TestSelection -Paths @('.gitignore')).Domains.Count -eq 0) 'Gitignore selecionou testes'
+$front = Get-TestSelection -Paths @('front/index.html', 'front/assets/athena.png')
+Assert-Selection ($front.Domains.Count -eq 0 -and -not $front.All -and -not $front.Mod) 'Landing page selecionou testes do app'
 
 $unknown = Get-TestSelection -Paths @('widget/NewFeature/NewFile.cs')
 Assert-Selection ($unknown.All) 'Código sem regra foi ignorado'
@@ -51,4 +53,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 20 cenários passaram.'
+Write-Host 'Seleção de testes: 21 cenários passaram.'
