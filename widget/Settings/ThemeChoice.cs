@@ -16,4 +16,7 @@ public enum ThemeChoice
 
     /// <summary>Simple or Light as Windows' app mode is, changing along with it.</summary>
     System,
+
+    /// <summary>The illustrated Athena card in ivory marble and warm light stone tones.</summary>
+    ClassicLight,
 }

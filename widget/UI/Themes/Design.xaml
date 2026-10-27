@@ -7,4 +7,6 @@
     <sys:Double x:Key="HeaderTitleSize">14</sys:Double>
     <Visibility x:Key="HeaderArtworkVisibility">Collapsed</Visibility>
     <DrawingImage x:Key="HeaderArtwork" />
+    <!-- Community headers keep their original overlay layout unless a built-in opts into a separate band. -->
+    <sys:Boolean x:Key="HeaderArtworkInset">False</sys:Boolean>
 </ResourceDictionary>

@@ -26,7 +26,7 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
-Na engrenagem, em **Configurações → Aparência → Tema**, **Simples** usa o cartão escuro com barras azuis; **Clássico** usa tons de pedra e uma gravura de Atena no cabeçalho. Na visualização dividida, Atena fica centralizada sobre o cartão inteiro. Os ícones das IAs ficam juntos, sem separador. A escolha vale para todas as janelas e fica salva. As opções **Claro** e **Windows** também continuam disponíveis.
+Na engrenagem, em **Configurações → Aparência → Tema**, **Simples** usa o cartão escuro com barras azuis; **Clássico escuro** usa tons de pedra e uma faixa de Atena em gravura, com disco e oliveiras. **Clássico claro**, disponível na **Biblioteca**, combina a faixa em mármore com um cartão em tons de marfim. As faixas ficam abaixo dos controles e Atena permanece centralizada sobre o cartão inteiro na visualização dividida. Os ícones das IAs ficam juntos, sem separador. A escolha vale para todas as janelas e fica salva. As opções **Claro** e **Windows** também continuam disponíveis.
 
 A fila de temas mostra os quatro escolhidos por último, o atual primeiro, sejam embutidos ou da comunidade. **Biblioteca**, o primeiro botão abaixo dela, abre todos os temas em cartões com prévia, como na página Comunidade: **Usar** aplica o tema e o leva para o início da fila, e **Mais temas na Comunidade** abre o catálogo de temas.
 

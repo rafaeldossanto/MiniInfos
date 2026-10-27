@@ -52,7 +52,7 @@
         @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Cards', 'Updates') }
         @{ Path = 'widget/Assets/Fonts/*'; Domains = @('Fonts') }
         @{ Path = 'widget/Assets/athena-owl-*'; Domains = @('Mascot') }
-        @{ Path = 'widget/Assets/athena-header.png'; Domains = @('Themes') }
+        @{ Path = 'widget/Assets/athena-banner-*.png'; Domains = @('Themes') }
         @{ Path = 'widget/Assets/MiniInfos.ico'; Domains = @('Cards') }
         @{ Path = 'widget/Mascot/*'; Domains = @('Mascot') }
         @{ Path = 'widget/Providers/Claude/*'; Domains = @('Claude') }
