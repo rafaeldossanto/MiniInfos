@@ -9,11 +9,13 @@ Parameters:
     Type: String
     Default: miniinfos.com
     Description: Apex domain of the site; www.<domain> is redirected to it.
-  GitHubRepository:
+  GitHubRepositorySubject:
     Type: String
-    Default: rafaeldossanto/MiniInfos
-    AllowedPattern: '[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+'
-    Description: The only repository allowed to deploy, as owner/name. No wildcards.
+    Default: rafaeldossanto@163165658/MiniInfos@1432597159
+    AllowedPattern: '[A-Za-z0-9_.-]+@[0-9]+/[A-Za-z0-9_.-]+@[0-9]+'
+    Description: >-
+      The only repository allowed to deploy, as GitHub's immutable OIDC subject names it: owner@ownerId/name@repoId
+      (gh api repos/OWNER/NAME/actions/oidc/customization/sub). The ids keep a recreated namesake out. No wildcards.
   GitHubBranch:
     Type: String
     Default: main
@@ -193,7 +195,7 @@ Resources:
   DeployRole:
     Type: AWS::IAM::Role
     Properties:
-      Description: !Sub Publishes ${DomainName} from ${GitHubRepository}@${GitHubBranch} and nothing else
+      Description: !Sub Publishes ${DomainName} from ${GitHubRepositorySubject} on ${GitHubBranch} and nothing else
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -206,7 +208,7 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepository}:ref:refs/heads/${GitHubBranch}
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepositorySubject}:ref:refs/heads/${GitHubBranch}
       Policies:
         - PolicyName: publish-site
           PolicyDocument:
