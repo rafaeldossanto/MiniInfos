@@ -172,6 +172,11 @@ usage-widget[appearance='classic-light'] .widget-track {
   padding-top: 12px;
   margin-top: 16px;
 }
+/* A label that wraps to two lines keeps its number on the same baseline as the one beside it. */
+.widget-totals > div {
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
 .widget-totals > div > span {
   display: block;
   color: var(--widget-muted);
@@ -308,9 +313,14 @@ usage-widget[compact] .provider {
   .widget-totals strong {
     font-size: 18px;
   }
+  /* Too narrow for one line in split view: tokens above, the reset time below, neither cut. */
   .widget-meter p {
     font-size: 12px;
     letter-spacing: -0.04em;
+    white-space: normal;
+  }
+  .widget-meter p > span {
+    white-space: nowrap;
   }
   .widget-totals > div > span {
     font-size: 12px;
