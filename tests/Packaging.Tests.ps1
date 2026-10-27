@@ -22,6 +22,24 @@ try {
     try { Assert-InstallerContents -Output $output -Repository $repository } catch { $rejected = $true }
     if (-not $rejected) { throw 'A checagem aceitou um manifesto copiado do marketplace.' }
 
+    Remove-Item -LiteralPath (Join-Path $output 'app/manifest.json')
+
+    # A copy is judged by where else its bytes live: the app's own font, also shipped by the front, stays; a front-only file does not.
+    $shared = Join-Path $temporary 'shared'
+    foreach ($copy in @('widget/Assets/Fonts/OFL.txt', 'front/public/fonts/OFL.txt')) {
+        New-Item -ItemType Directory -Path (Split-Path (Join-Path $shared $copy)) -Force | Out-Null
+        [IO.File]::WriteAllText((Join-Path $shared $copy), 'SIL Open Font License')
+    }
+    [IO.File]::WriteAllText((Join-Path $shared 'front/public/fonts/Site.txt'), 'front only')
+    New-Item -ItemType Directory -Path (Join-Path $output 'app/Assets/Fonts') -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $shared 'widget/Assets/Fonts/OFL.txt') -Destination (Join-Path $output 'app/Assets/Fonts/OFL.txt')
+    Assert-InstallerContents -Output $output -Repository $shared
+    Copy-Item -LiteralPath (Join-Path $shared 'front/public/fonts/Site.txt') -Destination (Join-Path $output 'app/Assets/Fonts/Site.txt')
+    $rejected = $false
+    try { Assert-InstallerContents -Output $output -Repository $shared } catch { $rejected = $true }
+    if (-not $rejected) { throw 'A checagem aceitou um arquivo que só existe no front.' }
+    Remove-Item -LiteralPath (Join-Path $output 'app/Assets') -Recurse
+
     # The publish target checks original paths, including files renamed by Link/RelativePath.
     $target = [Security.SecurityElement]::Escape((Join-Path $repository 'installer/PublicationBoundary.targets'))
     $probe = Join-Path $temporary 'boundary.proj'

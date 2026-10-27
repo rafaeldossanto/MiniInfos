@@ -25,13 +25,25 @@ function Assert-InstallerContents {
         }
         if ($forbiddenSources.ContainsKey($file.Name)) {
             $digest = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
-            foreach ($source in $forbiddenSources[$file.Name]) {
-                if ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -eq $digest) {
-                    throw "Arquivo de marketplace/, tools/ ou front/ encontrado no instalador: $relative"
-                }
+            $copied = @($forbiddenSources[$file.Name] | Where-Object { (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash -eq $digest })
+            # The front ships copies of the app's fonts and their licenses: the same bytes in widget/ or mod/ are the app's own.
+            if ($copied.Count -gt 0 -and -not (Test-AppSource -Repository $Repository -Name $file.Name -Digest $digest)) {
+                throw "Arquivo de marketplace/, tools/ ou front/ encontrado no instalador: $relative"
             }
         }
     }
+}
+
+function Test-AppSource([string]$Repository, [string]$Name, [string]$Digest) {
+    foreach ($folder in @('widget', 'mod')) {
+        $root = Join-Path $Repository $folder
+        if (-not (Test-Path -LiteralPath $root)) { continue }
+        foreach ($candidate in Get-ChildItem -LiteralPath $root -File -Recurse | Where-Object Name -eq $Name) {
+            if ($candidate.FullName -match '[\\/](bin|obj)[\\/]') { continue }
+            if ((Get-FileHash -LiteralPath $candidate.FullName -Algorithm SHA256).Hash -eq $Digest) { return $true }
+        }
+    }
+    return $false
 }
 
 Export-ModuleMember -Function Assert-InstallerContents
