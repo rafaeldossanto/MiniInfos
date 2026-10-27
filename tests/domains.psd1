@@ -24,6 +24,8 @@
         @{ Path = '.gitignore'; Ignore = $true }
         @{ Path = 'front/*'; Domains = @('Front') }
         @{ Path = '.github/workflows/front.yml'; Domains = @('Front') }
+        @{ Path = '.github/workflows/front-deploy.yml'; Domains = @('Front') }
+        @{ Path = 'infra/*'; Domains = @('Front') }
         @{ Path = 'tools/MiniInfos.Catalog/*'; Domains = @('CatalogTool') }
         @{ Path = 'widget/Community/*'; Domains = @('Community', 'Themes', 'Mascot', 'Settings') }
         @{ Path = 'marketplace/*'; Domains = @('CatalogTool') }

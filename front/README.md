@@ -37,10 +37,12 @@ Não há framework de interface ou serviço de backend em tempo de execução. V
 
 O site começa no escuro. Uma escolha explícita pelo claro fica salva em `localStorage`; bloquear esse armazenamento não impede trocar o tema. Navegadores com View Transitions mostram a revelação circular; os demais recebem a troca de cores e imagens. A preferência por movimento reduzido é respeitada.
 
-O cartão tem controles próprios: os dois ícones neutros selecionam uma IA, o botão de colunas restaura a divisão e atualizar repete a entrada das barras. Os botões Simples, Clássico e Claro da seção Aparência alteram apenas o cartão de exemplo, sem confundir a aparência do app com o tema do site.
+O cartão tem controles próprios: os dois ícones neutros selecionam uma IA, o botão de colunas restaura a divisão e atualizar repete a entrada das barras. O cartão do hero acompanha o tema do site, incluindo a faixa em gravura ou mármore, sem alterar as estátuas grandes. Os botões Simples, Clássico escuro, Clássico claro e Claro da seção Aparência alteram apenas o cartão de exemplo.
 
 ## Publicação
 
-Publique o conteúdo de `dist/` em uma hospedagem estática com HTTPS, a partir da raiz do domínio. Configure a hospedagem para servir `404.html` com status 404 para rotas inexistentes. Os metadados de compartilhamento já têm arte e descrição; ao definir o domínio definitivo, use uma URL absoluta para `og:image` e acrescente a URL canônica.
+O site fica em `https://miniinfos.com`, servido pelo CloudFront a partir de um bucket S3 privado; `www` redireciona para o domínio sem `www`. A infraestrutura é a stack de `infra/site.yml`, criada uma vez pelo console da AWS em `us-east-1`; o domínio é registrado na Cloudflare, com os registros em DNS only. Rotas inexistentes recebem `404.html` com status 404. As URLs canônicas e o `og:image` usam esse domínio: ao trocá-lo, atualize os HTML e o parâmetro `DomainName` da stack.
+
+Cada push na `main` que altera `front/` dispara `.github/workflows/front-deploy.yml`: valida, gera o `dist/`, envia ao bucket e renova o cache. O job entra na AWS por OIDC, numa sessão de uma hora de uma role que só esta branch deste repositório assume e que só escreve neste bucket e renova esta distribuição. Não existe chave da AWS no repositório, nos secrets ou em máquina alguma; nunca crie uma. O repositório guarda os valores de saída da stack: `AWS_DEPLOY_ROLE_ARN` como secret, `SITE_BUCKET` e `SITE_DISTRIBUTION_ID` como variáveis. Sem eles o deploy é pulado.
 
 Não são necessárias chaves de API. Não há analytics, formulários, consulta a contas ou dados pessoais nas demonstrações. Os textos de Privacidade e Termos descrevem essa página; devem acompanhar eventuais serviços adicionados na publicação.

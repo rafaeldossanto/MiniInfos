@@ -16,8 +16,10 @@
       property="og:description"
       content="Um pequeno espaço na sua tela. Uma visão clara dos seus tokens e limites."
     />
-    <meta property="og:image" content="/art/social-preview.webp" />
+    <meta property="og:url" content="https://miniinfos.com/" />
+    <meta property="og:image" content="https://miniinfos.com/art/social-preview.webp" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://miniinfos.com/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" href="/fonts/Manrope-Regular.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="preload" href="/fonts/Manrope-SemiBold.ttf" as="font" type="font/ttf" crossorigin />
@@ -29,11 +31,11 @@
     </script>
     <script type="module" src="/src/main.ts"></script>
   </head>
-  <body>
+  <body id="inicio">
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
     <header class="site-header container">
       <nav class="nav-island" aria-label="Navegação principal">
-        <a class="brand" href="/" aria-label="MiniInfos, início"
+        <a class="brand" href="#inicio" aria-label="MiniInfos, início"
           ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg
           ><span>MiniInfos</span></a
         >
@@ -72,7 +74,7 @@
     </header>
     <dialog class="mobile-menu" id="mobile-menu" aria-label="Menu principal">
       <div class="mobile-menu-top">
-        <a class="brand" href="/">MiniInfos</a
+        <a class="brand" href="#inicio">MiniInfos</a
         ><button class="icon-button" data-menu-close aria-label="Fechar menu">
           <svg aria-hidden="true"><use href="/icons.svg#close" /></svg>
         </button>
@@ -248,7 +250,10 @@
             </p>
             <div class="choice-group" role="group" aria-label="Aparência do cartão de demonstração">
               <button type="button" data-card-theme="simple" aria-pressed="false">Simples</button
-              ><button type="button" data-card-theme="classic" aria-pressed="true">Clássico</button
+              ><button type="button" data-card-theme="classic-dark" aria-pressed="true">
+                Clássico escuro</button
+              ><button type="button" data-card-theme="classic-light" aria-pressed="false">
+                Clássico claro</button
               ><button type="button" data-card-theme="light" aria-pressed="false">Claro</button>
             </div>
             <p class="micro-note">Experimente os temas no cartão ao lado.</p>
@@ -256,7 +261,7 @@
           <div class="personalization-stage" data-reveal>
             <span class="stage-label">O seu MiniInfos</span
             ><usage-widget
-              appearance="classic"
+              appearance="classic-dark"
               compact
               aria-label="Prévia interativa dos temas do cartão"
             ></usage-widget>
@@ -421,7 +426,7 @@
     </main>
     <footer class="site-footer container">
       <div class="footer-top">
-        <a class="brand" href="/"
+        <a class="brand" href="#inicio"
           ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg
           >MiniInfos</a
         >
@@ -433,11 +438,45 @@
         </nav>
         <span>© <span data-year>2026</span> MiniInfos</span>
       </div>
-      <p class="brand-notice">
-        MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic ou da
-        OpenAI. Claude, Codex e ChatGPT são marcas de seus respectivos titulares e aparecem apenas
-        para identificar compatibilidade.
-      </p>
+      <div class="footer-bottom">
+        <p class="brand-notice">
+          MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic ou
+          da OpenAI. Claude, Codex e ChatGPT são marcas de seus respectivos titulares e aparecem
+          apenas para identificar compatibilidade.
+        </p>
+        <nav class="footer-contact" aria-label="Contato com o criador do MiniInfos">
+          <p>Fale comigo</p>
+          <ul>
+            <li>
+              <a
+                href="https://github.com/rafaeldossanto"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Meu GitHub (abre em nova aba)"
+                >GitHub<svg aria-hidden="true"><use href="/icons.svg#arrow-up-right" /></svg
+              ></a>
+            </li>
+            <li>
+              <a
+                href="https://www.linkedin.com/in/rafaeisantoss/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Meu LinkedIn (abre em nova aba)"
+                >LinkedIn<svg aria-hidden="true"><use href="/icons.svg#arrow-up-right" /></svg
+              ></a>
+            </li>
+            <li>
+              <a
+                href="https://x.com/rafael_devno"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Meu perfil no X (abre em nova aba)"
+                >X.com<svg aria-hidden="true"><use href="/icons.svg#arrow-up-right" /></svg
+              ></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </footer>
     <p class="sr-only" role="status" aria-live="polite" id="theme-status"></p>
   </body>

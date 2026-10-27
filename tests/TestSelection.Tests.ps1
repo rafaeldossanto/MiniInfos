@@ -47,6 +47,8 @@ Assert-Selection ((Get-TestSelection -Paths @('.gitignore')).Domains.Count -eq 0
 $front = Get-TestSelection -Paths @('front/index.html', 'front/assets/athena.png')
 Assert-Selection (($front.Domains -join ',') -eq 'Front' -and -not $front.All -and -not $front.Filter -and $front.Suites.Count -eq 0 -and -not $front.Mod) 'Landing page selecionou testes do app'
 Assert-Selection ($front.Checks.Count -eq 1 -and $front.Checks[0].Command -eq 'npm') 'Landing page perdeu sua checagem própria'
+$site = Get-TestSelection -Paths @('infra/site.yml', '.github/workflows/front-deploy.yml')
+Assert-Selection (($site.Domains -join ',') -eq 'Front' -and -not $site.All) 'Infra do site selecionou testes do app'
 $mixedFront = Get-TestSelection -Paths @('front/index.html', 'widget/Mascot/PetInteraction.cs')
 Assert-Selection ($mixedFront.Filter -eq $pet.Filter -and ($mixedFront.Suites -join ',') -eq 'Mascot' -and $mixedFront.Checks.Count -eq 1) 'Front ampliou o filtro dos testes do app'
 Assert-Selection ((Get-TestSelection -All).Checks.Count -eq 0) 'Regressão do app acionou o front sem mudanças'
@@ -59,4 +61,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 25 cenários passaram.'
+Write-Host 'Seleção de testes: 26 cenários passaram.'

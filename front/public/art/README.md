@@ -4,7 +4,8 @@ As duas ilustrações de Atena foram preparadas com a ferramenta integrada `imag
 
 - `athena-dark.webp`: gravura de Atena, espada, coruja e oliveiras.
 - `athena-light.webp`: a mesma composição em mármore claro.
-- `widget-header.webp` e `athena-owl.webp`: versões WebP dos recursos locais já existentes em `widget/Assets/`.
+- `widget-header-dark.webp` e `widget-header-light.webp`: faixas de Atena com disco e oliveiras, em gravura e mármore, usadas nos cartões clássicos. Os PNGs e os prompts completos estão em [widget/Assets/README-Athena.md](../../../widget/Assets/README-Athena.md).
+- `athena-owl.webp`: versão WebP do recurso local do mascote em `widget/Assets/`.
 - `social-preview.webp`: mockup escuro aprovado, com os ícones genéricos de IA, para compartilhamento.
 
 As imagens não contêm as marcas gráficas da Anthropic ou da OpenAI. O cartão em HTML usa um ícone neutro de microchip desenhado em SVG. A marca de coruja do site também é um desenho vetorial próprio. Os ícones comuns de interface vêm de [Phosphor Icons](https://github.com/phosphor-icons/core), sob a licença MIT em `public/LICENSE-ICONS.txt`.
