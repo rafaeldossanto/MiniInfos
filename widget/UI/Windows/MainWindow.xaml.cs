@@ -24,7 +24,7 @@ namespace MiniInfos.UI.Windows;
 /// <summary>Which card a window is: the main one, or one opened with "Nova janela".</summary>
 public enum CardKind
 {
-    /// <summary>Follows Claude and Codex, holds the tray's numbers; ✕ hides it.</summary>
+    /// <summary>Follows the AI apps, holds the tray's numbers; ✕ hides it.</summary>
     Main,
 
     /// <summary>Opened beside the main one; ✕ closes it for good.</summary>

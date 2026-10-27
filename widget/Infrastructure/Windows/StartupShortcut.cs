@@ -5,8 +5,8 @@ using MiniInfos.Infrastructure.Storage;
 namespace MiniInfos.Infrastructure.Windows;
 
 /// <summary>
-/// The shortcut in the Windows startup folder that opens MiniInfos at sign-in, hidden until Claude or
-/// Codex opens: the one the installer's "Abrir junto com Claude ou Codex" option makes, and the
+/// The shortcut in the Windows startup folder that opens MiniInfos at sign-in, hidden until an AI app
+/// opens: the one the installer's "Abrir junto com seus apps de IA" option makes, and the
 /// settings window turns on and off.
 /// </summary>
 public sealed class StartupShortcut(string folder)
@@ -46,7 +46,7 @@ public sealed class StartupShortcut(string folder)
             shortcut.TargetPath = app;
             shortcut.Arguments = Arguments;
             shortcut.WorkingDirectory = Path.GetDirectoryName(app);
-            shortcut.Description = L.Text("Limites e tokens do Claude e do Codex");
+            shortcut.Description = L.Text("Limites e tokens das suas IAs");
             shortcut.Save();
         }
         catch (Exception exception) when (exception is COMException or IOException or UnauthorizedAccessException)

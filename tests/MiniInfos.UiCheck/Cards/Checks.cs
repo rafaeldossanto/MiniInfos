@@ -202,6 +202,14 @@ internal static partial class Program
             if (count == 5) Render(window, System.IO.Path.Combine(pictures, "five-pages.png"));
         }
 
+        // Each provider of the app has an icon of its own, never the fallback grid.
+        window.ShowProviders([.. ((string[])["claude", "codex", "gemini", "kimi"]).Select(id => new SampleProvider(id, id))]);
+        Pump(TimeSpan.FromMilliseconds(300));
+        var marks = icons.Children.OfType<Button>().Select(button => ((System.Windows.Shapes.Path)button.Content).Data).ToArray();
+        var fallback = (Geometry)window.FindResource("ProviderIcon.default");
+        Check(marks.Length == 4 && marks.Distinct().Count() == 4 && !marks.Contains(fallback), "Claude, Codex, Gemini and Kimi each show an icon of their own");
+        Render(window, System.IO.Path.Combine(pictures, "four-providers.png"));
+
         window.ShowProviders(installed);
         Pump(TimeSpan.FromMilliseconds(300));
 

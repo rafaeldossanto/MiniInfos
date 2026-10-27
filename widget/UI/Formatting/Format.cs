@@ -63,6 +63,12 @@ public static class Format
         return L.Format("há {0} d", (int)elapsed.TotalDays);
     }
 
+    /// <summary>The header's note for a provider with no limits to read: how long ago it last answered.</summary>
+    /// <param name="at">The latest response, in unix seconds; null before the first one.</param>
+    public static string LastResponse(long? at, DateTimeOffset now) => at is { } seconds
+        ? L.Format("última resposta {0}", Ago(DateTimeOffset.FromUnixTimeSeconds(seconds), now))
+        : L.Text("sem respostas ainda");
+
     private static string Scaled(double value, string unit) =>
         (value >= 100 ? value.ToString("0", Culture) : value.ToString("0.#", Culture)) + unit;
 }

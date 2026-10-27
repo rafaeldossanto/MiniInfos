@@ -32,7 +32,9 @@ $packagesOnly = Get-TestSelection -Paths @('marketplace/packages/autor.pet/manif
 Assert-Selection (($packagesOnly.Domains -join ',') -eq 'CatalogTool' -and $packagesOnly.Suites.Count -eq 0) 'Pacotes acionaram os testes do app'
 
 $tail = Get-TestSelection -Paths @('widget/Infrastructure/Storage/JsonlTail.cs')
-Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Storage') 'Leitura compartilhada não incluiu os dois provedores'
+Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Gemini,Kimi,Storage') 'Leitura compartilhada não incluiu todos os provedores'
+$newProviders = Get-TestSelection -Paths @('widget/Providers/Kimi/KimiUsage.cs', 'widget/Providers/Gemini/GeminiResponses.cs')
+Assert-Selection (($newProviders.Domains -join ',') -eq 'Gemini,Kimi' -and -not $newProviders.All) 'Kimi e Gemini selecionaram outros provedores'
 
 $prefs = Get-TestSelection -Paths @('widget/Settings/Preferences.cs')
 Assert-Selection ($prefs.Domains -contains 'Mascot' -and $prefs.Domains -contains 'Themes') 'Preferências não incluíram seus consumidores'
@@ -63,4 +65,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 27 cenários passaram.'
+Write-Host 'Seleção de testes: 28 cenários passaram.'

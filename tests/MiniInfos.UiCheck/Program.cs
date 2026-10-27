@@ -89,7 +89,8 @@ internal static partial class Program
                 CheckTray(tray!, summaries, window);
                 CheckViews(window);
                 CheckRefresh(window, summaries);
-                CheckPages(window, handle, providers.Count, pictures);
+                // Only the installed providers get a page: with live data, this PC decides how many.
+                CheckPages(window, handle, cards.Providers.Count, pictures);
                 CheckSplit(window, handle, pictures);
                 CheckNewWindow(cards, pictures);
                 CheckInstalls(cards, pictures);
@@ -104,7 +105,7 @@ internal static partial class Program
             RunSuite("Updates", () => CheckUpdateBanner(cards, preferences, pictures));
             RunSuite("Providers", () =>
             {
-                if (!options.Includes("Cards")) CheckPages(window, handle, providers.Count, pictures);
+                if (!options.Includes("Cards")) CheckPages(window, handle, cards.Providers.Count, pictures);
                 CheckApps();
             });
         }

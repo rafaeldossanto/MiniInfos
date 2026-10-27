@@ -43,10 +43,10 @@ Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [CustomMessages]
-en.AppDescription=Claude and Codex tokens and limits
-ptbr.AppDescription=Limites e tokens do Claude e do Codex
-en.WithApps=Open with Claude or Codex (start hidden with Windows)
-ptbr.WithApps=Abrir junto com Claude ou Codex (inicia com o Windows escondido)
+en.AppDescription=Your AI tokens and limits
+ptbr.AppDescription=Limites e tokens das suas IAs
+en.WithApps=Open with your AI apps (start hidden with Windows)
+ptbr.WithApps=Abrir junto com seus apps de IA (inicia com o Windows escondido)
 en.ClaudeMod=Install the Claude Code chat mod (five-hour and weekly limits, current chat and the /miniinfos command)
 ptbr.ClaudeMod=Instalar o mod nos chats do Claude Code (limites de 5h e semanal, chat atual e o comando /miniinfos)
 en.OpenNow=Open MiniInfos now

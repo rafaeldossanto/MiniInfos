@@ -8,6 +8,8 @@
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
         Claude = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Claude.'; Suite = '' }
         Codex = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Codex.'; Suite = '' }
+        Gemini = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Gemini.'; Suite = '' }
+        Kimi = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Kimi.'; Suite = '' }
         Providers = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.PlanWindowTests|FullyQualifiedName~MiniInfos.Tests.Providers.TokenSummaryTests|FullyQualifiedName~MiniInfos.Tests.Providers.InstalledProvidersTests'; Suite = '' }
         Integration = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.'; Suite = 'Providers' }
         Sources = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Sources.'; Suite = '' }
@@ -57,7 +59,7 @@
         @{ Path = 'widget/UI/Styles/SettingsStyles.xaml'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Community') }
         @{ Path = 'widget/UI/Styles/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates') }
         @{ Path = 'widget/UI/Icons/*'; Domains = @('Cards') }
-        @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Cards', 'Updates') }
+        @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Updates') }
         @{ Path = 'widget/Assets/Fonts/*'; Domains = @('Fonts') }
         @{ Path = 'widget/Assets/athena-owl-*'; Domains = @('Mascot') }
         @{ Path = 'widget/Assets/athena-header.png'; Domains = @('Themes') }
@@ -66,26 +68,30 @@
         @{ Path = 'widget/Mascot/*'; Domains = @('Mascot') }
         @{ Path = 'widget/Providers/Claude/*'; Domains = @('Claude') }
         @{ Path = 'widget/Providers/Codex/*'; Domains = @('Codex') }
-        @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Cards', 'Mascot') }
-        @{ Path = 'widget/Sources/*'; Domains = @('Sources', 'Claude', 'Codex') }
+        @{ Path = 'widget/Providers/Gemini/*'; Domains = @('Gemini') }
+        @{ Path = 'widget/Providers/Kimi/*'; Domains = @('Kimi') }
+        @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Mascot') }
+        @{ Path = 'widget/Sources/*'; Domains = @('Sources', 'Claude', 'Codex', 'Kimi') }
         @{ Path = 'widget/Settings/FontChoice.cs'; Domains = @('Fonts', 'Settings') }
         @{ Path = 'widget/Settings/ThemeChoice.cs'; Domains = @('Themes', 'Settings') }
         @{ Path = 'widget/Settings/CardSettings.cs'; Domains = @('Cards') }
         @{ Path = 'widget/Settings/ThemeHistory.cs'; Domains = @('Settings', 'Themes', 'Fonts', 'Community') }
         @{ Path = 'widget/Settings/*'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates') }
         @{ Path = 'widget/Updates/*'; Domains = @('Updates') }
-        @{ Path = 'widget/Infrastructure/Storage/JsonlTail.cs'; Domains = @('Storage', 'Claude', 'Codex') }
-        @{ Path = 'widget/Infrastructure/Storage/SourceFiles.cs'; Domains = @('Storage', 'Sources', 'Claude', 'Codex') }
+        @{ Path = 'widget/Infrastructure/Storage/JsonlTail.cs'; Domains = @('Storage', 'Claude', 'Codex', 'Gemini', 'Kimi') }
+        @{ Path = 'widget/Infrastructure/Storage/SourceFiles.cs'; Domains = @('Storage', 'Sources', 'Claude', 'Codex', 'Kimi') }
         @{ Path = 'widget/Infrastructure/Storage/CardStore.cs'; Domains = @('Cards', 'Storage') }
         @{ Path = 'widget/Infrastructure/Storage/*'; All = $true }
         @{ Path = 'widget/Infrastructure/Windows/AspectSizing.cs'; Domains = @('Windows', 'Cards') }
         @{ Path = 'widget/Infrastructure/Windows/StartupShortcut.cs'; Domains = @('Windows', 'Settings') }
         @{ Path = 'widget/Infrastructure/Network/*'; Domains = @('Community', 'Updates') }
-        @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Cards') }
+        @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Claude/*'; Domains = @('Claude') }
         @{ Path = 'tests/MiniInfos.Tests/Community/CatalogToolTests.cs'; Domains = @('CatalogTool') }
         @{ Path = 'tests/MiniInfos.Tests/Community/*'; Domains = @('Community') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Codex/*'; Domains = @('Codex') }
+        @{ Path = 'tests/MiniInfos.Tests/Providers/Gemini/*'; Domains = @('Gemini') }
+        @{ Path = 'tests/MiniInfos.Tests/Providers/Kimi/*'; Domains = @('Kimi') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/*'; Domains = @('Providers') }
         @{ Path = 'tests/MiniInfos.Tests/Mascot/*'; Domains = @('Mascot') }
         @{ Path = 'tests/MiniInfos.Tests/Sources/*'; Domains = @('Sources') }

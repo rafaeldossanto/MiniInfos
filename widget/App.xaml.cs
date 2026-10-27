@@ -29,7 +29,7 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // The startup shortcut's flag: hidden until Claude or Codex opens.
+        // The startup shortcut's flag: hidden until an AI app opens.
         var startsHiddenWithApps = e.Args.Contains(StartupShortcut.Arguments);
         var quits = e.Args.Contains(QuitArgument);
 

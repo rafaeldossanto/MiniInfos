@@ -8,7 +8,7 @@ namespace MiniInfos.Settings;
 
 /// <summary>What every card shares, as settings.json keeps it.</summary>
 /// <param name="IsTopmost">The cards stay in front of other windows.</param>
-/// <param name="FollowsApps">The cards show when Claude or Codex opens and hide after the last one closes.</param>
+/// <param name="FollowsApps">The cards show when an AI app opens (Claude, Codex, Kimi) and hide after the last one closes.</param>
 public sealed record AppSettings(
     bool IsTopmost = true,
     bool FollowsApps = true,

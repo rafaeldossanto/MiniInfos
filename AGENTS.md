@@ -8,7 +8,7 @@ Siga também as instruções do diretório pai: DRY, Clean Code, SOLID e código
 - Na raiz de `widget`, mantenha apenas o projeto e o ponto de entrada WPF (`App.xaml` e seu code-behind). Coloque cada implementação na pasta da sua responsabilidade.
 - Use namespaces que acompanhem as pastas, começando por `MiniInfos`. Os testes seguem `MiniInfos.Tests` e espelham os grupos do aplicativo.
 - Mantenha cada XAML junto do seu code-behind. Recursos visuais compartilhados ficam em `UI/Styles`, `UI/Themes`, `UI/Icons` ou `Assets`.
-- Contratos e modelos usados por Claude e Codex ficam em `Providers`; implementações específicas ficam em `Providers/Claude` e `Providers/Codex`.
+- Contratos e modelos usados por mais de um provedor (Claude, Codex, Gemini, Kimi) ficam em `Providers`; implementações específicas ficam em `Providers/<Provedor>`. Um provedor que registra uma linha por resposta usa o `ResponseLedger` e só fornece a leitura da linha.
 - Compartilhe leitura incremental, persistência e acesso ao Windows por meio dos componentes de infraestrutura existentes. Evite duplicá-los em cada funcionalidade ou criar uma pasta genérica de utilitários sem responsabilidade definida.
 - Separe contratos e persistência dos controles visuais. Extraia responsabilidades quando necessário, sem introduzir camadas ou interfaces que não resolvam um problema concreto.
 - Ao mover arquivos, atualize namespaces, referências XAML, URIs de recursos, documentação e caminhos usados pelo instalador.

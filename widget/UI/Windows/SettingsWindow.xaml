@@ -52,7 +52,7 @@
                                                 Tag="{loc:Text 'O cartão fica na frente das outras janelas.'}">
                             <CheckBox x:Name="TopmostToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsTopmost}" />
                         </HeaderedContentControl>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Acompanhar o Claude e o Codex'}"
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Acompanhar os apps de IA'}"
                                                 Tag="{loc:Text 'Aparece quando um deles abre e some quando o último fecha.'}">
                             <CheckBox x:Name="FollowToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding FollowsApps}" />
                         </HeaderedContentControl>
@@ -251,7 +251,7 @@
                     <StackPanel>
                         <TextBlock Text="MiniInfos" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock x:Name="VersionText" Style="{StaticResource Caption}" Margin="0,2,0,0" />
-                        <TextBlock Text="{loc:Text 'Limites e tokens do Claude e do Codex, num cartão sempre à mão.'}" TextWrapping="Wrap"
+                        <TextBlock Text="{loc:Text 'Limites e tokens das suas IAs, num cartão sempre à mão.'}" TextWrapping="Wrap"
                                    Margin="0,12,0,20" />
                         <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Sair do MiniInfos'}" HorizontalAlignment="Left"
                                 Click="OnQuit" />
