@@ -39,7 +39,6 @@ public partial class SettingsWindow : Window
         VersionText.Text = $"Versão {AppInfo.Version}";
 
         StartupToggle.IsChecked = startup.IsOn;
-        ShowTheme();
         BuildFontChoices(TextFontChoices, AppFonts.TextOptions, "TextFont", choice => _preferences.TextFont = choice);
         BuildFontChoices(NumberFontChoices, AppFonts.NumberOptions, "NumberFont", choice => _preferences.NumberFont = choice);
         ShowFonts();
@@ -69,14 +68,6 @@ public partial class SettingsWindow : Window
         var bottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
         Left = Math.Clamp(card.Left + (card.ActualWidth - Width) / 2, SystemParameters.VirtualScreenLeft + ScreenMargin, right - Width - ScreenMargin);
         Top = Math.Clamp(card.Top + (card.ActualHeight - Height) / 2, SystemParameters.VirtualScreenTop + ScreenMargin, bottom - Height - ScreenMargin);
-    }
-
-    private void ShowTheme()
-    {
-        foreach (var choice in (RadioButton[])[SimpleTheme, ClassicTheme, LightTheme, SystemTheme])
-        {
-            choice.IsChecked = _preferences.CommunityThemeId is null && (ThemeChoice)choice.Tag == _preferences.Theme;
-        }
     }
 
     private void ShowNumbers() => (Card.IsDetailed ? DetailedNumbers : CompactNumbers).IsChecked = true;
@@ -129,8 +120,6 @@ public partial class SettingsWindow : Window
     private void OnPetSizeChosen(object sender, RoutedEventArgs e) =>
         _preferences.PetSize = (PetSizeChoice)((RadioButton)sender).Tag;
 
-    private void OnThemeChosen(object sender, RoutedEventArgs e) => _preferences.Theme = (ThemeChoice)((RadioButton)sender).Tag;
-
     private void OnNumbersChosen(object sender, RoutedEventArgs e) => Card.IsDetailed = DetailedNumbers.IsChecked == true;
 
     /// <summary>Turns the startup shortcut on or off, then shows what the folder really holds, in case Windows refused.</summary>
@@ -145,6 +134,20 @@ public partial class SettingsWindow : Window
     private void OnDefaultSize(object sender, RoutedEventArgs e) => Card.ResetSize();
 
     private void OnQuit(object sender, RoutedEventArgs e) => _quit();
+
+    /// <summary>One window of a kind above the settings: asked again, the open one comes forward. It closes with them.</summary>
+    private void ShowOwned<T>(Func<T> create) where T : Window
+    {
+        if (OwnedWindows.OfType<T>().FirstOrDefault() is { } open)
+        {
+            open.Activate();
+            return;
+        }
+
+        var window = create();
+        window.Owner = this;
+        window.Show();
+    }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 

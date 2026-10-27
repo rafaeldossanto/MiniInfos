@@ -148,7 +148,7 @@ internal static partial class Program
             {
                 Add(pet, new Dictionary<string, byte[]> { [pet.Mascot!.SpriteSheet] = petSheet },
                     PackageImages.Encode(PackagePreviews.Mascot(PetAppearances.Athena.Frame(PetState.Idle, 0)))),
-                Add(theme, new Dictionary<string, byte[]>(), PackageImages.Encode(PackagePreviews.Theme(new(theme, pictures)))),
+                Add(theme, new Dictionary<string, byte[]>(), PackageImages.Encode(PackagePreviews.Theme(new InstalledPackage(theme, pictures)))),
             };
             for (var index = 0; index < extraThemes; index++)
             {
@@ -157,7 +157,7 @@ internal static partial class Program
                     Id = themeId + "-" + index, Name = "Tema da comunidade " + (index + 1),
                     Theme = new(Colors: new() { ["Accent"] = $"#{60 + index * 19:X2}80B2" }),
                 };
-                entries.Add(Add(extra, new(), PackageImages.Encode(PackagePreviews.Theme(new(extra, pictures)))));
+                entries.Add(Add(extra, new(), PackageImages.Encode(PackagePreviews.Theme(new InstalledPackage(extra, pictures)))));
             }
             return new(new(1, DateTimeOffset.UtcNow, entries.ToArray()), assets.ToArray());
 

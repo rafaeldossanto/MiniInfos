@@ -1,0 +1,27 @@
+<local:DialogWindow x:Class="MiniInfos.UI.Windows.ThemeLibraryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MiniInfos.UI.Windows"
+        Title="Biblioteca de temas"
+        Width="680"
+        Height="540">
+
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource Divider}">
+            <DockPanel Margin="20,12,20,14">
+                <Button x:Name="CommunityButton" DockPanel.Dock="Left" Content="Mais temas na Comunidade"
+                        Style="{StaticResource SettingsButton}" Click="OnShowCommunity" />
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="12,0,0,0"
+                           Text="Os temas que você instalar também aparecem aqui." />
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer Margin="20,16,20,0" Style="{StaticResource SettingsScroll}">
+            <StackPanel Margin="0,0,0,8">
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12"
+                           Text="Todos os seus temas, o último escolhido primeiro. Os quatro mais recentes ficam também na página Aparência." />
+                <WrapPanel x:Name="Tiles" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</local:DialogWindow>

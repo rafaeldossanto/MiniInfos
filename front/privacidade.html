@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Privacidade — MiniInfos</title>
+    <meta
+      name="description"
+      content="Como a página do MiniInfos usa sua preferência de tema e os links para o GitHub."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        if (localStorage.getItem('miniinfos.site.theme') === 'light')
+          document.documentElement.dataset.theme = 'light';
+      } catch {}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <main class="container legal-page" id="conteudo">
+      <a class="brand" href="/"
+        ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg>MiniInfos</a
+      >
+      <h1>Privacidade.</h1>
+      <p>
+        Esta página apresenta o MiniInfos e direciona para o download do aplicativo no GitHub. Não
+        há cadastro, formulário para enviar conversas, anúncios ou ferramentas de análise de visitas
+        no código deste site.
+      </p>
+      <h2>Sua preferência de tema</h2>
+      <p>
+        Ao escolher o modo claro ou escuro, o site salva essa escolha no armazenamento local do
+        navegador, com a chave <code>miniinfos.site.theme</code>. A preferência fica no seu
+        navegador e não é enviada a um servidor do MiniInfos. Se esse armazenamento estiver
+        bloqueado, a troca continua funcionando durante a visita.
+      </p>
+      <h2>Links e downloads</h2>
+      <p>
+        Os links para o código, para os pacotes da comunidade e para o instalador abrem o GitHub. Ao
+        acessar esses links, sua conexão passa pelo serviço correspondente, que tem suas próprias
+        informações sobre privacidade. O provedor de hospedagem desta página também pode processar
+        dados técnicos da conexão.
+      </p>
+      <h2>Dados do aplicativo</h2>
+      <p>
+        Este site não recebe os registros dos chats do aplicativo. O MiniInfos para Windows lê os
+        registros locais disponíveis. Consultas de limites dos provedores e verificações de
+        atualizações são feitas pelos respectivos serviços, conforme descrito no repositório.
+      </p>
+      <h2>Mais informações</h2>
+      <p>
+        Você pode consultar o código e os detalhes do funcionamento no
+        <a href="https://github.com/rafaeldossanto/MiniInfos">repositório do MiniInfos</a>.
+      </p>
+      <a class="button" href="/">Voltar ao MiniInfos</a>
+    </main>
+  </body>
+</html>

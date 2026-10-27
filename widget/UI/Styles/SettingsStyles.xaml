@@ -320,4 +320,24 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{DynamicResource Divider}" />
     </Style>
+
+    <!-- The frame of a DialogWindow: the settings' card, a title bar that drags it, ✕, and a line over the content. -->
+    <ControlTemplate x:Key="DialogChrome" TargetType="Window">
+        <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
+                BorderThickness="1" CornerRadius="12" RenderOptions.ClearTypeHint="Enabled">
+            <DockPanel>
+                <Grid x:Name="PART_TitleBar" DockPanel.Dock="Top" Height="40" Background="Transparent">
+                    <TextBlock Text="{TemplateBinding Title}" FontWeight="SemiBold" Margin="16,0" VerticalAlignment="Center" />
+                    <Button x:Name="PART_Close" Style="{DynamicResource HeaderButton}" HorizontalAlignment="Right"
+                            Margin="0,0,10,0" ToolTip="Fechar">
+                        <TextBlock Text="&#xE711;" />
+                    </Button>
+                </Grid>
+                <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource Divider}" />
+                <AdornerDecorator>
+                    <ContentPresenter />
+                </AdornerDecorator>
+            </DockPanel>
+        </Border>
+    </ControlTemplate>
 </ResourceDictionary>

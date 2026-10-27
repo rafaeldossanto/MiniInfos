@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Termos de uso — MiniInfos</title>
+    <meta
+      name="description"
+      content="Informações sobre a página, as demonstrações e os downloads oficiais do MiniInfos."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        if (localStorage.getItem('miniinfos.site.theme') === 'light')
+          document.documentElement.dataset.theme = 'light';
+      } catch {}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <main class="container legal-page" id="conteudo">
+      <a class="brand" href="/"
+        ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg>MiniInfos</a
+      >
+      <h1>Sobre o uso do site.</h1>
+      <p>
+        Esta página apresenta o MiniInfos, um aplicativo independente para acompanhar dados de uso
+        de IA no Windows. O site não é um serviço de conversa com IA e não pede credenciais dos
+        provedores.
+      </p>
+      <h2>Demonstrações</h2>
+      <p>
+        Os cartões identificados como “Demonstração” usam números de exemplo. Eles não leem sua
+        conta e não representam consumo real, cobrança ou uma estimativa do seu plano. Aparência e
+        funcionalidades podem acompanhar a evolução das versões do aplicativo.
+      </p>
+      <h2>Downloads e pacotes</h2>
+      <p>
+        O botão “Baixar para Windows” aponta para o instalador da release do aplicativo marcada como
+        latest no GitHub. As informações de cada versão ficam no repositório. As condições e
+        licenças dos arquivos e dos pacotes da comunidade são as informadas em suas respectivas
+        publicações.
+      </p>
+      <h2>Independência do projeto</h2>
+      <p>
+        MiniInfos não é afiliado, patrocinado ou endossado pela Anthropic ou pela OpenAI. Claude,
+        Codex, ChatGPT e OpenAI são citados somente em texto para identificar compatibilidade e
+        pertencem aos seus respectivos titulares.
+      </p>
+      <h2>Informações e contato</h2>
+      <p>
+        Os detalhes do funcionamento e o canal de relatos do projeto estão no
+        <a href="https://github.com/rafaeldossanto/MiniInfos">repositório do MiniInfos</a>. Veja
+        também as <a href="/privacidade.html">informações de privacidade desta página</a>.
+      </p>
+      <a class="button" href="/">Voltar ao MiniInfos</a>
+    </main>
+  </body>
+</html>

@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using MiniInfos.Community;
@@ -26,4 +27,7 @@ public static class CommunityTheme
         }
         return resources;
     }
+
+    /// <summary>A package whose theme could not be read: the cards fall back to a built-in, the library shows no preview.</summary>
+    public static bool IsUnreadable(Exception e) => e is PackageException or IOException or UnauthorizedAccessException;
 }

@@ -26,63 +26,46 @@ public partial class SettingsWindow
         if (_preferences.PetId is { } pet && !PetAppearances.IsBuiltIn(pet) && PackageLibrary.Shared.Find(PackageKind.Mascot, pet) is null)
             _preferences.PetId = null;
         RefreshCommunity();
-        ShowTheme();
         ShowPetPreview();
     }
 
+    /// <summary>Lays out what is installed again: the theme row and library, and the mascot gallery.</summary>
     public void RefreshCommunity()
     {
         _petLibraryRevision++;
         _showingCommunity = true;
         try
         {
-            BuildPackageChoices(CommunityThemeChoices, PackageKind.Theme);
-            BuildPackageChoices(CommunityPetChoices, PackageKind.Mascot);
+            ShowTheme();
+            BuildPetChoices();
             ShowCommunitySelection();
         }
         finally { _showingCommunity = false; }
+        foreach (var library in OwnedWindows.OfType<ThemeLibraryWindow>()) library.ShowThemes();
     }
 
-    private void BuildPackageChoices(Panel panel, PackageKind kind)
+    private void BuildPetChoices()
     {
-        var mascot = kind == PackageKind.Mascot;
+        var panel = CommunityPetChoices;
         panel.Children.Clear();
-        if (mascot)
+        panel.Children.Add(AddPetPackage);
+        AthenaPet.Content = PetThumbnail(null);
+        panel.Children.Add(AthenaPet);
+        foreach (var builtin in PetAppearances.BuiltIns.Where(pet => pet.Id is not null))
+            panel.Children.Add(PetChoice(PetThumbnail(null, builtin.Id), builtin.Id!, builtin.Appearance.Name, builtin.Appearance.Name + " · Incluído no MiniInfos"));
+        foreach (var package in PackageLibrary.Shared.List(PackageKind.Mascot))
+            panel.Children.Add(PetChoice(PetThumbnail(package), package.Id, package.Name, $"{package.Name}\n{package.Attribution}"));
+    }
+
+    private RadioButton PetChoice(Image thumbnail, string id, string name, string tip)
+    {
+        var button = new RadioButton
         {
-            panel.Children.Add(AddPetPackage);
-            AthenaPet.Content = PetThumbnail(null);
-            panel.Children.Add(AthenaPet);
-            foreach (var builtin in PetAppearances.BuiltIns.Where(pet => pet.Id is not null))
-            {
-                var button = new RadioButton
-                {
-                    Content = PetThumbnail(null, builtin.Id), Tag = builtin.Id, GroupName = "MascotChoice",
-                    Style = (Style)FindResource("PetLibraryChoice"), ToolTip = builtin.Appearance.Name + " · Incluído no MiniInfos",
-                };
-                AutomationProperties.SetName(button, builtin.Appearance.Name);
-                button.Checked += (_, _) => { if (!_showingCommunity) _preferences.PetId = builtin.Id; };
-                panel.Children.Add(button);
-            }
-        }
-        foreach (var package in PackageLibrary.Shared.List(kind))
-        {
-            var button = new RadioButton
-            {
-                Content = mascot ? PetThumbnail(package) : package.Name,
-                Tag = package.Id, GroupName = mascot ? "MascotChoice" : "Theme",
-                Style = (Style)FindResource(mascot ? "PetLibraryChoice" : "Segment"),
-                ToolTip = mascot ? $"{package.Name}\n{package.Attribution}" : package.Attribution,
-            };
-            if (!mascot) button.Margin = new Thickness(0, 0, 4, 4);
-            AutomationProperties.SetName(button, package.Name);
-            button.Checked += (_, _) =>
-            {
-                if (_showingCommunity) return;
-                if (kind == PackageKind.Theme) _preferences.CommunityThemeId = package.Id;
-                else _preferences.PetId = package.Id;
-            };
-            panel.Children.Add(button);
-        }
+            Content = thumbnail, Tag = id, GroupName = "MascotChoice", Style = (Style)FindResource("PetLibraryChoice"), ToolTip = tip,
+        };
+        AutomationProperties.SetName(button, name);
+        button.Checked += (_, _) => { if (!_showingCommunity) _preferences.PetId = id; };
+        return button;
     }
 
     private Image PetThumbnail(InstalledPackage? package, string? builtinId = null)
@@ -107,7 +90,6 @@ public partial class SettingsWindow
 
     private void ShowCommunitySelection()
     {
-        foreach (var button in CommunityThemeChoices.Children.OfType<RadioButton>()) button.IsChecked = (string)button.Tag == _preferences.CommunityThemeId;
         foreach (var button in CommunityPetChoices.Children.OfType<RadioButton>()) button.IsChecked = (string)button.Tag == _preferences.PetId;
         AthenaPet.IsChecked = _preferences.PetId is null;
         RemoveThemePackage.IsEnabled = _preferences.CommunityThemeId is not null && !_packageBusy;
@@ -203,17 +185,7 @@ public partial class SettingsWindow
     private void OnRemoveTheme(object sender, RoutedEventArgs e) => RemovePackage(PackageKind.Theme);
     private void OnRemovePet(object sender, RoutedEventArgs e) => RemovePackage(PackageKind.Mascot);
 
-    /// <summary>"Exemplo": one example window above the settings, brought forward when asked again; it closes with them.</summary>
-    private void OnShowPetExample(object sender, RoutedEventArgs e)
-    {
-        if (OwnedWindows.OfType<MascotExampleWindow>().FirstOrDefault() is { } open)
-        {
-            open.Activate();
-            return;
-        }
-
-        new MascotExampleWindow { Owner = this }.Show();
-    }
+    private void OnShowPetExample(object sender, RoutedEventArgs e) => ShowOwned(() => new MascotExampleWindow());
 
     private void RemovePackage(PackageKind kind)
     {
@@ -235,7 +207,7 @@ public partial class SettingsWindow
     private async Task PackageAction(PackageKind kind, Func<Task> action)
     {
         _packageBusy = true;
-        CommunityThemeChoices.IsEnabled = CommunityPetChoices.IsEnabled = AthenaPet.IsEnabled = PetToggle.IsEnabled = false;
+        ThemeChoices.IsEnabled = CommunityPetChoices.IsEnabled = AthenaPet.IsEnabled = PetToggle.IsEnabled = false;
         AddThemePackage.IsEnabled = AddPetPackage.IsEnabled = ExportThemePackage.IsEnabled = ExportPetPackage.IsEnabled = false;
         ShowCommunitySelection();
         Status(kind).Text = "Preparando pacote…";
@@ -244,7 +216,7 @@ public partial class SettingsWindow
         finally
         {
             _packageBusy = false;
-            CommunityThemeChoices.IsEnabled = CommunityPetChoices.IsEnabled = AthenaPet.IsEnabled = PetToggle.IsEnabled = true;
+            ThemeChoices.IsEnabled = CommunityPetChoices.IsEnabled = AthenaPet.IsEnabled = PetToggle.IsEnabled = true;
             AddThemePackage.IsEnabled = AddPetPackage.IsEnabled = ExportThemePackage.IsEnabled = ExportPetPackage.IsEnabled = true;
             ShowCommunitySelection();
         }

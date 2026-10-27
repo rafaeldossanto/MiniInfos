@@ -1,7 +1,6 @@
 <Window x:Class="MiniInfos.UI.Windows.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:settings="clr-namespace:MiniInfos.Settings"
         xmlns:mascot="clr-namespace:MiniInfos.Mascot"
         Title="Configurações do MiniInfos"
         Width="600"
@@ -56,23 +55,16 @@
                     <StackPanel>
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Tema" />
-                            <TextBlock Text="Windows segue o modo claro ou escuro do sistema."
+                            <TextBlock Text="O último tema escolhido fica em primeiro. A Biblioteca mostra todos, com prévia."
                                        Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,8" />
+                            <!-- Filled from the theme history: the one in use first, built-in and community alike. -->
                             <Border Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
-                                <StackPanel Orientation="Horizontal">
-                                    <RadioButton x:Name="SimpleTheme" Style="{StaticResource Segment}" GroupName="Theme"
-                                                 Content="Simples" Tag="{x:Static settings:ThemeChoice.Simple}" Checked="OnThemeChosen" />
-                                    <RadioButton x:Name="ClassicTheme" Style="{StaticResource Segment}" GroupName="Theme"
-                                                 Content="Clássico" Tag="{x:Static settings:ThemeChoice.Classic}" Checked="OnThemeChosen" />
-                                    <RadioButton x:Name="LightTheme" Style="{StaticResource Segment}" GroupName="Theme"
-                                                 Content="Claro" Tag="{x:Static settings:ThemeChoice.Light}" Checked="OnThemeChosen" />
-                                    <RadioButton x:Name="SystemTheme" Style="{StaticResource Segment}" GroupName="Theme"
-                                                 Content="Windows" Tag="{x:Static settings:ThemeChoice.System}" Checked="OnThemeChosen" />
-                                </StackPanel>
+                                <StackPanel x:Name="ThemeChoices" Orientation="Horizontal" />
                             </Border>
-                            <WrapPanel x:Name="CommunityThemeChoices" Margin="0,8,0,0" />
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <Button x:Name="AddThemePackage" Content="Adicionar tema" Style="{StaticResource SettingsButton}" Click="OnAddTheme" />
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button x:Name="ThemeLibraryButton" Content="Biblioteca" Style="{StaticResource SettingsButton}"
+                                        Click="OnShowThemeLibrary" ToolTip="Todos os temas, com prévia" />
+                                <Button x:Name="AddThemePackage" Content="Adicionar tema" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnAddTheme" />
                                 <Button x:Name="ExportThemePackage" Content="Exportar" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnExportTheme" />
                                 <Button x:Name="RemoveThemePackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemoveTheme" />
                             </StackPanel>

@@ -5,7 +5,9 @@ param(
     [Parameter(ParameterSetName = 'All', Mandatory = $true)][switch]$All,
     [Parameter(ParameterSetName = 'Changed')][string]$Base = 'HEAD',
     [switch]$Ui,
-    [switch]$Plan
+    [switch]$Plan,
+    # The CI's .NET job: separate checks (the front) run in their own workflow, with their own toolchain.
+    [switch]$SkipChecks
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,13 +34,18 @@ try {
         Write-Host ('Unidade: ' + $(if ($selection.All) { 'todos' } else { $selection.Filter }))
         Write-Host ('Visual: ' + ($selection.Suites -join ', '))
         Write-Host ('Mod: ' + $selection.Mod)
+        foreach ($check in $selection.Checks) { Write-Host ('Separado: ' + $check.Command + ' ' + ($check.Arguments -join ' ')) }
         exit 0
     }
-    if ($selection.Domains.Count -gt 0) {
+    if ($selection.All -or $selection.Filter) {
         $testArguments = @('test', 'tests/MiniInfos.Tests', '-c', 'Release', '--logger', 'console;verbosity=minimal')
         if (-not $selection.All) { $testArguments += @('--filter', $selection.Filter) }
         Invoke-Checked 'dotnet' $testArguments
     }
+    if ($SkipChecks) {
+        foreach ($check in $selection.Checks) { Write-Host ('Separado, no workflow próprio: ' + $check.Command + ' ' + ($check.Arguments -join ' ')) }
+    }
+    else { foreach ($check in $selection.Checks) { Invoke-Checked $check.Command $check.Arguments } }
     if ($Ui -and $selection.Suites.Count -gt 0) {
         Invoke-Checked 'dotnet' @('run', '--project', 'tests/MiniInfos.UiCheck', '-c', 'Release', '--', '--suite', ($selection.Suites -join ','), '--quiet')
     }

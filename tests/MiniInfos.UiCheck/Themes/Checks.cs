@@ -1,3 +1,5 @@
+using MiniInfos.Community;
+
 namespace MiniInfos.UiCheck;
 
 internal static partial class Program
@@ -13,10 +15,13 @@ internal static partial class Program
         var face = Find<Border>(card, "Card");
         var pages = Find<TabControl>(settings, "Pages");
         pages.SelectedIndex = 1;
-        Find<RadioButton>(settings, "LightTheme").IsChecked = true;
+        ChooseTheme(settings, ThemeChoice.Light);
         Pump(TimeSpan.FromMilliseconds(500));
         Check(IsLight(face.Background) && IsLight(((Border)settings.Content).Background) && SharedSettings().Contains("\"Theme\":\"Light\""),
             "Claro turns the card and the settings light, and is kept");
+        var light = ThemeHistory.Key(ThemeChoice.Light);
+        Check(RowKeys(settings) is [var first, _, _, _] && first == light && Preferences.Load().RecentThemes[0] == light,
+            "the theme chosen last moves to the front of the row, and stays there for the next launch");
         Render(card, System.IO.Path.Combine(pictures, "card-light.png"));
         RenderPages(settings, pages, pictures, "light");
         var menu = face.ContextMenu!;
@@ -28,12 +33,12 @@ internal static partial class Program
         menu.IsOpen = false;
 
         pages.SelectedIndex = 1;
-        Find<RadioButton>(settings, "SimpleTheme").IsChecked = true;
+        ChooseTheme(settings, ThemeChoice.Simple);
         Pump(TimeSpan.FromMilliseconds(500));
         Check(!IsLight(face.Background) && preferences.Theme == ThemeChoice.Simple, "Simples turns it dark again");
 
         var simpleHeight = card.Height;
-        Find<RadioButton>(settings, "ClassicTheme").IsChecked = true;
+        ChooseTheme(settings, ThemeChoice.Classic);
         Pump(TimeSpan.FromMilliseconds(700));
         var artwork = Find<Image>(card, "AthenaArtwork");
         Check(preferences.Theme == ThemeChoice.Classic && artwork.Visibility == Visibility.Visible
@@ -55,11 +60,117 @@ internal static partial class Program
         var (_, _, single, _) = OpenPageMenu(icons, 0);
         Choose(single);
 
-        Find<RadioButton>(settings, "SimpleTheme").IsChecked = true;
+        ChooseTheme(settings, ThemeChoice.Simple);
         Pump(TimeSpan.FromMilliseconds(700));
         Check(artwork.Visibility == Visibility.Collapsed && Math.Abs(card.Height - simpleHeight) < 2,
             "Simples removes the illustration and restores its compact height");
 
+        CheckThemeLibrary(preferences, settings, pictures);
+        ChooseTheme(settings, ThemeChoice.Simple);
+    }
+
+    /// <summary>Biblioteca: every theme on a card with its preview; Usar applies one and puts it first in the row.</summary>
+    private static void CheckThemeLibrary(Preferences preferences, SettingsWindow settings, string pictures)
+    {
+        var button = Find<Button>(settings, "ThemeLibraryButton");
+        Check(button.Content as string == "Biblioteca" && button.IsVisible && ((Panel)button.Parent).Children.IndexOf(button) == 0,
+            "Biblioteca is the first button under the theme row");
+        if (OpenThemeLibrary(settings) is not { } library) return;
+
+        try
+        {
+            var uses = LibraryUses(library);
+            Check(uses.Count >= 4 && uses.All(use => LibraryPreview(use) is BitmapSource { PixelWidth: PackagePreviews.Size, IsFrozen: true }),
+                $"the library shows every theme with its preview ({uses.Count})");
+            Check(uses[0] is { IsEnabled: false, Content: "Em uso" } && (string)uses[0].Tag == preferences.ThemeKey
+                && uses.Skip(1).All(use => use is { IsEnabled: true, Content: "Usar" }),
+                "the theme in use comes first and reads Em uso; the others offer Usar");
+            Render(library, System.IO.Path.Combine(pictures, "theme-library.png"));
+
+            var order = uses.Select(use => (string)use.Tag).ToArray();
+            var chosen = uses[^1];
+            chosen.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            Pump(TimeSpan.FromMilliseconds(500));
+            Check(preferences.ThemeKey == (string)chosen.Tag && chosen is { IsEnabled: false, Content: "Em uso" }
+                && LibraryUses(library).Select(use => (string)use.Tag).SequenceEqual(order),
+                "Usar applies the theme, and the cards keep their places while the library is open");
+            Check(RowKeys(settings).FirstOrDefault() == (string)chosen.Tag && Preferences.Load().RecentThemes[0] == (string)chosen.Tag,
+                "the theme used from the library leads the Aparência row");
+
+            Find<Button>(settings, "ThemeLibraryButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            Pump(TimeSpan.FromMilliseconds(200));
+            Check(settings.OwnedWindows.OfType<ThemeLibraryWindow>().Count() == 1, "asked again, the same library comes forward");
+
+            var title = (FrameworkElement)library.Template.FindName("PART_TitleBar", library);
+            Check(title.IsVisible && ((Panel)title).Children.OfType<TextBlock>().Single().Text == "Biblioteca de temas",
+                "the library wears the settings' frame, with its title");
+            ((Button)library.Template.FindName("PART_Close", library)).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            Pump(TimeSpan.FromMilliseconds(200));
+            Check(!library.IsVisible, "and its ✕ closes it");
+
+            if (OpenThemeLibrary(settings) is not { } reopened) return;
+            library = reopened;
+            Find<Button>(library, "CommunityButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            Pump(TimeSpan.FromMilliseconds(300));
+            Check(!library.IsVisible && Find<TabControl>(settings, "Pages").SelectedItem == Find<TabItem>(settings, "CommunityPage")
+                && Find<RadioButton>(settings, "CatalogThemes").IsChecked == true,
+                "Mais temas na Comunidade opens the Comunidade page on its themes");
+            Find<RadioButton>(settings, "CatalogMascots").IsChecked = true;
+            Find<TabControl>(settings, "Pages").SelectedIndex = 1;
+        }
+        finally
+        {
+            library.Close();
+            Pump(TimeSpan.FromMilliseconds(100));
+        }
+    }
+
+    /// <summary>The theme keys in the Tema row, in its order.</summary>
+    private static string[] RowKeys(SettingsWindow settings) =>
+        [.. Find<StackPanel>(settings, "ThemeChoices").Children.OfType<RadioButton>().Select(choice => (string)choice.Tag)];
+
+    /// <summary>Clicks a built-in theme in the Tema row, as the user would.</summary>
+    private static void ChooseTheme(SettingsWindow settings, ThemeChoice theme)
+    {
+        var choice = Find<StackPanel>(settings, "ThemeChoices").Children.OfType<RadioButton>()
+            .FirstOrDefault(button => (string)button.Tag == ThemeHistory.Key(theme));
+        Check(choice is not null, $"the Tema row offers {theme}");
+        if (choice is not null) choice.IsChecked = true;
+    }
+
+    private static ThemeLibraryWindow? OpenThemeLibrary(SettingsWindow settings)
+    {
+        Find<Button>(settings, "ThemeLibraryButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        PumpUntil(() => settings.OwnedWindows.OfType<ThemeLibraryWindow>().Any(), TimeSpan.FromSeconds(5));
+        var library = settings.OwnedWindows.OfType<ThemeLibraryWindow>().FirstOrDefault();
+        Check(library is { IsVisible: true }, "Biblioteca opens a window above the settings");
+        if (library is not null) PumpUntil(() => library.Ready.IsCompleted, TimeSpan.FromSeconds(10));
+        return library;
+    }
+
+    /// <summary>Each card's Usar button, in the library's order; its Tag is the theme's key.</summary>
+    private static List<Button> LibraryUses(ThemeLibraryWindow library) =>
+        [.. Find<WrapPanel>(library, "Tiles").Children.OfType<Border>().SelectMany(card => ((StackPanel)card.Child).Children.OfType<Button>())];
+
+    private static ImageSource? LibraryPreview(Button use) => ((StackPanel)use.Parent).Children.OfType<Image>().Single().Source;
+
+    /// <summary>Uses a theme from the library, as its Usar button does, and closes it.</summary>
+    private static void UseInLibrary(SettingsWindow settings, string key)
+    {
+        if (OpenThemeLibrary(settings) is not { } library) return;
+
+        try
+        {
+            var use = LibraryUses(library).FirstOrDefault(button => (string)button.Tag == key);
+            Check(use is not null && LibraryPreview(use) is BitmapSource, $"the library offers {key} with its preview");
+            use?.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            Pump(TimeSpan.FromMilliseconds(350));
+        }
+        finally
+        {
+            library.Close();
+            Pump(TimeSpan.FromMilliseconds(100));
+        }
     }
 
     private static string[] ThemeKeys(ResourceDictionary resources) => resources.Keys.Cast<object>()

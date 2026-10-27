@@ -28,8 +28,9 @@ internal static partial class Program
             Complete(settings.ImportPackageAsync(themeArchive, PackageKind.Theme));
             Check(preferences.CommunityThemeId == themeId && Preferences.Load().CommunityThemeId == themeId,
                 "importing a theme selects and persists its package ID");
-            Check(Find<WrapPanel>(settings, "CommunityThemeChoices").Children.OfType<RadioButton>()
-                .Any(choice => (string)choice.Tag == themeId && choice.IsChecked == true), "the imported theme appears selected with creator attribution");
+            Check(Find<StackPanel>(settings, "ThemeChoices").Children.OfType<RadioButton>().FirstOrDefault() is { IsChecked: true } first
+                && (string)first.Tag == themeId && first.ToolTip is string tip && tip.StartsWith("Criador de teste"),
+                "the imported theme leads the Tema row, selected, with creator attribution");
             var face = Find<Border>(cards.Main, "Card");
             Check(face.Background is SolidColorBrush { Color: var color } && color == Color.FromRgb(0x12, 0x27, 0x2F),
                 "the community palette applies to the actual card");
@@ -53,11 +54,12 @@ internal static partial class Program
             var exportedTheme = PackageLibrary.Shared.Install(themeModel, PackageKind.Theme);
             Check(exportedTheme.Manifest.Theme!.HeaderImage is not null, "a built-in illustrated theme exports its header as a local PNG");
             settings.RefreshCommunity();
-            Find<WrapPanel>(settings, "CommunityThemeChoices").Children.OfType<RadioButton>().Single(choice => (string)choice.Tag == exportedTheme.Id).IsChecked = true;
+            // Installed without choosing it, the theme waits in the library rather than in the row.
+            UseInLibrary(settings, exportedTheme.Id);
             Pump(TimeSpan.FromMilliseconds(350));
             Check(Find<Image>(cards.Main, "AthenaArtwork").Visibility == Visibility.Visible && preferences.CommunityThemeId == exportedTheme.Id,
                 "a community theme can supply the illustrated header");
-            Find<RadioButton>(settings, "SimpleTheme").IsChecked = true;
+            UseInLibrary(settings, ThemeHistory.Key(ThemeChoice.Simple));
             Check(preferences.CommunityThemeId is null, "a built-in theme cleanly replaces the community selection");
 
             var modelArchive = System.IO.Path.Combine(pictures, "mascot-template.miniinfos");

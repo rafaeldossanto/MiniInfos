@@ -8,7 +8,7 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $output 'app'), (Join-Path $output 'claude-plugin/mod') -Force | Out-Null
     [IO.File]::WriteAllText((Join-Path $output 'app/MiniInfos.dll'), 'app fixture')
     Assert-InstallerContents -Output $output -Repository $repository
-    foreach ($name in @('app/MiniInfos.Catalog.dll', 'app/example.miniinfos', 'marketplace/packages/example.json', 'tools/Program.cs')) {
+    foreach ($name in @('app/MiniInfos.Catalog.dll', 'app/example.miniinfos', 'marketplace/packages/example.json', 'tools/Program.cs', 'front/index.html')) {
         $path = Join-Path $output $name
         New-Item -ItemType Directory -Path (Split-Path $path) -Force | Out-Null
         [IO.File]::WriteAllText($path, 'unexpected')
@@ -25,7 +25,7 @@ try {
     # The publish target checks original paths, including files renamed by Link/RelativePath.
     $target = [Security.SecurityElement]::Escape((Join-Path $repository 'installer/PublicationBoundary.targets'))
     $probe = Join-Path $temporary 'boundary.proj'
-    foreach ($source in @('widget/Assets/MiniInfos.ico', 'marketplace/examples/ocean/manifest.json', 'tools/MiniInfos.Catalog/Program.cs')) {
+    foreach ($source in @('widget/Assets/MiniInfos.ico', 'marketplace/examples/ocean/manifest.json', 'tools/MiniInfos.Catalog/Program.cs', 'front/README.md')) {
         $inputPath = [Security.SecurityElement]::Escape((Join-Path $repository $source))
         $project = '<Project><Import Project="' + $target + '" /><ItemGroup><ResolvedFileToPublish Include="' + $inputPath + '"><RelativePath>renamed.dat</RelativePath></ResolvedFileToPublish></ItemGroup></Project>'
         [IO.File]::WriteAllText($probe, $project)
@@ -40,11 +40,13 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $archiveRepo 'marketplace/packages/example') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $repository '.gitattributes') -Destination (Join-Path $archiveRepo '.gitattributes')
     [IO.File]::WriteAllText((Join-Path $archiveRepo 'marketplace/packages/example/manifest.json'), '{}')
+    New-Item -ItemType Directory -Path (Join-Path $archiveRepo 'front') -Force | Out-Null
+    [IO.File]::WriteAllText((Join-Path $archiveRepo 'front/index.html'), '<!doctype html>')
     [IO.File]::WriteAllText((Join-Path $archiveRepo 'app.txt'), 'application sources')
     git -C $archiveRepo init --quiet
     # Its own line endings, whatever the machine's core.autocrlf: Windows PowerShell turns git's CRLF warning on stderr into an error.
     git -C $archiveRepo config core.autocrlf false
-    git -C $archiveRepo add -- .gitattributes app.txt marketplace/packages/example/manifest.json
+    git -C $archiveRepo add -- .gitattributes app.txt marketplace/packages/example/manifest.json front/index.html
     $tree = git -C $archiveRepo write-tree
     $archive = Join-Path $temporary 'source.zip'
     git -C $archiveRepo archive --format=zip --output=$archive $tree
@@ -53,6 +55,7 @@ try {
     $zip = [IO.Compression.ZipFile]::OpenRead($archive)
     try {
         if ($zip.Entries.FullName -match '^marketplace/packages/.+') { throw 'O ZIP de código inclui pacotes do marketplace.' }
+        if ($zip.Entries.FullName -match '^front/.+') { throw 'O ZIP de código inclui a landing page.' }
         if ($zip.Entries.FullName -notcontains 'app.txt') { throw 'O ZIP perdeu o código do app.' }
     } finally { $zip.Dispose() }
     $catalogWorkflow = Get-Content -LiteralPath (Join-Path $repository '.github/workflows/marketplace-publish.yml') -Raw

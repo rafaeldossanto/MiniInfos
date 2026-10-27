@@ -28,6 +28,8 @@ O modo escolhido fica salvo.
 
 Na engrenagem, em **Configurações → Aparência → Tema**, **Simples** usa o cartão escuro com barras azuis; **Clássico** usa tons de pedra e uma gravura de Atena no cabeçalho. Na visualização dividida, Atena fica centralizada sobre o cartão inteiro. Os ícones das IAs ficam juntos, sem separador. A escolha vale para todas as janelas e fica salva. As opções **Claro** e **Windows** também continuam disponíveis.
 
+A fila de temas mostra os quatro escolhidos por último, o atual primeiro, sejam embutidos ou da comunidade. **Biblioteca**, o primeiro botão abaixo dela, abre todos os temas em cartões com prévia, como na página Comunidade: **Usar** aplica o tema e o leva para o início da fila, e **Mais temas na Comunidade** abre o catálogo de temas.
+
 Ele lê os registros locais a cada 3 segundos. Os limites da conta Codex são consultados em segundo plano a cada minuto, só enquanto a página do Codex está na tela, e a tela nunca espera por eles. O botão ↻, ao lado do ✕, força uma consulta na hora da página aberta (também em "Atualizar agora", no botão direito e no ícone da bandeja). Os % do Claude mudam quando algum chat do Claude Code recebe resposta, porque é dela que eles vêm.
 
 Arraste o quadrado pra onde quiser, em qualquer direção. Pra mudar o tamanho, puxe uma borda ou um canto: tudo cresce ou encolhe junto, na mesma proporção. A posição e o tamanho ficam salvos. Botão direito: "Sempre por cima", "Voltar pro canto", "Tamanho padrão", "Esconder" e "Sair do MiniInfos".
@@ -56,7 +58,7 @@ Em repouso, o mascote também respira e balança suavemente sem mudar a posiçã
 
 ## Temas e mascotes da comunidade
 
-Em **Configurações → Aparência**, use **Adicionar tema** para importar um pacote `.miniinfos` ou `.zip`; em **Mascote**, use **Adicionar mascote**. O conteúdo importado aparece junto das opções instaladas, pode ser selecionado na hora e fica salvo para as próximas aberturas. A seleção é independente para tema e mascote. Autor, versão e licença aparecem no tooltip da opção.
+Em **Configurações → Aparência**, use **Adicionar tema** para importar um pacote `.miniinfos` ou `.zip`; em **Mascote**, use **Adicionar mascote**. O conteúdo importado aparece junto das opções instaladas (um tema entra no início da fila e na **Biblioteca**), pode ser selecionado na hora e fica salvo para as próximas aberturas. A seleção é independente para tema e mascote. Autor, versão e licença aparecem no tooltip da opção.
 
 Na biblioteca de mascotes, o primeiro quadrado tem um bonequinho de contorno tracejado com **+** para adicionar um pacote. À direita ficam as miniaturas da Coruja de Atena e dos mascotes instalados; clique para selecionar. O escolhido fica destacado, e os demais ficam um pouco mais transparentes. As opções continuam em novas linhas quando necessário. A biblioteca é local: os pacotes e a seleção ficam salvos no computador, sem conta ou banco de dados online.
 
@@ -112,6 +114,7 @@ São duas partes:
 | `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude e do Codex, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 | `tools/MiniInfos.Catalog/` | Ferramenta separada para validar e gerar o catálogo da comunidade; não entra no instalador. |
+| `front/` | Landing page do MiniInfos; fora do instalador, do zip de código das releases e dos testes do app (`front/README.md`). |
 | `marketplace/` | Guia, contratos, exemplos e fontes dos pacotes publicados em `marketplace/packages/`. |
 
 ### Organização do código

@@ -36,6 +36,57 @@ public sealed class PreferencesTests
     }
 
     [Fact]
+    public void ChosenThemesAreRememberedLastFirstForTheNextLaunch()
+    {
+        using var folder = new TempFolder();
+        var path = folder.File("settings.json");
+        var preferences = new Preferences(path);
+
+        preferences.Theme = ThemeChoice.Classic;
+        preferences.UseTheme("community.ocean");
+        preferences.UseTheme(ThemeHistory.Key(ThemeChoice.Light));
+
+        Assert.Equal([ThemeHistory.Key(ThemeChoice.Light), "community.ocean", ThemeHistory.Key(ThemeChoice.Classic)], new Preferences(path).RecentThemes);
+        Assert.Null(preferences.CommunityThemeId);
+        Assert.Equal((ThemeChoice.Light, ThemeHistory.Key(ThemeChoice.Light)), (preferences.Theme, preferences.ThemeKey));
+    }
+
+    [Fact]
+    public void ACommunityThemeIsUsedByItsId()
+    {
+        using var folder = new TempFolder();
+        var preferences = new Preferences(folder.File("settings.json"));
+
+        preferences.UseTheme("community.ocean");
+
+        Assert.Equal(("community.ocean", "community.ocean"), (preferences.CommunityThemeId, preferences.ThemeKey));
+    }
+
+    [Fact]
+    public void ChoosingTheThemeInUseAgainChangesNothing()
+    {
+        using var folder = new TempFolder();
+        var preferences = new Preferences(folder.File("settings.json"));
+        preferences.UseTheme("community.ocean");
+        var told = new List<string?>();
+        preferences.PropertyChanged += (_, e) => told.Add(e.PropertyName);
+
+        preferences.UseTheme("community.ocean");
+
+        Assert.Empty(told);
+    }
+
+    [Fact]
+    public void TheThemeInUseLeadsEvenFromBeforeTheHistory()
+    {
+        using var folder = new TempFolder();
+        var path = folder.File("settings.json");
+        File.WriteAllText(path, """{"Theme":"Classic","RecentThemes":["builtin:Light"]}""");
+
+        Assert.Equal([ThemeHistory.Key(ThemeChoice.Classic), ThemeHistory.Key(ThemeChoice.Light)], new Preferences(path).RecentThemes);
+    }
+
+    [Fact]
     public void AnUnreadableFileReadsAsTheDefaults()
     {
         using var folder = new TempFolder();
