@@ -21,7 +21,7 @@ internal static partial class Program
         Pump(TimeSpan.FromMilliseconds(300));
         var message = Shown(Find<TextBlock>(banner, "Message"));
         var button = Find<Button>(banner, "DownloadButton");
-        Check(banner.IsVisible && message == "Nova atualização disponível" && button.IsEnabled,
+        Check(banner.IsVisible && message == MiniInfos.Localization.Localizer.Text("Nova atualização disponível") && button.IsEnabled,
             $"a newer release shows the line with its button (\"{message}\", button {(button.IsEnabled ? "on" : "off")})");
         Check(banner.Top + banner.ActualHeight <= card.Top && Math.Abs(banner.Left - card.Left) < 1 && Math.Abs(banner.ActualWidth - card.ActualWidth) < 1,
             $"in a window of its own, just above the card and as wide ({banner.Left:0},{banner.Top:0} {banner.ActualWidth:0} over {card.Left:0},{card.Top:0} {card.ActualWidth:0})");
@@ -47,7 +47,7 @@ internal static partial class Program
         Check(launched is not null && File.ReadAllBytes(launched).SequenceEqual(bytes) && updater.Stage == UpdateStage.Installing,
             "clicking the line downloads the installer, checks it and runs it");
         Pump(TimeSpan.FromMilliseconds(200));
-        Check(Shown(Find<TextBlock>(banner, "Message")).StartsWith("Instalando") && !Find<Button>(banner, "DownloadButton").IsEnabled,
+        Check(Shown(Find<TextBlock>(banner, "Message")).StartsWith(MiniInfos.Localization.Localizer.Text("Instalando")) && !Find<Button>(banner, "DownloadButton").IsEnabled,
             "while the installer runs, the line says so and the button rests");
         if (launched is not null) File.Delete(launched);
         banner.Close();

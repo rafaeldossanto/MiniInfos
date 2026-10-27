@@ -1,3 +1,5 @@
+import { LANGUAGE_EVENT } from '../localization/model';
+
 export function initMotion() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window))
     return;
@@ -27,18 +29,23 @@ export function initMotion() {
     },
     { threshold: 1, rootMargin: '0px 0px -15% 0px' },
   );
-  let index = 0;
-  document.querySelectorAll('[data-tagline-line]').forEach((line) => {
-    const content = line.textContent?.trim().split(/\s+/) ?? [];
-    line.replaceChildren(
-      ...content.flatMap((word, wordIndex) => {
-        const span = document.createElement('span');
-        span.className = 'tagline-word';
-        span.style.transitionDelay = index++ * 70 + 'ms';
-        span.textContent = word;
-        words.observe(span);
-        return wordIndex === content.length - 1 ? [span] : [span, document.createTextNode(' ')];
-      }),
-    );
-  });
+  const renderWords = () => {
+    words.disconnect();
+    let index = 0;
+    document.querySelectorAll('[data-tagline-line]').forEach((line) => {
+      const content = line.textContent?.trim().split(/\s+/) ?? [];
+      line.replaceChildren(
+        ...content.flatMap((word, wordIndex) => {
+          const span = document.createElement('span');
+          span.className = 'tagline-word';
+          span.style.transitionDelay = index++ * 70 + 'ms';
+          span.textContent = word;
+          words.observe(span);
+          return wordIndex === content.length - 1 ? [span] : [span, document.createTextNode(' ')];
+        }),
+      );
+    });
+  };
+  renderWords();
+  window.addEventListener(LANGUAGE_EVENT, renderWords);
 }

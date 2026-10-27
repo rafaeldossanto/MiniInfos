@@ -4,12 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
-    <title>Privacidade — MiniInfos</title>
+    <title data-i18n="Privacidade — MiniInfos">Privacidade — MiniInfos</title>
     <meta
       name="description"
       content="Como a página do MiniInfos usa sua preferência de tema e os links para o GitHub."
+      data-i18n-content="Como a página do MiniInfos usa sua preferência de tema e os links para o GitHub."
     />
     <link rel="canonical" href="https://miniinfos.com/privacidade.html" />
+    <link rel="alternate" hreflang="pt-BR" href="https://miniinfos.com/privacidade.html" />
+    <link rel="alternate" hreflang="en" href="https://miniinfos.com/en/privacy.html" />
+    <link rel="alternate" hreflang="x-default" href="https://miniinfos.com/privacidade.html" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       try {
@@ -20,43 +24,89 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div class="language-bar container">
+      <label class="language-picker"
+        ><svg aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <ellipse cx="12" cy="12" rx="4" ry="9" />
+          <path d="M3 12h18" /></svg
+        ><span class="sr-only" data-i18n="Idioma">Idioma</span
+        ><select data-language-choice aria-label="Idioma" data-i18n-aria-label="Idioma">
+          <option value="auto">Auto</option>
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+        </select></label
+      >
+    </div>
+    <a class="skip-link" href="#conteudo" data-i18n="Pular para o conteúdo"
+      >Pular para o conteúdo</a
+    >
     <main class="container legal-page" id="conteudo">
       <a class="brand" href="/"
         ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg>MiniInfos</a
       >
-      <h1>Privacidade.</h1>
-      <p>
+      <h1 data-i18n="Privacidade.">Privacidade.</h1>
+      <p
+        data-i18n="Esta página apresenta o MiniInfos e direciona para o download do aplicativo no GitHub. Não há cadastro, formulário para enviar conversas, anúncios ou ferramentas de análise de visitas no código deste site."
+      >
         Esta página apresenta o MiniInfos e direciona para o download do aplicativo no GitHub. Não
         há cadastro, formulário para enviar conversas, anúncios ou ferramentas de análise de visitas
         no código deste site.
       </p>
-      <h2>Sua preferência de tema</h2>
+      <h2 data-i18n="Suas preferências de aparência e idioma">
+        Suas preferências de aparência e idioma
+      </h2>
       <p>
-        Ao escolher o modo claro ou escuro, o site salva essa escolha no armazenamento local do
-        navegador, com a chave <code>miniinfos.site.theme</code>. A preferência fica no seu
-        navegador e não é enviada a um servidor do MiniInfos. Se esse armazenamento estiver
-        bloqueado, a troca continua funcionando durante a visita.
+        <span
+          data-i18n="Ao escolher o modo claro ou escuro, o site salva essa escolha no armazenamento local do navegador, com a chave"
+          >Ao escolher o modo claro ou escuro, o site salva essa escolha no armazenamento local do
+          navegador, com a chave</span
+        >
+        <code>miniinfos.site.theme</code
+        ><span
+          data-i18n=". A preferência fica no seu navegador e não é enviada a um servidor do MiniInfos. Se esse armazenamento estiver bloqueado, a troca continua funcionando durante a visita."
+          >. A preferência fica no seu navegador e não é enviada a um servidor do MiniInfos. Se esse
+          armazenamento estiver bloqueado, a troca continua funcionando durante a visita.</span
+        >
       </p>
-      <h2>Links e downloads</h2>
       <p>
+        <span
+          data-i18n="O idioma acompanha as preferências do navegador quando a opção Auto está selecionada. Se você escolher Português ou English, o site salva essa preferência com a chave"
+          >O idioma acompanha as preferências do navegador quando a opção Auto está selecionada. Se
+          você escolher Português ou English, o site salva essa preferência com a chave</span
+        >
+        <code>miniinfos.site.language</code
+        ><span data-i18n=". Essa escolha também fica somente no navegador."
+          >. Essa escolha também fica somente no navegador.</span
+        >
+      </p>
+      <h2 data-i18n="Links e downloads">Links e downloads</h2>
+      <p
+        data-i18n="Os links para o código, para os pacotes da comunidade e para o instalador abrem o GitHub. Ao acessar esses links, sua conexão passa pelo serviço correspondente, que tem suas próprias informações sobre privacidade. O provedor de hospedagem desta página também pode processar dados técnicos da conexão."
+      >
         Os links para o código, para os pacotes da comunidade e para o instalador abrem o GitHub. Ao
         acessar esses links, sua conexão passa pelo serviço correspondente, que tem suas próprias
         informações sobre privacidade. O provedor de hospedagem desta página também pode processar
         dados técnicos da conexão.
       </p>
-      <h2>Dados do aplicativo</h2>
-      <p>
+      <h2 data-i18n="Dados do aplicativo">Dados do aplicativo</h2>
+      <p
+        data-i18n="Este site não recebe os registros dos chats do aplicativo. O MiniInfos para Windows lê os registros locais disponíveis. Consultas de limites dos provedores e verificações de atualizações são feitas pelos respectivos serviços, conforme descrito no repositório."
+      >
         Este site não recebe os registros dos chats do aplicativo. O MiniInfos para Windows lê os
         registros locais disponíveis. Consultas de limites dos provedores e verificações de
         atualizações são feitas pelos respectivos serviços, conforme descrito no repositório.
       </p>
-      <h2>Mais informações</h2>
+      <h2 data-i18n="Mais informações">Mais informações</h2>
       <p>
-        Você pode consultar o código e os detalhes do funcionamento no
-        <a href="https://github.com/rafaeldossanto/MiniInfos">repositório do MiniInfos</a>.
+        <span data-i18n="Você pode consultar o código e os detalhes do funcionamento no"
+          >Você pode consultar o código e os detalhes do funcionamento no</span
+        >
+        <a href="https://github.com/rafaeldossanto/MiniInfos" data-i18n="repositório do MiniInfos"
+          >repositório do MiniInfos</a
+        >.
       </p>
-      <a class="button" href="/">Voltar ao MiniInfos</a>
+      <a class="button" href="/" data-i18n="Voltar ao MiniInfos">Voltar ao MiniInfos</a>
     </main>
   </body>
 </html>

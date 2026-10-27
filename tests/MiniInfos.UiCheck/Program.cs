@@ -19,7 +19,7 @@ internal static partial class Program
     {
         if (args.Contains("--help"))
         {
-            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community|All] [--quiet]");
+            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization|All] [--quiet]");
             return 0;
         }
         CheckOptions options;
@@ -52,6 +52,8 @@ internal static partial class Program
         // run between pumps, where WPF leaves none: without this, a suite run alone (Updates) resumed on the thread pool.
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
         var preferences = Preferences.Load();
+        preferences.Language = LanguageChoice.Portuguese;
+        MiniInfos.Localization.Localizer.Follow(preferences);
         ThemeManager.Follow(preferences);
         AppFonts.Follow(preferences);
         var live = options.Includes("Providers");
@@ -95,6 +97,7 @@ internal static partial class Program
             });
             RunSuite("Settings", () => CheckSettings(cards, preferences, pictures));
             RunSuite("Themes", () => WithSettings(settings => CheckThemes(cards, preferences, settings, pictures)));
+            RunSuite("Localization", () => WithSettings(settings => CheckLocalization(cards, preferences, settings, pictures)));
             RunSuite("Fonts", () => WithSettings(settings => CheckFonts(cards, preferences, settings, pictures)));
             RunSuite("Mascot", () => WithSettings(settings => CheckPet(cards, preferences, settings, pictures)));
             RunSuite("Community", () => WithSettings(settings => CheckCommunity(cards, preferences, settings, pictures)));

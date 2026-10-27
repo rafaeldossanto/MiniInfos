@@ -26,6 +26,10 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
+O aplicativo abre em português quando o idioma de exibição do Windows é português; nos demais idiomas, abre em inglês. Em **Configurações → Geral → Idioma**, escolha **Automático**, **Português** ou **English**. A escolha manual fica salva e atualiza janelas abertas, menus e números sem reiniciar. Ela não muda o tema selecionado. A landing page também detecta o idioma do navegador e oferece a escolha manual.
+
+O instalador também inclui os dois idiomas e usa o idioma de exibição do Windows, com inglês como alternativa. A detecção usa a opção [`LanguageDetectionMethod=uilanguage` do Inno Setup](https://jrsoftware.org/ishelp/topic_setup_languagedetectionmethod.htm); a escolha manual dentro do app continua independente.
+
 Na engrenagem, em **Configurações → Aparência → Tema**, **Simples** usa o cartão escuro com barras azuis; **Clássico** mantém a arte de Atena e o cabeçalho originais. Na **Biblioteca**, **Clássico escuro** e **Clássico claro** são opções adicionais com uma faixa de Atena, disco e oliveiras abaixo dos controles: gravura no escuro e mármore no claro. Atena fica centralizada sobre o cartão inteiro na visualização dividida. Os ícones das IAs ficam juntos, sem separador. A escolha vale para todas as janelas e fica salva; quem já usava Clássico continua com o original. As opções **Claro** e **Windows** também continuam disponíveis.
 
 A fila de temas mostra os quatro escolhidos por último, o atual primeiro, sejam embutidos ou da comunidade. **Biblioteca**, o primeiro botão abaixo dela, abre todos os temas em cartões com prévia, como na página Comunidade: **Usar** aplica o tema e o leva para o início da fila, e **Mais temas na Comunidade** abre o catálogo de temas.
@@ -130,7 +134,8 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `Community/` | Contrato de pacotes, validação, biblioteca, importação, exportação e modelos para autores. |
 | `Community/Catalog/` | Índice, consulta à publicação `catalog`, cache, prévias sob demanda e instalação verificada. |
 | `Mascot/` | Aparências, estados, gestos, animação, sprites, posição e coordenação dos mascotes. |
-| `Settings/` | Preferências compartilhadas, configurações dos cartões e escolhas de tema e fontes. |
+| `Settings/` | Preferências compartilhadas, configurações dos cartões e escolhas de tema, fontes e idioma. |
+| `Localization/` | Detecção e troca de idioma, catálogo inglês e bindings de tradução para o XAML. |
 | `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |
 | `Infrastructure/Network/` | Identidade do repositório e cliente de releases e assets compartilhado pelo atualizador e pelo catálogo. |
 | `UI/Windows/` | Janelas, coordenação dos cartões e seleção de páginas. Cada XAML fica junto de seu code-behind. |

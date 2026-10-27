@@ -16,7 +16,7 @@ AppId={{8E3C1F2A-6B5D-4C7E-9A1F-2D4B6E8C0A13}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-AppComments=Limites e tokens do Claude e do Codex
+AppComments={cm:AppDescription}
 ; Per user, no administrator: %LOCALAPPDATA%\Programs\MiniInfos, where /miniinfos looks for it.
 PrivilegesRequired=lowest
 DefaultDirName={autopf}\{#AppName}
@@ -34,13 +34,33 @@ SolidCompression=yes
 WizardStyle=modern
 ; Its window only hides on close; the code below asks it to quit instead.
 CloseApplications=no
+LanguageDetectionMethod=uilanguage
+ShowLanguageDialog=no
+UsePreviousLanguage=no
 
 [Languages]
+Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
+[CustomMessages]
+en.AppDescription=Claude and Codex tokens and limits
+ptbr.AppDescription=Limites e tokens do Claude e do Codex
+en.WithApps=Open with Claude or Codex (start hidden with Windows)
+ptbr.WithApps=Abrir junto com Claude ou Codex (inicia com o Windows escondido)
+en.ClaudeMod=Install the Claude Code chat mod (five-hour and weekly limits, current chat and the /miniinfos command)
+ptbr.ClaudeMod=Instalar o mod nos chats do Claude Code (limites de 5h e semanal, chat atual e o comando /miniinfos)
+en.OpenNow=Open MiniInfos now
+ptbr.OpenNow=Abrir o MiniInfos agora
+en.ModMissingTitle=MiniInfos was installed, but the Claude Code mod was not.
+ptbr.ModMissingTitle=O MiniInfos foi instalado, mas o mod do Claude Code não.
+en.ModMissingReason=Claude Code was not found on this computer, or it rejected the mod. Token counts work normally; five-hour and weekly limits and the current chat require the mod.
+ptbr.ModMissingReason=Não achei o Claude Code neste computador, ou ele recusou o mod. Os tokens aparecem normalmente; os limites de 5h e semanal e o chat atual só aparecem com o mod.
+en.ModMissingAction=Install Claude Code (the desktop or terminal app) and run this installer again.
+ptbr.ModMissingAction=Instale o Claude Code (o app desktop ou o do terminal) e rode este instalador de novo.
+
 [Tasks]
-Name: "withclaude"; Description: "Abrir junto com Claude ou Codex (inicia com o Windows escondido)"
-Name: "claudemod"; Description: "Instalar o mod nos chats do Claude Code (limites de 5h e semanal, chat atual e o comando /miniinfos)"
+Name: "withclaude"; Description: "{cm:WithApps}"
+Name: "claudemod"; Description: "{cm:ClaudeMod}"
 
 [InstallDelete]
 ; A reinstall with the startup option unticked takes the old entry away.
@@ -51,11 +71,11 @@ Source: "{#Source}\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "{#Source}\claude-plugin\*"; DestDir: "{app}\claude-plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{userprograms}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Comment: "Limites e tokens do Claude e do Codex"
+Name: "{userprograms}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Comment: "{cm:AppDescription}"
 Name: "{userstartup}\{#AppName}"; Filename: "{app}\MiniInfos.exe"; Parameters: "--with-claude"; Tasks: withclaude
 
 [Run]
-Filename: "{app}\MiniInfos.exe"; Description: "Abrir o MiniInfos agora"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\MiniInfos.exe"; Description: "{cm:OpenNow}"; Flags: nowait postinstall skipifsilent
 ; An update from the app runs silently with /RELAUNCH=1: the new version opens when it is done.
 Filename: "{app}\MiniInfos.exe"; Flags: nowait; Check: IsRelaunch
 
@@ -199,10 +219,8 @@ begin
   begin
     InstallMod();
     if IsModMissing and not WizardSilent() then
-      MsgBox('O MiniInfos foi instalado, mas o mod do Claude Code não.' + #13#10#13#10 +
-        'Não achei o Claude Code neste computador, ou ele recusou o mod. Os tokens aparecem normalmente; ' +
-        'os limites de 5h e semanal e o chat atual só aparecem com o mod.' + #13#10#13#10 +
-        'Instale o Claude Code (o app desktop ou o do terminal) e rode este instalador de novo.',
+      MsgBox(CustomMessage('ModMissingTitle') + #13#10#13#10 +
+        CustomMessage('ModMissingReason') + #13#10#13#10 + CustomMessage('ModMissingAction'),
         mbInformation, MB_OK);
   end;
 end;

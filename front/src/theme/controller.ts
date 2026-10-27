@@ -1,5 +1,6 @@
 import { revealGeometry, savedTheme, THEME_STORAGE_KEY } from './model';
 import type { Theme } from './model';
+import { t } from '../localization/messages';
 
 export function initTheme() {
   const root = document.documentElement;
@@ -31,7 +32,7 @@ export function initTheme() {
     }
     const status = document.getElementById('theme-status');
     if (status)
-      status.textContent = theme === 'light' ? 'Tema claro ativado.' : 'Tema escuro ativado.';
+      status.textContent = t(theme === 'light' ? 'Tema claro ativado.' : 'Tema escuro ativado.');
   }
 
   choices.forEach((button) => {

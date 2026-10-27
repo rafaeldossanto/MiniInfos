@@ -46,7 +46,7 @@ public sealed class StartupShortcut(string folder)
             shortcut.TargetPath = app;
             shortcut.Arguments = Arguments;
             shortcut.WorkingDirectory = Path.GetDirectoryName(app);
-            shortcut.Description = "Limites e tokens do Claude e do Codex";
+            shortcut.Description = L.Text("Limites e tokens do Claude e do Codex");
             shortcut.Save();
         }
         catch (Exception exception) when (exception is COMException or IOException or UnauthorizedAccessException)

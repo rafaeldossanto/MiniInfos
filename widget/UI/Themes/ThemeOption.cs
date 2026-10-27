@@ -10,17 +10,17 @@ namespace MiniInfos.UI.Themes;
 /// </summary>
 public sealed record ThemeOption(string Key, string Name, string Origin, Func<ResourceDictionary> Resources)
 {
-    private const string Included = "Incluído no MiniInfos";
+    private static string Included => L.Text("Incluído no MiniInfos");
 
     /// <summary>The built-ins in the order the row first shows them, before anything is chosen.</summary>
-    private static readonly IReadOnlyList<ThemeOption> BuiltIns =
+    private static IReadOnlyList<ThemeOption> BuiltIns =>
     [
-        BuiltIn(ThemeChoice.Simple, "Simples", Included),
-        BuiltIn(ThemeChoice.Classic, "Clássico", Included),
-        BuiltIn(ThemeChoice.Light, "Claro", Included),
-        BuiltIn(ThemeChoice.System, "Windows", "Segue o modo claro ou escuro do Windows"),
-        BuiltIn(ThemeChoice.ClassicLight, "Clássico claro", Included),
-        BuiltIn(ThemeChoice.ClassicDark, "Clássico escuro", Included),
+        BuiltIn(ThemeChoice.Simple, L.Text("Simples"), Included),
+        BuiltIn(ThemeChoice.Classic, L.Text("Clássico"), Included),
+        BuiltIn(ThemeChoice.Light, L.Text("Claro"), Included),
+        BuiltIn(ThemeChoice.System, "Windows", L.Text("Segue o modo claro ou escuro do Windows")),
+        BuiltIn(ThemeChoice.ClassicLight, L.Text("Clássico claro"), Included),
+        BuiltIn(ThemeChoice.ClassicDark, L.Text("Clássico escuro"), Included),
     ];
 
     /// <summary>Every theme there is to choose, the one in use first and then the last chosen.</summary>

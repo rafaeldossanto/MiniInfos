@@ -42,7 +42,7 @@ public static class PetAppearances
 
     private sealed class AthenaAppearance : IPetAppearance
     {
-        public string Name => "Coruja de Atena";
+        public string Name => L.Text("Coruja de Atena");
         public int FrameCount => PetSprites.FrameCount;
         public PetAnatomy Anatomy => PetAnatomy.Athena;
 

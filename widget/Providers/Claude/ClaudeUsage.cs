@@ -46,21 +46,21 @@ public sealed class ClaudeUsage : IUsageProvider
             new WindowLine(week, tokens.LongWindow),
             tokens.Today,
             tokens.Total,
-            "Dos históricos locais do Claude encontrados automaticamente.",
+            L.Text("Dos históricos locais do Claude encontrados automaticamente."),
             Activity(feed.Latest),
-            "Chat que respondeu por último",
-            feed.LimitsUpdated is { } updated ? $"atualizado {Format.Ago(updated, now)}" : "sem dados ainda",
-            "Atualizar agora. Os % mudam quando um chat do Claude Code recebe resposta.");
+            L.Text("Chat que respondeu por último"),
+            feed.LimitsUpdated is { } updated ? L.Format("atualizado {0}", Format.Ago(updated, now)) : L.Text("sem dados ainda"),
+            L.Text("Atualizar agora. Os % mudam quando um chat do Claude Code recebe resposta."));
     }
 
     public void Flush() => _ledger.Flush();
 
     private static string Activity(FeedEntry? latest)
     {
-        if (latest is null) return "Nenhum chat com o mod ainda";
+        if (latest is null) return L.Text("Nenhum chat com o mod ainda");
 
         var parts = new List<string> { ChatTitles.Of(latest) };
-        if (latest.Context?.Percent is { } fill) parts.Add($"contexto {Format.Percent(fill)}");
+        if (latest.Context?.Percent is { } fill) parts.Add(L.Format("contexto {0}", Format.Percent(fill)));
         if (latest.CostUsd is { } cost) parts.Add(Format.Cost(cost));
 
         return string.Join(" · ", parts);

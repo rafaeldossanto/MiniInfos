@@ -11,7 +11,7 @@
     <AssemblyName>MiniInfos</AssemblyName>
     <ApplicationIcon>Assets\MiniInfos.ico</ApplicationIcon>
     <!-- The one version: build.ps1 hands it to the installer, and the app tells it to codex. -->
-    <Version>1.14.1</Version>
+    <Version>1.15.0</Version>
     <!-- The source-generated P/Invoke in DesktopApps. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -35,6 +35,7 @@
     <Resource Include="Assets\Fonts\*.ttf" />
     <Content Include="Assets\Fonts\OFL*.txt" CopyToOutputDirectory="PreserveNewest" />
     <InternalsVisibleTo Include="MiniInfos.Tests" />
+    <EmbeddedResource Include="Localization\en.json" />
   </ItemGroup>
 
   <Import Project="..\installer\PublicationBoundary.targets" />

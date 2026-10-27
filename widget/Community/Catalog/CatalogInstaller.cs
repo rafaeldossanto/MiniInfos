@@ -9,7 +9,7 @@ public sealed class CatalogInstaller(HttpClient http, PackageLibrary library)
     public async Task<InstalledPackage> InstallAsync(CatalogSnapshot snapshot, CatalogEntry entry, CancellationToken cancellation)
     {
         snapshot.Index.Validate();
-        if (!snapshot.Index.Packages.Contains(entry)) throw new PackageException("O pacote não pertence à lista carregada.");
+        if (!snapshot.Index.Packages.Contains(entry)) throw new PackageException(L.Text("O pacote não pertence à lista carregada."));
         var bytes = await new GitHubReleaseClient(http).DownloadAsync(snapshot.Asset(entry.Asset), entry.Size,
             entry.Sha256, entry.Size, cancellation).ConfigureAwait(false);
         var temporary = Path.GetTempFileName();

@@ -1,11 +1,13 @@
 import './styles/base.css';
 import './styles/landing.css';
 import './styles/widget.css';
+import './styles/language.css';
 import './components/usage-widget';
 import { project } from './config';
 import { initTheme } from './theme/controller';
 import { initMotion } from './features/motion';
 import { initNavigation } from './features/navigation';
+import { initLanguage } from './localization/controller';
 
 document.querySelectorAll<HTMLAnchorElement>('[data-download]').forEach((link) => {
   link.href = project.download;
@@ -29,6 +31,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-card-theme]').forEach((butto
       .forEach((choice) => choice.setAttribute('aria-pressed', String(choice === button)));
   });
 });
+initLanguage();
 initTheme();
 initNavigation();
 initMotion();

@@ -40,6 +40,8 @@ public partial class MascotExampleWindow : DialogWindow
     public MascotExampleWindow()
     {
         InitializeComponent();
+        L.Current.Changed += OnLanguageChanged;
+        Closed += (_, _) => L.Current.Changed -= OnLanguageChanged;
         // Laid out once the window shows: the grid takes a moment, and the window says it is on its way.
         Ready = Dispatcher.InvokeAsync(ShowSheetAsync, DispatcherPriority.Background).Task.Unwrap();
     }
@@ -47,22 +49,31 @@ public partial class MascotExampleWindow : DialogWindow
     /// <summary>The grid and the manifest are on screen.</summary>
     public Task Ready { get; }
 
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        if (_sheet is not { } sheet) return;
+        RowLabels.Children.Clear();
+        foreach (var state in sheet.Tracks.OrderBy(pair => pair.Value.Row).Select(pair => pair.Key))
+            RowLabels.Children.Add(RowLabel(state));
+        ManifestText.Text = Excerpt(PackageTemplates.MascotManifest(sheet));
+    }
+
     /// <summary>Writes the model with the grid on screen, as "Salvar modelo" does after asking where.</summary>
     public async Task SaveTemplateAsync(string file)
     {
         if (_sheet is not { } sheet) return;
 
         SaveTemplateButton.IsEnabled = false;
-        Status.Text = "Salvando o modelo…";
+        Status.Text = L.Text("Salvando o modelo…");
         try
         {
             var draft = await PackageTemplates.MascotAsync(sheet);
             await Task.Run(() => PackageLibrary.Create(file, draft.Manifest, draft.Assets));
-            Status.Text = "Modelo salvo. Copie, renomeie para .zip, edite e adicione pelo + na página Mascote.";
+            Status.Text = L.Text("Modelo salvo. Copie, renomeie para .zip, edite e adicione pelo + na página Mascote.");
         }
         catch (Exception e) when (e is PackageException or IOException or UnauthorizedAccessException or ArgumentException)
         {
-            Status.Text = "Não foi possível salvar o modelo nesse lugar.";
+            Status.Text = L.Text("Não foi possível salvar o modelo nesse lugar.");
         }
         finally
         {
@@ -107,7 +118,7 @@ public partial class MascotExampleWindow : DialogWindow
             FontSize = 11,
             Margin = new Thickness(0, 6, 0, 0),
         });
-        var use = new TextBlock { Text = Uses[state], FontSize = 11 };
+        var use = new TextBlock { Text = L.Text(Uses[state]), FontSize = 11 };
         use.SetResourceReference(TextBlock.ForegroundProperty, "DimText");
         label.Children.Add(use);
         return label;
@@ -129,10 +140,10 @@ public partial class MascotExampleWindow : DialogWindow
     {
         var dialog = new SaveFileDialog
         {
-            Title = "Salvar o modelo de mascote",
-            Filter = "Pacote do MiniInfos (*.miniinfos)|*.miniinfos",
+            Title = L.Text("Salvar o modelo de mascote"),
+            Filter = L.Text("Pacote do MiniInfos (*.miniinfos)|*.miniinfos"),
             DefaultExt = ".miniinfos",
-            FileName = "meu-mascote.miniinfos",
+            FileName = L.Text("meu-mascote.miniinfos"),
         };
         if (dialog.ShowDialog(this) == true) await SaveTemplateAsync(dialog.FileName);
     }

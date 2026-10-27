@@ -21,7 +21,7 @@ public sealed class MascotPreviewCache(string root, Func<InstalledPackage, Bitma
 
     public async Task<BitmapSource?> GetBuiltInAsync(string? id)
     {
-        var appearance = PetAppearances.BuiltIn(id) ?? throw new PackageException("Mascote padrão não encontrado.");
+        var appearance = PetAppearances.BuiltIn(id) ?? throw new PackageException(L.Text("Mascote padrão não encontrado."));
         return await BuiltIns.GetOrAdd(appearance, pet => new(() => Task.Run(() =>
             PackagePreviews.Mascot(pet.Frame(PetState.Idle, 0))))).Value.ConfigureAwait(false);
     }
@@ -77,7 +77,7 @@ public sealed class MascotPreviewCache(string root, Func<InstalledPackage, Bitma
     {
         PackageValidation.Id(package.Id);
         if (package.Manifest.Kind != PackageKind.Mascot || !Version.TryParse(package.Manifest.Version, out _))
-            throw new PackageException("Prévia de mascote inválida.");
+            throw new PackageException(L.Text("Prévia de mascote inválida."));
         return Path.Combine(Root, $"{package.Id}-{package.Manifest.Version}.png");
     }
 

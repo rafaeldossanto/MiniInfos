@@ -1,6 +1,7 @@
 <UserControl x:Class="MiniInfos.UI.Controls.PageView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:MiniInfos.Localization"
              Width="262">
     <!-- One provider's page: the card shows one, or two side by side. -->
     <UserControl.Resources>
@@ -43,14 +44,14 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel x:Name="TodayBlock" Background="Transparent">
-                    <TextBlock Text="Tokens hoje" Style="{StaticResource Caption}" />
+                    <TextBlock Text="{loc:Text 'Tokens hoje'}" Style="{StaticResource Caption}" />
                     <!-- Reserve the same line height even when a long count scales down. -->
                     <Viewbox Height="34" StretchDirection="DownOnly" HorizontalAlignment="Left">
                         <TextBlock x:Name="TodayTokens" Text="—" Style="{StaticResource BigCount}" />
                     </Viewbox>
                 </StackPanel>
                 <StackPanel x:Name="TotalBlock" Grid.Column="1" Background="Transparent" Margin="8,0,0,0">
-                    <TextBlock Text="Tokens no total" Style="{StaticResource Caption}" />
+                    <TextBlock Text="{loc:Text 'Tokens no total'}" Style="{StaticResource Caption}" />
                     <Viewbox Height="34" StretchDirection="DownOnly" HorizontalAlignment="Left">
                         <TextBlock x:Name="TotalTokens" Text="—" Style="{StaticResource BigCount}" />
                     </Viewbox>
@@ -59,7 +60,7 @@
 
             <TextBlock x:Name="ChatText" Text="—" Style="{StaticResource Caption}" Margin="0,8,0,0" />
         </StackPanel>
-        <TextBlock x:Name="Reading" Text="Lendo o histórico…" Style="{StaticResource Caption}"
+        <TextBlock x:Name="Reading" Text="{loc:Text 'Lendo o histórico…'}" Style="{StaticResource Caption}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>
 </UserControl>

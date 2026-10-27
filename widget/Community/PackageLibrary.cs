@@ -69,9 +69,9 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
                 Extract(archive, staging);
                 var package = ReadSource(staging, decodeImages: true);
                 if (package.Manifest.Kind != expectedKind) throw new PackageException(expectedKind == PackageKind.Theme
-                    ? "Este é um pacote de mascote. Adicione-o na página Mascote." : "Este é um pacote de tema. Adicione-o na página Aparência.");
+                    ? L.Text("Este é um pacote de mascote. Adicione-o na página Mascote.") : L.Text("Este é um pacote de tema. Adicione-o na página Aparência."));
                 if ((expectedId is not null && package.Id != expectedId) || (expectedVersion is not null && package.Manifest.Version != expectedVersion))
-                    throw new PackageException("A identificação ou versão do pacote difere do catálogo.");
+                    throw new PackageException(L.Text("A identificação ou versão do pacote difere do catálogo."));
                 var destination = Location(expectedKind, package.Id);
                 Directory.CreateDirectory(KindFolder(expectedKind));
                 if (Directory.Exists(destination))
@@ -91,7 +91,7 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
                 return installed;
             }
             catch (Exception e) when (e is InvalidDataException or JsonException)
-            { throw new PackageException("Não foi possível ler o pacote. Confira o ZIP e seu manifest.json.", e); }
+            { throw new PackageException(L.Text("Não foi possível ler o pacote. Confira o ZIP e seu manifest.json."), e); }
             finally
             {
                 DeleteOwned(staging);
@@ -116,11 +116,11 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
         lock (_gate)
         {
             if (Path.GetFullPath(output).StartsWith(Path.TrimEndingDirectorySeparator(Root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                throw new PackageException("Escolha uma pasta de destino fora da biblioteca de pacotes instalados.");
-            var package = Find(kind, id) ?? throw new PackageException("O pacote não está mais instalado.");
+                throw new PackageException(L.Text("Escolha uma pasta de destino fora da biblioteca de pacotes instalados."));
+            var package = Find(kind, id) ?? throw new PackageException(L.Text("O pacote não está mais instalado."));
             var sources = PackageFiles.Enumerate(package.Directory).Take(MaxFiles + 1).Select(file => new FileInfo(file)).ToArray();
             if (sources.Length > MaxFiles || sources.Any(file => file.Length > 32 * 1024 * 1024) || sources.Sum(file => file.Length) > MaxBytes)
-                throw new PackageException("O pacote instalado excede os limites de exportação.");
+                throw new PackageException(L.Text("O pacote instalado excede os limites de exportação."));
             var files = sources.Select(info => info.FullName).Select(file =>
                 (Name: Path.GetRelativePath(package.Directory, file).Replace('\\', '/'), Bytes: File.ReadAllBytes(file))).ToArray();
             WriteArchive(output, files.ToDictionary(file => file.Name, file => file.Bytes, StringComparer.OrdinalIgnoreCase));
@@ -157,16 +157,16 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
     private static void Extract(string archive, string staging)
     {
         using var zip = ZipFile.OpenRead(archive);
-        if (zip.Entries.Count > MaxFiles) throw new PackageException("O pacote excede o limite de 128 arquivos.");
+        if (zip.Entries.Count > MaxFiles) throw new PackageException(L.Text("O pacote excede o limite de 128 arquivos."));
         long total = 0;
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in zip.Entries)
         {
             if (entry.FullName.EndsWith('/') || entry.FullName.EndsWith('\\')) continue;
             var relative = PackageFiles.Relative(entry.FullName);
-            if (!seen.Add(relative)) throw new PackageException("O pacote contém caminhos duplicados.");
+            if (!seen.Add(relative)) throw new PackageException(L.Text("O pacote contém caminhos duplicados."));
             if (entry.Length < 0 || entry.Length > 32 * 1024 * 1024 || entry.Length > MaxBytes - total)
-                throw new PackageException("O pacote excede o limite de 64 MB descompactados.");
+                throw new PackageException(L.Text("O pacote excede o limite de 64 MB descompactados."));
             total += entry.Length;
             var path = PackageFiles.Resolve(staging, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -178,7 +178,7 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
             while ((read = input.Read(buffer)) > 0)
             {
                 written += read;
-                if (written > entry.Length) throw new PackageException("Um arquivo excedeu o tamanho declarado pelo pacote.");
+                if (written > entry.Length) throw new PackageException(L.Text("Um arquivo excedeu o tamanho declarado pelo pacote."));
                 output.Write(buffer, 0, read);
             }
         }
@@ -189,14 +189,14 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
         try
         {
             var path = PackageFiles.Resolve(folder, "manifest.json");
-            if (!File.Exists(path)) throw new PackageException("O pacote precisa conter manifest.json na raiz do ZIP.");
-            if (new FileInfo(path).Length > 128 * 1024) throw new PackageException("O manifest.json excede 128 KB.");
+            if (!File.Exists(path)) throw new PackageException(L.Text("O pacote precisa conter manifest.json na raiz do ZIP."));
+            if (new FileInfo(path).Length > 128 * 1024) throw new PackageException(L.Text("O manifest.json excede 128 KB."));
             var manifest = JsonSerializer.Deserialize<PackageManifest>(File.ReadAllText(path), PackageManifest.Json)
-                ?? throw new PackageException("O manifest.json está vazio.");
+                ?? throw new PackageException(L.Text("O manifest.json está vazio."));
             PackageValidation.Validate(manifest, folder, decodeImages);
             return new(manifest, folder);
         }
-        catch (JsonException e) { throw new PackageException("O manifest.json não segue o formato de pacotes do MiniInfos.", e); }
+        catch (JsonException e) { throw new PackageException(L.Text("O manifest.json não segue o formato de pacotes do MiniInfos."), e); }
     }
 
     private string KindFolder(PackageKind kind) => Owned(Path.Combine(Root, kind == PackageKind.Theme ? "themes" : "mascots"));
@@ -205,13 +205,13 @@ public sealed class PackageLibrary(string root, MascotPreviewCache? previews = n
     {
         path = Path.GetFullPath(path);
         if (!path.StartsWith(Path.TrimEndingDirectorySeparator(Root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-            throw new PackageException("O caminho está fora da biblioteca de pacotes.");
+            throw new PackageException(L.Text("O caminho está fora da biblioteca de pacotes."));
         // Reject redirected folders before reading, replacing or removing a package.
         var check = Directory.Exists(path) ? path : Path.GetDirectoryName(path);
         while (check is not null)
         {
             if (Directory.Exists(check) && (File.GetAttributes(check) & FileAttributes.ReparsePoint) != 0)
-                throw new PackageException("A biblioteca de pacotes contém um link para outra pasta.");
+                throw new PackageException(L.Text("A biblioteca de pacotes contém um link para outra pasta."));
             if (check.Equals(Root, StringComparison.OrdinalIgnoreCase)) break;
             check = Path.GetDirectoryName(check);
         }

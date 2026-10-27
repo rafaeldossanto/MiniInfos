@@ -21,16 +21,27 @@ public sealed class TrayIcon : IDisposable
     public TrayIcon(CardSet cards)
     {
         _cards = cards;
-        _toggleItem = new Forms.ToolStripMenuItem("Mostrar", null, (_, _) => Toggle());
+        _toggleItem = new Forms.ToolStripMenuItem(L.Text("Mostrar"), null, (_, _) => Toggle());
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(_toggleItem);
-        menu.Items.Add("Atualizar agora", null, async (_, _) => await cards.ForceRefreshAsync());
-        menu.Items.Add("Voltar pro canto", null, (_, _) => cards.Main.BackToCorner());
-        menu.Items.Add("Configurações", null, (_, _) => cards.OpenSettings(cards.Main));
+        AddTranslated("Atualizar agora", async (_, _) => await cards.ForceRefreshAsync());
+        AddTranslated("Voltar pro canto", (_, _) => cards.Main.BackToCorner());
+        AddTranslated("Configurações", (_, _) => cards.OpenSettings(cards.Main));
         menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Sair do MiniInfos", null, (_, _) => cards.Quit());
-        menu.Opening += (_, _) => _toggleItem.Text = cards.IsVisible ? "Esconder" : "Mostrar";
+        AddTranslated("Sair do MiniInfos", (_, _) => cards.Quit());
+        menu.Opening += (_, _) =>
+        {
+            foreach (Forms.ToolStripItem item in menu.Items)
+                if (item.Tag is string source) item.Text = L.Text(source);
+            _toggleItem.Text = cards.IsVisible ? L.Text("Esconder") : L.Text("Mostrar");
+        };
+
+        void AddTranslated(string source, EventHandler action)
+        {
+            var item = menu.Items.Add(L.Text(source), null, action);
+            item.Tag = source;
+        }
 
         _icon = new Forms.NotifyIcon
         {

@@ -71,7 +71,7 @@ public partial class PageView : UserControl
         {
             percent.Text = "—";
             bar.Value = 0;
-            used.Show(line.Tokens.Total, value => $"{countText(value)} tokens nas {Format.WindowSpan(length)}");
+            used.Show(line.Tokens.Total, value => L.Format("{0} tokens nas {1}", countText(value), Format.WindowSpan(length)));
             return;
         }
 
