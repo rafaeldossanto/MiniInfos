@@ -1,0 +1,60 @@
+name: Front deploy
+
+# Publishes the landing page to the S3 bucket behind CloudFront (infra/site.yml). There are no AWS keys:
+# the job trades GitHub's OIDC token for a one-hour session of a role that only this repository's main
+# branch may assume and that can only write this bucket and refresh this distribution.
+on:
+  push:
+    branches: [main]
+    paths: ['front/**', '.github/workflows/front-deploy.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: front-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publicar a landing page
+    # Forks and other branches never get here, and the role's trust policy would refuse them anyway.
+    # Until the stack exists and its outputs are set in the repository, the job is skipped, not failed.
+    if: github.repository == 'rafaeldossanto/MiniInfos' && github.ref == 'refs/heads/main' && vars.SITE_BUCKET != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BUCKET: ${{ vars.SITE_BUCKET }}
+      DISTRIBUTION: ${{ vars.SITE_DISTRIBUTION_ID }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+      - run: npm ci --no-fund --no-audit
+        working-directory: front
+      - run: npm run check
+        working-directory: front
+
+      # Pinned by commit: a moved tag on this third-party action cannot change what runs with the role.
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: miniinfos-front-${{ github.run_id }}
+          aws-region: us-east-1
+          mask-aws-account-id: true
+
+      # Hashed bundles first and kept for a year; pages last, so a page never points at a file not yet there.
+      - name: Enviar os arquivos
+        working-directory: front/dist
+        run: |
+          aws s3 sync assets "s3://$BUCKET/assets" --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync . "s3://$BUCKET" --delete --exclude "assets/*" --exclude "*.html" --cache-control "public, max-age=86400"
+          aws s3 sync . "s3://$BUCKET" --delete --exclude "*" --include "*.html" --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Atualizar o cache do CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths "/*" --query 'Invalidation.Id' --output text

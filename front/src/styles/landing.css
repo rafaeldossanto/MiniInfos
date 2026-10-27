@@ -458,6 +458,13 @@
 }
 .appearance-grid .choice-group {
   margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: fit-content;
+  border-radius: 16px;
+}
+.appearance-grid > .section-heading {
+  min-width: 0;
 }
 .appearance-grid .micro-note {
   margin-top: 12px;
