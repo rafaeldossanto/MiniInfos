@@ -52,5 +52,6 @@ jobs:
           if ($env:TEST_FULL -eq 'true' -or $env:TEST_BASE -match '^0+$' -or -not $env:TEST_BASE) {
             ./tests/run.ps1 -All
           } else {
-            ./tests/run.ps1 -Base $env:TEST_BASE
+            # The front has Node and its own job in front.yml.
+            ./tests/run.ps1 -Base $env:TEST_BASE -SkipChecks
           }

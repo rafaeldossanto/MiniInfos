@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#181818" />
+    <title>MiniInfos — Seu uso de IA, sempre à vista</title>
+    <meta
+      name="description"
+      content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows. Personalize temas, fontes e mascotes."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MiniInfos — Seu uso de IA, sempre à vista" />
+    <meta
+      property="og:description"
+      content="Um pequeno espaço na sua tela. Uma visão clara dos seus tokens e limites."
+    />
+    <meta property="og:image" content="/art/social-preview.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/Manrope-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/Manrope-SemiBold.ttf" as="font" type="font/ttf" crossorigin />
+    <script>
+      try {
+        if (localStorage.getItem('miniinfos.site.theme') === 'light')
+          document.documentElement.dataset.theme = 'light';
+      } catch {}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <header class="site-header container">
+      <nav class="nav-island" aria-label="Navegação principal">
+        <a class="brand" href="/" aria-label="MiniInfos, início"
+          ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg
+          ><span>MiniInfos</span></a
+        >
+        <div class="desktop-links">
+          <a href="#recursos">Recursos</a><a href="#aparencia">Aparência</a
+          ><a href="#comunidade">Comunidade</a>
+        </div>
+        <a
+          class="button button-small nav-download"
+          data-download
+          href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
+          ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg>Baixar para Windows</a
+        >
+        <button
+          class="menu-toggle"
+          aria-label="Abrir menu"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <span></span><span></span>
+        </button>
+      </nav>
+      <div class="theme-switch" role="group" aria-label="Tema do site">
+        <button type="button" data-theme-choice="dark" aria-label="Tema escuro" aria-pressed="true">
+          <svg aria-hidden="true"><use href="/icons.svg#moon" /></svg><span>Escuro</span>
+        </button>
+        <button
+          type="button"
+          data-theme-choice="light"
+          aria-label="Tema claro"
+          aria-pressed="false"
+        >
+          <svg aria-hidden="true"><use href="/icons.svg#sun" /></svg><span>Claro</span>
+        </button>
+      </div>
+    </header>
+    <dialog class="mobile-menu" id="mobile-menu" aria-label="Menu principal">
+      <div class="mobile-menu-top">
+        <a class="brand" href="/">MiniInfos</a
+        ><button class="icon-button" data-menu-close aria-label="Fechar menu">
+          <svg aria-hidden="true"><use href="/icons.svg#close" /></svg>
+        </button>
+      </div>
+      <nav aria-label="Navegação móvel">
+        <a href="#recursos">Recursos</a><a href="#aparencia">Aparência</a
+        ><a href="#comunidade">Comunidade</a><a href="#duvidas">Dúvidas</a>
+      </nav>
+      <a
+        class="button"
+        data-download
+        href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
+        ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg>Baixar para Windows</a
+      >
+    </dialog>
+    <main id="conteudo">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-watermark" aria-hidden="true">MINIINFOS</div>
+        <div
+          class="hero-art"
+          role="img"
+          aria-label="Atena com elmo, espada e uma coruja, em uma gravura no escuro e uma escultura de mármore no claro"
+        >
+          <img
+            class="athena art-dark"
+            src="/art/athena-dark.webp"
+            alt=""
+            fetchpriority="high"
+            width="1024"
+            height="1536"
+          />
+          <img
+            class="athena art-light"
+            src="/art/athena-light.webp"
+            alt=""
+            fetchpriority="high"
+            width="1024"
+            height="1536"
+          />
+        </div>
+        <div class="hero-motto" aria-hidden="true">
+          Clareza<br />Disciplina<br />Liberdade<br />para criar<span></span>
+        </div>
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow" data-reveal>
+              Claude Code <span>·</span> Codex <span>·</span> Windows<i></i>
+            </p>
+            <h1 id="hero-title" data-reveal>Seu uso de IA,<br />sempre à vista.</h1>
+            <p class="hero-description" data-reveal>
+              Acompanhe tokens e limites do Claude e do Codex direto na sua área de trabalho.
+            </p>
+            <div class="hero-action" data-reveal>
+              <a
+                class="button button-primary"
+                data-download
+                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
+                ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg>Baixar para
+                Windows<svg class="button-arrow" aria-hidden="true">
+                  <use href="/icons.svg#arrow-up-right" /></svg
+              ></a>
+              <p class="micro-note">
+                <svg aria-hidden="true"><use href="/icons.svg#shield" /></svg>Leitura de registros
+                locais. Sem consumir tokens.
+              </p>
+            </div>
+            <ul class="hero-benefits" aria-label="Destaques" data-reveal>
+              <li>
+                <svg aria-hidden="true"><use href="/icons.svg#file" /></svg
+                ><span>Seus números,<br />em um só lugar</span>
+              </li>
+              <li>
+                <svg aria-hidden="true"><use href="/icons.svg#palette" /></svg
+                ><span>Temas<br />e mascotes</span>
+              </li>
+              <li>
+                <svg aria-hidden="true"><use href="/icons.svg#eye" /></svg
+                ><span>Sempre<br />à vista</span>
+              </li>
+            </ul>
+          </div>
+          <div class="hero-widget" data-reveal>
+            <usage-widget
+              appearance="classic"
+              aria-label="Demonstração do MiniInfos com Claude e Codex lado a lado"
+            ></usage-widget>
+          </div>
+        </div>
+      </section>
+      <section class="tagline-section" aria-label="Mais clareza para criar">
+        <div class="container tagline-grid">
+          <span class="section-index">01 <i></i></span>
+          <h2 class="tagline">
+            <span data-tagline-line>Menos surpresas.</span
+            ><span data-tagline-line>Mais espaço para criar.</span>
+          </h2>
+          <p>
+            Veja seu consumo enquanto trabalha.<br />Mantenha a atenção no que realmente importa.
+          </p>
+        </div>
+      </section>
+      <section class="section container" id="recursos" aria-labelledby="resources-title">
+        <div class="section-heading" data-reveal>
+          <p class="eyebrow">Pequeno na tela. Claro no que importa.</p>
+          <h2 id="resources-title">O contexto que faltava<br />no seu canto da tela.</h2>
+          <p>
+            Seus limites, suas sessões e os tokens usados. Tudo perto de você, sem interromper o
+            trabalho.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card" data-reveal>
+            <div class="feature-visual limits-visual" aria-hidden="true">
+              <div class="mini-meter">
+                <span>Janela 5h<b>51%</b></span
+                ><i><em style="--fill: 51%"></em></i>
+              </div>
+              <div class="mini-meter">
+                <span>Semanal<b>9%</b></span
+                ><i><em style="--fill: 9%"></em></i>
+              </div>
+              <span class="visual-caption">Reinicia em 3h 8min</span>
+            </div>
+            <span class="feature-number">01 / Limites</span>
+            <h3>Saiba quanto ainda cabe.</h3>
+            <p>
+              Acompanhe as janelas de cinco horas e semanal, com os percentuais e o tempo até
+              reiniciar.
+            </p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-visual tokens-visual" aria-hidden="true">
+              <span>Tokens hoje</span><strong>128<span>M</span></strong>
+              <div class="token-lines">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <span class="visual-caption">Um olhar para o seu uso</span>
+            </div>
+            <span class="feature-number">02 / Tokens</span>
+            <h3>Veja os números de perto.</h3>
+            <p>
+              Do resumo ao detalhamento, acompanhe os tokens de hoje, o total e o contexto da sessão
+              atual.
+            </p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-visual split-visual" aria-hidden="true">
+              <div>
+                <svg><use href="/icons.svg#ai" /></svg><span>Claude</span><i></i><i></i>
+              </div>
+              <div>
+                <svg><use href="/icons.svg#ai" /></svg><span>Codex</span><i></i><i></i>
+              </div>
+            </div>
+            <span class="feature-number">03 / Seu espaço</span>
+            <h3>Organize do seu jeito.</h3>
+            <p>
+              Uma IA por vez, as duas lado a lado ou janelas separadas. Arraste o cartão para onde
+              fizer sentido.
+            </p>
+          </article>
+        </div>
+        <p class="micro-note feature-demo-note">Prévias com dados de demonstração.</p>
+      </section>
+      <section class="section appearance-section" id="aparencia" aria-labelledby="appearance-title">
+        <div class="container appearance-grid">
+          <div class="section-heading" data-reveal>
+            <p class="eyebrow">Seu espaço também tem personalidade.</p>
+            <h2 id="appearance-title">Discreto quando precisa.<br />Seu, o tempo todo.</h2>
+            <p>
+              Escolha a aparência do cartão, ajuste as fontes e leve uma companhia para a sua área
+              de trabalho.
+            </p>
+            <div class="choice-group" role="group" aria-label="Aparência do cartão de demonstração">
+              <button type="button" data-card-theme="simple" aria-pressed="false">Simples</button
+              ><button type="button" data-card-theme="classic" aria-pressed="true">Clássico</button
+              ><button type="button" data-card-theme="light" aria-pressed="false">Claro</button>
+            </div>
+            <p class="micro-note">Experimente os temas no cartão ao lado.</p>
+          </div>
+          <div class="personalization-stage" data-reveal>
+            <span class="stage-label">O seu MiniInfos</span
+            ><usage-widget
+              appearance="classic"
+              compact
+              aria-label="Prévia interativa dos temas do cartão"
+            ></usage-widget>
+            <div
+              class="pet-sprite"
+              role="img"
+              aria-label="Coruja de Atena, mascote opcional do MiniInfos"
+            ></div>
+            <span class="pet-caption">Uma pequena companhia.<br />Só se você quiser.</span>
+          </div>
+        </div>
+      </section>
+      <section class="section container" id="comunidade" aria-labelledby="community-title">
+        <div class="community-grid">
+          <div class="community-copy section-heading" data-reveal>
+            <p class="eyebrow">Feito para ganhar novas formas.</p>
+            <h2 id="community-title">Um MiniInfos.<br />Muitas possibilidades.</h2>
+            <p>
+              Instale temas e mascotes da comunidade ou crie os seus. Seus favoritos ficam na
+              biblioteca, prontos para escolher.
+            </p>
+            <a
+              class="text-link"
+              href="https://github.com/rafaeldossanto/MiniInfos/tree/main/marketplace"
+              data-community
+              >Conheça os pacotes da comunidade<svg aria-hidden="true">
+                <use href="/icons.svg#arrow-up-right" /></svg
+            ></a>
+          </div>
+          <div class="community-art" data-reveal aria-hidden="true">
+            <div class="swatch-card">
+              <svg><use href="/icons.svg#palette" /></svg><span>Uma paleta sua.</span>
+              <div class="swatches"><i></i><i></i><i></i><i></i></div>
+            </div>
+            <div class="companion-card">
+              <svg><use href="/icons.svg#owl" /></svg><span>Uma companhia sua.</span
+              ><small>Temas + mascotes</small>
+            </div>
+            <span class="community-note">Personalização que continua com a comunidade.</span>
+          </div>
+        </div>
+      </section>
+      <section class="section how-section" aria-labelledby="how-title">
+        <div class="container">
+          <div class="section-heading" data-reveal>
+            <p class="eyebrow">Sem complicar o seu fluxo.</p>
+            <h2 id="how-title">Baixe. Abra. Continue criando.</h2>
+          </div>
+          <ol class="steps">
+            <li data-reveal>
+              <span>01</span>
+              <h3>Instale no Windows.</h3>
+              <p>Baixe o instalador oficial do MiniInfos pela última versão publicada no GitHub.</p>
+            </li>
+            <li data-reveal>
+              <span>02</span>
+              <h3>Deixe os apps por perto.</h3>
+              <p>O MiniInfos procura os registros do Claude Code e do Codex no seu computador.</p>
+            </li>
+            <li data-reveal>
+              <span>03</span>
+              <h3>Encontre o seu canto.</h3>
+              <p>Posicione o cartão, escolha a aparência e acompanhe seu uso enquanto trabalha.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+      <section class="section container faq-section" id="duvidas" aria-labelledby="faq-title">
+        <div class="section-heading" data-reveal>
+          <p class="eyebrow">Antes de colocar no seu canto.</p>
+          <h2 id="faq-title">Algumas respostas.</h2>
+        </div>
+        <div class="faq-list" data-reveal>
+          <details>
+            <summary>
+              O MiniInfos funciona em qual sistema?<svg aria-hidden="true">
+                <use href="/icons.svg#plus" />
+              </svg>
+            </summary>
+            <p>
+              O aplicativo é feito para Windows. O botão de download abre o instalador da última
+              versão publicada no repositório do projeto.
+            </p>
+          </details>
+          <details>
+            <summary>
+              O MiniInfos é uma IA ou gasta tokens?<svg aria-hidden="true">
+                <use href="/icons.svg#plus" />
+              </svg>
+            </summary>
+            <p>
+              Não. Ele acompanha os dados de uso dos aplicativos. O MiniInfos não conversa com
+              modelos de IA nem gera consumo de tokens para mostrar os números.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Ele conta as conversas feitas no navegador?<svg aria-hidden="true">
+                <use href="/icons.svg#plus" />
+              </svg>
+            </summary>
+            <p>
+              As contagens de tokens vêm dos registros locais do Claude Code e do Codex. Elas não
+              representam todas as conversas dos sites Claude ou ChatGPT. Os limites de uso da conta
+              aparecem conforme os dados disponíveis em cada aplicativo.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Preciso colocar uma chave de API no site?<svg aria-hidden="true">
+                <use href="/icons.svg#plus" />
+              </svg>
+            </summary>
+            <p>
+              Não. Esta página só apresenta o MiniInfos e leva ao download. O aplicativo usa os
+              registros locais e as integrações dos provedores no seu computador.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Os dados dos meus chats passam por este site?<svg aria-hidden="true">
+                <use href="/icons.svg#plus" />
+              </svg>
+            </summary>
+            <p>
+              Não. Esta página não recebe registros dos seus chats. No aplicativo, as contagens são
+              lidas no computador; consultas de limites e atualizações são feitas pelos serviços
+              correspondentes.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Posso adicionar meus próprios temas e mascotes?<svg aria-hidden="true">
+                <use href="/icons.svg#plus" />
+              </svg>
+            </summary>
+            <p>
+              Sim. As configurações permitem importar pacotes locais e escolher itens da comunidade.
+              O guia do repositório explica como criar e compartilhar um pacote.
+            </p>
+          </details>
+        </div>
+      </section>
+      <section class="final-section" aria-labelledby="download-title">
+        <div class="container final-inner" data-reveal>
+          <svg class="final-owl" aria-hidden="true"><use href="/icons.svg#owl" /></svg>
+          <p class="eyebrow">Uma ferramenta pequena. Um pouco mais de clareza.</p>
+          <h2 id="download-title">Seu próximo projeto.<br />Seus tokens à vista.</h2>
+          <a
+            class="button button-primary"
+            data-download
+            href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
+            ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg>Baixar para Windows<svg
+              class="button-arrow"
+              aria-hidden="true"
+            >
+              <use href="/icons.svg#arrow-up-right" /></svg
+          ></a>
+          <p class="micro-note">Download direto pelo GitHub. Sem cadastro neste site.</p>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer container">
+      <div class="footer-top">
+        <a class="brand" href="/"
+          ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg
+          >MiniInfos</a
+        >
+        <nav aria-label="Links do projeto">
+          <a href="https://github.com/rafaeldossanto/MiniInfos" data-repository
+            >Código no GitHub<svg aria-hidden="true">
+              <use href="/icons.svg#arrow-up-right" /></svg></a
+          ><a href="/privacidade.html">Privacidade</a><a href="/termos.html">Termos de uso</a>
+        </nav>
+        <span>© <span data-year>2026</span> MiniInfos</span>
+      </div>
+      <p class="brand-notice">
+        MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic ou da
+        OpenAI. Claude, Codex e ChatGPT são marcas de seus respectivos titulares e aparecem apenas
+        para identificar compatibilidade.
+      </p>
+    </footer>
+    <p class="sr-only" role="status" aria-live="polite" id="theme-status"></p>
+  </body>
+</html>

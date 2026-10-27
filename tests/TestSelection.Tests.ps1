@@ -43,7 +43,11 @@ Assert-Selection ($mod.Mod -and $mod.Domains.Count -eq 0) 'Mod selecionou testes
 Assert-Selection ((Get-TestSelection -Paths @('.claude-plugin/marketplace.json')).Mod) 'Marketplace não selecionou o mod'
 Assert-Selection ((Get-TestSelection -Paths @('.gitignore')).Domains.Count -eq 0) 'Gitignore selecionou testes'
 $front = Get-TestSelection -Paths @('front/index.html', 'front/assets/athena.png')
-Assert-Selection ($front.Domains.Count -eq 0 -and -not $front.All -and -not $front.Mod) 'Landing page selecionou testes do app'
+Assert-Selection (($front.Domains -join ',') -eq 'Front' -and -not $front.All -and -not $front.Filter -and $front.Suites.Count -eq 0 -and -not $front.Mod) 'Landing page selecionou testes do app'
+Assert-Selection ($front.Checks.Count -eq 1 -and $front.Checks[0].Command -eq 'npm') 'Landing page perdeu sua checagem própria'
+$mixedFront = Get-TestSelection -Paths @('front/index.html', 'widget/Mascot/PetInteraction.cs')
+Assert-Selection ($mixedFront.Filter -eq $pet.Filter -and ($mixedFront.Suites -join ',') -eq 'Mascot' -and $mixedFront.Checks.Count -eq 1) 'Front ampliou o filtro dos testes do app'
+Assert-Selection ((Get-TestSelection -All).Checks.Count -eq 0) 'Regressão do app acionou o front sem mudanças'
 
 $unknown = Get-TestSelection -Paths @('widget/NewFeature/NewFile.cs')
 Assert-Selection ($unknown.All) 'Código sem regra foi ignorado'
@@ -53,4 +57,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 21 cenários passaram.'
+Write-Host 'Seleção de testes: 24 cenários passaram.'

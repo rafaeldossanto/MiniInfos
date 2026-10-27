@@ -1,6 +1,7 @@
 ﻿@{
     # One map for local runs and CI. Rules use the first matching path, most specific first.
     Domains = @{
+        Front = @{ Filter = ''; Suite = ''; Check = @{ Command = 'npm'; Arguments = @('--prefix', 'front', 'run', 'check') } }
         CatalogTool = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.CatalogToolTests'; Suite = '' }
         Community = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.'; Suite = 'Community' }
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
@@ -21,8 +22,8 @@
     Rules = @(
         @{ Path = '*.md'; Ignore = $true }
         @{ Path = '.gitignore'; Ignore = $true }
-        # The landing page: no app tests until it has code and a domain of its own.
-        @{ Path = 'front/*'; Ignore = $true }
+        @{ Path = 'front/*'; Domains = @('Front') }
+        @{ Path = '.github/workflows/front.yml'; Domains = @('Front') }
         @{ Path = 'tools/MiniInfos.Catalog/*'; Domains = @('CatalogTool') }
         @{ Path = 'widget/Community/*'; Domains = @('Community', 'Themes', 'Mascot', 'Settings') }
         @{ Path = 'marketplace/*'; Domains = @('CatalogTool') }

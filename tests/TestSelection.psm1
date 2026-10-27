@@ -27,9 +27,14 @@ function Get-TestSelection {
             }
         }
     }
-    if ($full) { foreach ($domain in $catalogue.Domains.Keys) { [void]$selected.Add($domain) } }
+    # Full .NET regression does not opt independent applications into unrelated checks.
+    if ($full) {
+        foreach ($domain in $catalogue.Domains.Keys) {
+            if (-not $catalogue.Domains[$domain].ContainsKey('Check')) { [void]$selected.Add($domain) }
+        }
+    }
     $names = @($selected | Sort-Object)
-    $filters = @($names | ForEach-Object { $catalogue.Domains[$_].Filter } | Sort-Object -Unique)
+    $filters = @($names | ForEach-Object { $catalogue.Domains[$_].Filter } | Where-Object { $_ } | Sort-Object -Unique)
     $suites = @($names | ForEach-Object { $catalogue.Domains[$_].Suite } | Where-Object { $_ } | Sort-Object -Unique)
     [pscustomobject]@{
         Domains = $names
@@ -37,6 +42,10 @@ function Get-TestSelection {
         Filter = if ($full) { '' } else { $filters -join '|' }
         Suites = if ($full) { @('All') } else { $suites }
         Mod = $mod
+        Checks = @($names | ForEach-Object {
+            $definition = $catalogue.Domains[$_]
+            if ($definition.ContainsKey('Check')) { $definition.Check }
+        })
         Unmapped = $unmapped
     }
 }
