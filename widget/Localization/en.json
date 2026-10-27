@@ -169,7 +169,7 @@
   "Sem novos tokens há alguns minutos": "No new tokens for a few minutes",
   "Tokens aumentaram recentemente": "Token usage increased recently",
   "Exemplo de mascote": "Mascot example",
-  "Um mascote é uma imagem PNG em grade: cada linha é um estado e cada coluna é um quadro da animação. Este é o modelo da Coruja de Atena. Salve o modelo, desenhe sua personagem por cima mantendo a grade e adicione pelo + na página Mascote.": "A mascot is a PNG sprite sheet: each row is a state and each column is an animation frame. This is the Athena's owl template. Save it, draw your character over it while keeping the grid, then add it with + on the Mascot page.",
+  "Um mascote é uma imagem PNG em grade: cada linha é um estado e cada coluna é um quadro da animação. Este é o modelo da Coruja de Atena. Salve o modelo, desenhe sua personagem por cima mantendo a grade e adicione pelo + na página Mascote.": "A mascot is a PNG sprite sheet: each row is a state and each column is an animation frame. This is the template for Athena's owl. Save it, draw your character over it while keeping the grid, then add it with + on the Mascot page.",
   "Um trecho com dois estados. O modelo salvo traz todos os estados, as durações de cada quadro e a anatomia usada pela física.": "A sample with two states. The saved template includes all states, frame durations and the anatomy used by the physics.",
   "Salvar modelo": "Save template",
   "Salva um .miniinfos com a grade, o manifesto e as instruções": "Save a .miniinfos package with the sprite sheet, manifest and instructions",

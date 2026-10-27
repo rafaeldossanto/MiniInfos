@@ -161,6 +161,10 @@
   line-height: 1;
   letter-spacing: -0.065em;
   margin-top: 24px;
+  /* The gradient only paints inside the box and line-height 1 leaves descenders (g, p, y) below it:
+     the padding gives them paint, the negative margin keeps the text below where it was. */
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
   white-space: nowrap;
   background: linear-gradient(100deg, #fff, #a7a69f);
   background-clip: text;

@@ -65,8 +65,8 @@ class UsageWidget extends HTMLElement {
             (provider) => `
           <section class="provider" data-provider="${provider.id}" aria-label="${provider.name}">
             <h3>${icon('ai')}${provider.name}</h3>
-            ${this.meter('Janela 5h', provider.short, compactNumber(provider.shortTokens) + ' tokens · ' + t('reinicia em {time}', { time: provider.reset }))}
-            ${this.meter('Semanal', provider.week, compactNumber(provider.weekTokens) + ' tokens · ' + t('reinicia em {time}', { time: provider.weekReset }))}
+            ${this.meter('Janela 5h', provider.short, provider.shortTokens, provider.reset)}
+            ${this.meter('Semanal', provider.week, provider.weekTokens, provider.weekReset)}
             <div class="widget-totals">
               <div><span>${t('Tokens hoje')}</span><strong>${compactNumber(provider.today)}</strong></div>
               <div><span>${t('Tokens no total')}</span><strong>${compactNumber(provider.total)}</strong></div>
@@ -93,13 +93,14 @@ class UsageWidget extends HTMLElement {
     if (animate) this.reveal();
   }
 
-  private meter(source: string, value: number, detail: string) {
+  /** Tokens and reset are kept whole, so a narrow column breaks the line only between them. */
+  private meter(source: string, value: number, tokens: number, reset: string) {
     const label = t(source);
     return `<div class="widget-meter">
       <div><span>${label}</span><b>${value}%</b></div>
       <div class="widget-track" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}">
         <span style="--fill:${value}%"></span>
-      </div><p>${detail}</p></div>`;
+      </div><p><span>${compactNumber(tokens)} tokens</span> · <span>${t('reinicia em {time}', { time: reset })}</span></p></div>`;
   }
 
   private selectView(view: View) {
