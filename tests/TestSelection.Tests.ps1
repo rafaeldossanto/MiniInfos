@@ -15,6 +15,8 @@ Assert-Selection (((Get-TestSelection -Paths @('tests/MiniInfos.UiCheck/Provider
 
 $theme = Get-TestSelection -Paths @('widget/UI/Themes/Classic.xaml')
 Assert-Selection (($theme.Suites -join ',') -eq 'Themes') 'Tema selecionou cenários não relacionados'
+$banners = Get-TestSelection -Paths @('widget/Assets/athena-banner-dark.png', 'widget/Assets/athena-banner-light.png')
+Assert-Selection (($banners.Domains -join ',') -eq 'Themes' -and -not $banners.All) 'Artes de Atena selecionaram outros domínios'
 $community = Get-TestSelection -Paths @('widget/Community/PackageLibrary.cs')
 Assert-Selection (($community.Domains -join ',') -eq 'Community,Mascot,Settings,Themes') 'Pacotes perderam consumidores ou selecionaram provedores não relacionados'
 
@@ -57,4 +59,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 24 cenários passaram.'
+Write-Host 'Seleção de testes: 25 cenários passaram.'

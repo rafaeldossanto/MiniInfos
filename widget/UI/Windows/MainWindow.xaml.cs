@@ -164,7 +164,12 @@ public partial class MainWindow : Window
         _kind = kind;
         InitializeComponent();
         // The artwork's rounded top, inside the card's 1-pixel border: the clip runs past the bottom so only the top corners round.
-        HeaderArt.SizeChanged += (_, e) => HeaderArt.Clip = new RectangleGeometry(new Rect(0, 0, e.NewSize.Width, e.NewSize.Height + ArtCornerRadius), ArtCornerRadius, ArtCornerRadius);
+        HeaderArt.SizeChanged += (_, e) =>
+        {
+            var inset = HeaderArt.Tag is true;
+            var radius = inset ? 8 : ArtCornerRadius;
+            HeaderArt.Clip = new RectangleGeometry(new Rect(0, 0, e.NewSize.Width, e.NewSize.Height + (inset ? 0 : radius)), radius, radius);
+        };
         ShowTitle();
         ThemeManager.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;

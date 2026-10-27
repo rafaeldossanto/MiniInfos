@@ -20,6 +20,7 @@ public static class CommunityTheme
         }
         if (definition.HeaderImage is { } image)
         {
+            resources["HeaderArtworkInset"] = false;
             resources["HeaderArtwork"] = PackageImages.Load(PackageFiles.Resolve(package.Directory, image));
             resources["HeaderArtworkVisibility"] = Visibility.Visible;
             resources["HeaderHeight"] = definition.HeaderHeight;

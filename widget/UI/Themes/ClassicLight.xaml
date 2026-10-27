@@ -1,0 +1,24 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Light.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <!-- The light classical edition: marble, warm paper and stone accents. -->
+    <SolidColorBrush x:Key="CardBackground" Color="#F3EFE7" />
+    <SolidColorBrush x:Key="CardBorder" Color="#B9B3A8" />
+    <SolidColorBrush x:Key="PrimaryText" Color="#23262C" />
+    <SolidColorBrush x:Key="DimText" Color="#6C6962" />
+    <SolidColorBrush x:Key="Divider" Color="#D2CDC4" />
+    <SolidColorBrush x:Key="Track" Color="#DDD8D0" />
+    <SolidColorBrush x:Key="MenuBackground" Color="#F3EFE7" />
+    <SolidColorBrush x:Key="MenuBorder" Color="#C6BFB3" />
+    <SolidColorBrush x:Key="MenuHighlight" Color="#E6E0D6" />
+    <SolidColorBrush x:Key="Accent" Color="#8D877D" />
+    <SolidColorBrush x:Key="AccentText" Color="#FFFFFF" />
+    <sys:Double x:Key="HeaderHeight">128</sys:Double>
+    <sys:Double x:Key="HeaderTitleSize">14</sys:Double>
+    <sys:Boolean x:Key="HeaderArtworkInset">True</sys:Boolean>
+    <Visibility x:Key="HeaderArtworkVisibility">Visible</Visibility>
+    <BitmapImage x:Key="HeaderArtwork" UriSource="pack://application:,,,/MiniInfos;component/Assets/athena-banner-light.png" />
+</ResourceDictionary>
