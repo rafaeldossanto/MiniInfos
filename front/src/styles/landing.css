@@ -255,7 +255,7 @@
   text-transform: uppercase;
   opacity: 0.5;
 }
-.hero-motto span {
+.hero-motto > span:last-child {
   display: block;
   height: 1px;
   width: 32px;

@@ -2,6 +2,7 @@
     # One map for local runs and CI. Rules use the first matching path, most specific first.
     Domains = @{
         Front = @{ Filter = ''; Suite = ''; Check = @{ Command = 'npm'; Arguments = @('--prefix', 'front', 'run', 'check') } }
+        Localization = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Localization.|FullyQualifiedName~MiniInfos.Tests.Settings.|FullyQualifiedName~MiniInfos.Tests.UI.Formatting.'; Suite = 'Localization' }
         CatalogTool = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.CatalogToolTests'; Suite = '' }
         Community = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.'; Suite = 'Community' }
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
@@ -23,6 +24,11 @@
         @{ Path = '*.md'; Ignore = $true }
         @{ Path = '.gitignore'; Ignore = $true }
         @{ Path = 'front/*'; Domains = @('Front') }
+        @{ Path = 'widget/Localization/*'; Domains = @('Localization') }
+        @{ Path = 'widget/Settings/LanguageChoice.cs'; Domains = @('Localization') }
+        @{ Path = 'widget/UI/Windows/SettingsWindow.Language.cs'; Domains = @('Localization') }
+        @{ Path = 'tests/MiniInfos.Tests/Localization/*'; Domains = @('Localization') }
+        @{ Path = 'tests/MiniInfos.UiCheck/Localization/*'; Domains = @('Localization') }
         @{ Path = '.github/workflows/front.yml'; Domains = @('Front') }
         @{ Path = '.github/workflows/front-deploy.yml'; Domains = @('Front') }
         @{ Path = 'infra/*'; Domains = @('Front') }

@@ -27,7 +27,12 @@ public partial class ThemeLibraryWindow : DialogWindow
         _showCommunity = showCommunity;
         InitializeComponent();
         preferences.PropertyChanged += OnPreferenceChanged;
-        Closed += (_, _) => preferences.PropertyChanged -= OnPreferenceChanged;
+        L.Current.Changed += OnLanguageChanged;
+        Closed += (_, _) =>
+        {
+            preferences.PropertyChanged -= OnPreferenceChanged;
+            L.Current.Changed -= OnLanguageChanged;
+        };
         ShowThemes();
     }
 
@@ -69,7 +74,7 @@ public partial class ThemeLibraryWindow : DialogWindow
         foreach (var (key, card, use) in _cards)
         {
             var inUse = key == _preferences.ThemeKey;
-            use.Content = inUse ? "Em uso" : "Usar";
+            use.Content = inUse ? L.Text("Em uso") : L.Text("Usar");
             use.IsEnabled = !inUse;
             card.SetResourceReference(Border.BorderBrushProperty, inUse ? "SelectedBorder" : "Divider");
         }
@@ -79,6 +84,8 @@ public partial class ThemeLibraryWindow : DialogWindow
     {
         if (e.PropertyName is nameof(Preferences.Theme) or nameof(Preferences.CommunityThemeId)) ShowInUse();
     }
+
+    private void OnLanguageChanged(object? sender, EventArgs e) => ShowThemes();
 
     private void OnShowCommunity(object sender, RoutedEventArgs e)
     {

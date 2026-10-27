@@ -30,7 +30,7 @@ public partial class SettingsWindow
     }
 
     /// <summary>Lays out what is installed again: the theme row and library, and the mascot gallery.</summary>
-    public void RefreshCommunity()
+    public void RefreshCommunity(bool refreshLibraries = true)
     {
         _petLibraryRevision++;
         _showingCommunity = true;
@@ -41,7 +41,8 @@ public partial class SettingsWindow
             ShowCommunitySelection();
         }
         finally { _showingCommunity = false; }
-        foreach (var library in OwnedWindows.OfType<ThemeLibraryWindow>()) library.ShowThemes();
+        if (refreshLibraries)
+            foreach (var library in OwnedWindows.OfType<ThemeLibraryWindow>()) library.ShowThemes();
     }
 
     private void BuildPetChoices()
@@ -52,7 +53,7 @@ public partial class SettingsWindow
         AthenaPet.Content = PetThumbnail(null);
         panel.Children.Add(AthenaPet);
         foreach (var builtin in PetAppearances.BuiltIns.Where(pet => pet.Id is not null))
-            panel.Children.Add(PetChoice(PetThumbnail(null, builtin.Id), builtin.Id!, builtin.Appearance.Name, builtin.Appearance.Name + " · Incluído no MiniInfos"));
+            panel.Children.Add(PetChoice(PetThumbnail(null, builtin.Id), builtin.Id!, builtin.Appearance.Name, builtin.Appearance.Name + L.Text(" · Incluído no MiniInfos")));
         foreach (var package in PackageLibrary.Shared.List(PackageKind.Mascot))
             panel.Children.Add(PetChoice(PetThumbnail(package), package.Id, package.Name, $"{package.Name}\n{package.Attribution}"));
     }
@@ -116,7 +117,7 @@ public partial class SettingsWindow
     private async Task ImportPackage(PackageKind kind)
     {
         if (_packageBusy) return;
-        var dialog = new OpenFileDialog { Title = kind == PackageKind.Theme ? "Adicionar tema" : "Adicionar mascote", Filter = "Pacotes do MiniInfos (*.miniinfos;*.zip)|*.miniinfos;*.zip" };
+        var dialog = new OpenFileDialog { Title = kind == PackageKind.Theme ? L.Text("Adicionar tema") : L.Text("Adicionar mascote"), Filter = L.Text("Pacotes do MiniInfos (*.miniinfos;*.zip)|*.miniinfos;*.zip") };
         if (dialog.ShowDialog(this) != true) return;
         await ImportPackageAsync(dialog.FileName, kind);
     }
@@ -131,7 +132,7 @@ public partial class SettingsWindow
         {
             var package = await Task.Run(() => PackageLibrary.Shared.Install(file, kind));
             SelectPackage(package);
-            Status(kind).Text = $"{package.Name} instalado · {package.Attribution}";
+            Status(kind).Text = L.Format("{0} instalado · {1}", package.Name, package.Attribution);
         });
     }
 
@@ -156,7 +157,7 @@ public partial class SettingsWindow
     private async Task ExportPackage(PackageKind kind)
     {
         if (_packageBusy) return;
-        var dialog = new SaveFileDialog { Title = "Exportar pacote para compartilhar ou editar", Filter = "Pacote do MiniInfos (*.miniinfos)|*.miniinfos", DefaultExt = ".miniinfos", FileName = kind == PackageKind.Theme ? "meu-tema.miniinfos" : "meu-mascote.miniinfos" };
+        var dialog = new SaveFileDialog { Title = L.Text("Exportar pacote para compartilhar ou editar"), Filter = L.Text("Pacote do MiniInfos (*.miniinfos)|*.miniinfos"), DefaultExt = ".miniinfos", FileName = L.Text(kind == PackageKind.Theme ? "meu-tema.miniinfos" : "meu-mascote.miniinfos") };
         if (dialog.ShowDialog(this) != true) return;
         await ExportPackageAsync(dialog.FileName, kind);
     }
@@ -178,7 +179,7 @@ public partial class SettingsWindow
                     : await PackageTemplates.MascotAsync(appearance: PetAppearances.Load(_preferences.PetId));
                 await Task.Run(() => PackageLibrary.Create(file, draft.Manifest, draft.Assets));
             }
-            Status(kind).Text = "Pacote exportado. Para criar sua versão, edite o manifest.json e as imagens antes de compartilhar.";
+            Status(kind).Text = L.Text("Pacote exportado. Para criar sua versão, edite o manifest.json e as imagens antes de compartilhar.");
         });
     }
 
@@ -199,7 +200,7 @@ public partial class SettingsWindow
             if (kind == PackageKind.Theme) _preferences.CommunityThemeId = null;
             else _preferences.PetId = null;
             RefreshCommunity();
-            Status(kind).Text = "Pacote removido.";
+            Status(kind).Text = L.Text("Pacote removido.");
         }
         catch (Exception e) when (PackageError(e)) { Status(kind).Text = e.Message; }
     }
@@ -210,9 +211,9 @@ public partial class SettingsWindow
         ThemeChoices.IsEnabled = CommunityPetChoices.IsEnabled = AthenaPet.IsEnabled = PetToggle.IsEnabled = false;
         AddThemePackage.IsEnabled = AddPetPackage.IsEnabled = ExportThemePackage.IsEnabled = ExportPetPackage.IsEnabled = false;
         ShowCommunitySelection();
-        Status(kind).Text = "Preparando pacote…";
+        Status(kind).Text = L.Text("Preparando pacote…");
         try { await action(); }
-        catch (Exception e) when (PackageError(e)) { Status(kind).Text = e is PackageException ? e.Message : "Não foi possível acessar o pacote ou o arquivo de destino."; }
+        catch (Exception e) when (PackageError(e)) { Status(kind).Text = e is PackageException ? e.Message : L.Text("Não foi possível acessar o pacote ou o arquivo de destino."); }
         finally
         {
             _packageBusy = false;

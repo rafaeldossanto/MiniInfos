@@ -62,7 +62,7 @@ public partial class SettingsWindow
         RefreshCatalog.IsEnabled = false;
         _catalogSnapshot = null;
         CatalogChoices.Children.Clear();
-        CatalogStatus.Text = "Carregando catálogo…";
+        CatalogStatus.Text = L.Text("Carregando catálogo…");
         try
         {
             var snapshot = await _catalogBrowser.LoadAsync(force, cancellation);
@@ -74,18 +74,18 @@ public partial class SettingsWindow
         }
         catch (OperationCanceledException)
         {
-            if (!_communityClosed) CatalogStatus.Text = "Não foi possível carregar a lista agora. Tente atualizar novamente.";
+            if (!_communityClosed) CatalogStatus.Text = L.Text("Não foi possível carregar a lista agora. Tente atualizar novamente.");
         }
         catch (HttpRequestException e)
         {
             if (!_communityClosed) CatalogStatus.Text = e.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests
-                ? "Tente de novo em alguns minutos. O limite de consultas do GitHub foi atingido."
-                : e.StatusCode == HttpStatusCode.NotFound ? "O catálogo ainda não foi publicado. Você já pode adicionar pacotes baixados nas páginas Mascote e Aparência."
-                : "Sem conexão com o catálogo. Confira sua internet e tente atualizar a lista.";
+                ? L.Text("Tente de novo em alguns minutos. O limite de consultas do GitHub foi atingido.")
+                : e.StatusCode == HttpStatusCode.NotFound ? L.Text("O catálogo ainda não foi publicado. Você já pode adicionar pacotes baixados nas páginas Mascote e Aparência.")
+                : L.Text("Sem conexão com o catálogo. Confira sua internet e tente atualizar a lista.");
         }
         catch (Exception e) when (CatalogFailure.IsExpected(e))
         {
-            if (!_communityClosed) CatalogStatus.Text = "Não foi possível ler o catálogo. Tente atualizar a lista novamente.";
+            if (!_communityClosed) CatalogStatus.Text = L.Text("Não foi possível ler o catálogo. Tente atualizar a lista novamente.");
         }
         finally
         {
@@ -112,7 +112,7 @@ public partial class SettingsWindow
         CatalogChoices.Children.Clear();
         if (_catalogSnapshot is not { } snapshot) return;
         var entries = snapshot.Index.Packages.Where(entry => entry.Kind == _catalogKind).ToArray();
-        CatalogStatus.Text = entries.Length == 0 ? "Nenhum pacote disponível nesta categoria." : "Escolha um pacote para instalar no MiniInfos.";
+        CatalogStatus.Text = entries.Length == 0 ? L.Text("Nenhum pacote disponível nesta categoria.") : L.Text("Escolha um pacote para instalar no MiniInfos.");
         foreach (var entry in entries)
         {
             var image = PackageCard.Preview();
@@ -121,7 +121,7 @@ public partial class SettingsWindow
             var state = _catalogBrowser.State(entry);
             var button = new Button
             {
-                Content = state switch { CatalogInstallState.Install => "Instalar", CatalogInstallState.Update => "Atualizar", _ => "Instalado" },
+                Content = state switch { CatalogInstallState.Install => L.Text("Instalar"), CatalogInstallState.Update => L.Text("Atualizar"), _ => L.Text("Instalado") },
                 Tag = entry.Id, IsEnabled = state != CatalogInstallState.Installed && !_catalogInstalling,
             };
             var status = PackageCard.Caption(this, "");
@@ -181,21 +181,21 @@ public partial class SettingsWindow
         CatalogChoices.IsEnabled = CatalogMascots.IsEnabled = CatalogThemes.IsEnabled = false;
         RefreshCatalog.IsEnabled = false;
         button.IsEnabled = false;
-        button.Content = "Instalando…";
+        button.Content = L.Text("Instalando…");
         try
         {
             var package = await _catalogBrowser.InstallAsync(snapshot, entry, _catalogStop.Token);
             if (_communityClosed) return;
             SelectPackage(package);
             ShowCatalogChoices();
-            CatalogStatus.Text = $"{package.Name} instalado e selecionado.";
+            CatalogStatus.Text = L.Format("{0} instalado e selecionado.", package.Name);
         }
         catch (Exception e) when (CatalogFailure.IsExpected(e) || e is OperationCanceledException)
         {
             if (!_communityClosed)
             {
-                status.Text = "Não foi possível instalar este pacote. Tente novamente.";
-                button.Content = "Tentar novamente";
+                status.Text = L.Text("Não foi possível instalar este pacote. Tente novamente.");
+                button.Content = L.Text("Tentar novamente");
                 button.IsEnabled = true;
             }
         }

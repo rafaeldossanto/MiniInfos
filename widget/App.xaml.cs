@@ -46,6 +46,7 @@ public partial class App : Application
 
         base.OnStartup(e);
         var preferences = Preferences.Load();
+        L.Follow(preferences);
         ThemeManager.Follow(preferences);
         AppFonts.Follow(preferences);
         var providers = UsageProviders.Create();

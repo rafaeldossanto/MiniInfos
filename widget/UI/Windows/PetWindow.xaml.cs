@@ -53,8 +53,8 @@ public partial class PetWindow : Window
         _player = new((state, index) => _appearance.Frame(state, index).Pixels,
             PetFrame.CanvasSize * PetFrame.CanvasSize * 4, _appearance.PoseAt);
         InitializeComponent();
-        Title = _appearance.Name + " — MiniInfos";
-        AutomationProperties.SetName(Sprite, $"{_appearance.Name}. Toque nos olhos para brincar. Segure pela cabeça, braços ou asas, barriga ou pés para mover. Clique duas vezes para mostrar o MiniInfos.");
+        L.Current.Changed += OnLanguageChanged;
+        OnLanguageChanged(this, EventArgs.Empty);
         Sprite.Source = _surface;
         Sprite.RenderTransform = _motion;
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
@@ -71,11 +71,17 @@ public partial class PetWindow : Window
             Paint(Stopwatch.GetElapsedTime(_startedAt));
             CompositionTarget.Rendering += OnRendering;
         };
-        Closed += (_, _) => { CompositionTarget.Rendering -= OnRendering; SavePosition(); };
+        Closed += (_, _) => { L.Current.Changed -= OnLanguageChanged; CompositionTarget.Rendering -= OnRendering; SavePosition(); };
         Paint(Stopwatch.GetElapsedTime(_startedAt));
     }
 
     private TimeSpan Elapsed => Stopwatch.GetElapsedTime(_startedAt);
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        Title = _appearance.Name + " — MiniInfos";
+        AutomationProperties.SetName(Sprite, L.Format("{0}. Toque nos olhos para brincar. Segure pela cabeça, braços ou asas, barriga ou pés para mover. Clique duas vezes para mostrar o MiniInfos.", _appearance.Name));
+        _state = null;
+    }
     private double SpriteSize => Sprite.Width;
     public PetState State => DropAt(Elapsed) is { IsSettled: false } drop ? DropState(drop)
         : _interaction.StateAt(Elapsed) ?? _activity.StateAt(DateTimeOffset.UtcNow);
@@ -182,25 +188,25 @@ public partial class PetWindow : Window
         _lastDropPhase = falling?.Phase;
         var status = falling is { } flight ? flight.Phase switch
         {
-            PetDropPhase.Falling => "Caindo!",
-            PetDropPhase.Impact when flight.Landing == PetLanding.Head => "Opa! Protegendo a cabeça",
-            PetDropPhase.Impact when flight.Landing is PetLanding.LeftSide or PetLanding.RightSide => "Aterrissando de lado",
-            PetDropPhase.Impact => "Pousando nos pezinhos",
-            _ => "Levantando de novo",
+            PetDropPhase.Falling => L.Text("Caindo!"),
+            PetDropPhase.Impact when flight.Landing == PetLanding.Head => L.Text("Opa! Protegendo a cabeça"),
+            PetDropPhase.Impact when flight.Landing is PetLanding.LeftSide or PetLanding.RightSide => L.Text("Aterrissando de lado"),
+            PetDropPhase.Impact => L.Text("Pousando nos pezinhos"),
+            _ => L.Text("Levantando de novo"),
         } : state switch
         {
-            PetState.Active when reaction is not null => "Brincando com você",
-            PetState.Active => "Tokens aumentaram recentemente",
-            PetState.Alert => "Uma janela de uso está em 90% ou mais",
-            PetState.Sleep => "Sem novos tokens há alguns minutos",
-            PetState.ProtectEyes => "Ei! Protegendo os olhinhos",
-            PetState.HeldHead => "Segurando pela cabeça",
-            PetState.HeldLeftWing or PetState.HeldRightWing => "Segurando pelo braço ou asa",
-            PetState.HeldFeet => "De cabeça para baixo!",
-            PetState.HeldBody => "Segurando pela barriguinha",
-            _ => "De olho nos seus tokens",
+            PetState.Active when reaction is not null => L.Text("Brincando com você"),
+            PetState.Active => L.Text("Tokens aumentaram recentemente"),
+            PetState.Alert => L.Text("Uma janela de uso está em 90% ou mais"),
+            PetState.Sleep => L.Text("Sem novos tokens há alguns minutos"),
+            PetState.ProtectEyes => L.Text("Ei! Protegendo os olhinhos"),
+            PetState.HeldHead => L.Text("Segurando pela cabeça"),
+            PetState.HeldLeftWing or PetState.HeldRightWing => L.Text("Segurando pelo braço ou asa"),
+            PetState.HeldFeet => L.Text("De cabeça para baixo!"),
+            PetState.HeldBody => L.Text("Segurando pela barriguinha"),
+            _ => L.Text("De olho nos seus tokens"),
         };
-        Sprite.ToolTip = $"{_appearance.Name} · {status}\nToque nos olhos · segure para mover e girar\nClique duplo para mostrar o MiniInfos · Alt + roda muda o tamanho";
+        Sprite.ToolTip = L.Format("{0} · {1}\nToque nos olhos · segure para mover e girar\nClique duplo para mostrar o MiniInfos · Alt + roda muda o tamanho", _appearance.Name, status);
     }
 
     private void OnPressed(object sender, MouseButtonEventArgs e)

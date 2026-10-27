@@ -14,49 +14,49 @@ public sealed record CatalogIndex(int SchemaVersion, DateTimeOffset GeneratedAt,
 
     public static CatalogIndex Read(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length > MaxBytes) throw new PackageException("O índice do catálogo excede 1 MB.");
+        if (bytes.Length > MaxBytes) throw new PackageException(L.Text("O índice do catálogo excede 1 MB."));
         try
         {
             var index = JsonSerializer.Deserialize<CatalogIndex>(bytes, PackageManifest.Json)
-                ?? throw new PackageException("O índice do catálogo está vazio.");
+                ?? throw new PackageException(L.Text("O índice do catálogo está vazio."));
             index.Validate();
             return index;
         }
-        catch (JsonException e) { throw new PackageException("O índice do catálogo não segue o formato esperado.", e); }
+        catch (JsonException e) { throw new PackageException(L.Text("O índice do catálogo não segue o formato esperado."), e); }
     }
 
     public byte[] Encode()
     {
         Validate();
         var bytes = JsonSerializer.SerializeToUtf8Bytes(this, PackageManifest.Json);
-        if (bytes.Length > MaxBytes) throw new PackageException("O índice do catálogo excede 1 MB.");
+        if (bytes.Length > MaxBytes) throw new PackageException(L.Text("O índice do catálogo excede 1 MB."));
         return bytes;
     }
 
     public void Validate()
     {
-        if (SchemaVersion != 1) throw new PackageException("Versão do catálogo não suportada. Este MiniInfos aceita schemaVersion 1.");
+        if (SchemaVersion != 1) throw new PackageException(L.Text("Versão do catálogo não suportada. Este MiniInfos aceita schemaVersion 1."));
         if (GeneratedAt == default || Packages is null || Packages.Length > MaxEntries)
-            throw new PackageException("O catálogo precisa de data e aceita até 2000 pacotes.");
+            throw new PackageException(L.Text("O catálogo precisa de data e aceita até 2000 pacotes."));
         var ids = new HashSet<string>(StringComparer.Ordinal);
         foreach (var entry in Packages)
         {
-            if (entry is null) throw new PackageException("Uma entrada do catálogo está vazia.");
+            if (entry is null) throw new PackageException(L.Text("Uma entrada do catálogo está vazia."));
             PackageValidation.Id(entry.Id);
-            if (!ids.Add(entry.Id)) throw new PackageException($"ID duplicado no catálogo: {entry.Id}.");
-            if (!Enum.IsDefined(entry.Kind)) throw new PackageException("Tipo de pacote desconhecido no catálogo.");
+            if (!ids.Add(entry.Id)) throw new PackageException(L.Format("ID duplicado no catálogo: {0}.", entry.Id));
+            if (!Enum.IsDefined(entry.Kind)) throw new PackageException(L.Text("Tipo de pacote desconhecido no catálogo."));
             PackageValidation.ParseVersion(entry.Version);
-            PackageValidation.Text(entry.Name, "nome", 80);
-            PackageValidation.Text(entry.Author, "autor", 80);
-            PackageValidation.Text(entry.License, "licença", 100);
+            PackageValidation.Text(entry.Name, L.Text("nome"), 80);
+            PackageValidation.Text(entry.Author, L.Text("autor"), 80);
+            PackageValidation.Text(entry.License, L.Text("licença"), 100);
             if (entry.License.Trim().Equals("UNLICENSED", StringComparison.OrdinalIgnoreCase))
-                throw new PackageException("Informe uma licença para publicar no catálogo; UNLICENSED é apenas um marcador.");
+                throw new PackageException(L.Text("Informe uma licença para publicar no catálogo; UNLICENSED é apenas um marcador."));
             if (entry.Description is null || entry.Description.Length > 600)
-                throw new PackageException("A descrição do catálogo deve ter até 600 caracteres.");
-            if (entry.Size is <= 0 or > MaxPackageBytes) throw new PackageException("Um pacote do catálogo excede 8 MB ou tem tamanho inválido.");
-            if (!Hash(entry.Sha256) || !Hash(entry.PreviewSha256)) throw new PackageException("SHA-256 inválido no catálogo.");
+                throw new PackageException(L.Text("A descrição do catálogo deve ter até 600 caracteres."));
+            if (entry.Size is <= 0 or > MaxPackageBytes) throw new PackageException(L.Text("Um pacote do catálogo excede 8 MB ou tem tamanho inválido."));
+            if (!Hash(entry.Sha256) || !Hash(entry.PreviewSha256)) throw new PackageException(L.Text("SHA-256 inválido no catálogo."));
             if (entry.Asset != $"{entry.Id}-{entry.Version}.miniinfos" || entry.Preview != $"{entry.Id}-{entry.Version}.png")
-                throw new PackageException("Os arquivos do catálogo precisam usar o ID e a versão do pacote.");
+                throw new PackageException(L.Text("Os arquivos do catálogo precisam usar o ID e a versão do pacote."));
         }
     }
 

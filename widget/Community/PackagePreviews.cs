@@ -13,7 +13,7 @@ public static class PackagePreviews
 
     public static BitmapSource Mascot(InstalledPackage package)
     {
-        var definition = package.Manifest.Mascot ?? throw new PackageException("O pacote não contém um mascote.");
+        var definition = package.Manifest.Mascot ?? throw new PackageException(L.Text("O pacote não contém um mascote."));
         var sheet = PackageImages.Load(PackageFiles.Resolve(package.Directory, definition.SpriteSheet));
         var idle = definition.States[PetState.Idle];
         var width = sheet.PixelWidth / definition.Columns;

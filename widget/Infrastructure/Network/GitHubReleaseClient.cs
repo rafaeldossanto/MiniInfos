@@ -52,35 +52,35 @@ public sealed class GitHubReleaseClient(HttpClient http)
     {
         if (!Uri.TryCreate(asset.Url, UriKind.Absolute, out var uri) || uri.Scheme != "https" || uri.Host != "github.com"
             || !uri.IsDefaultPort || uri.UserInfo.Length != 0)
-            throw new InvalidDataException("O arquivo do catálogo precisa vir do GitHub por HTTPS.");
+            throw new InvalidDataException(L.Text("O arquivo do catálogo precisa vir do GitHub por HTTPS."));
         var digest = asset.Digest;
         if (digest is null || !digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase)
             || digest.Length != 71 || !digest.AsSpan(7).ToString().All(Uri.IsHexDigit))
-            throw new InvalidDataException("O GitHub não informou um SHA-256 válido para o arquivo.");
+            throw new InvalidDataException(L.Text("O GitHub não informou um SHA-256 válido para o arquivo."));
         var hash = digest[7..];
         if (expectedSha256 is not null && !hash.Equals(expectedSha256, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("O SHA-256 do arquivo difere do anunciado no catálogo.");
+            throw new InvalidDataException(L.Text("O SHA-256 do arquivo difere do anunciado no catálogo."));
         if (asset.Size < 0 || asset.Size > maximum || (asset.Size is { } announced && exactLength is { } exact && announced != exact))
-            throw new InvalidDataException("O tamanho do arquivo difere do anunciado no catálogo.");
+            throw new InvalidDataException(L.Text("O tamanho do arquivo difere do anunciado no catálogo."));
         using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellation).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         var bytes = await ReadBoundedAsync(response, maximum, cancellation).ConfigureAwait(false);
         if ((exactLength is { } length && bytes.LongLength != length)
             || !Convert.ToHexString(SHA256.HashData(bytes)).Equals(hash, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("O arquivo recebido não confere com o tamanho ou o SHA-256 anunciado.");
+            throw new InvalidDataException(L.Text("O arquivo recebido não confere com o tamanho ou o SHA-256 anunciado."));
         return bytes;
     }
 
     private static async Task<byte[]> ReadBoundedAsync(HttpResponseMessage response, long maximum, CancellationToken cancellation)
     {
-        if (response.Content.Headers.ContentLength > maximum) throw new InvalidDataException("O arquivo excede o tamanho permitido.");
+        if (response.Content.Headers.ContentLength > maximum) throw new InvalidDataException(L.Text("O arquivo excede o tamanho permitido."));
         using var input = await response.Content.ReadAsStreamAsync(cancellation).ConfigureAwait(false);
         using var output = new MemoryStream();
         var buffer = new byte[81920];
         int read;
         while ((read = await input.ReadAsync(buffer, cancellation).ConfigureAwait(false)) != 0)
         {
-            if (output.Length + read > maximum) throw new InvalidDataException("O arquivo excede o tamanho permitido.");
+            if (output.Length + read > maximum) throw new InvalidDataException(L.Text("O arquivo excede o tamanho permitido."));
             output.Write(buffer, 0, read);
         }
         return output.ToArray();

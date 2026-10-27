@@ -36,7 +36,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         DataContext = preferences;
         Owner = card;
-        VersionText.Text = $"Versão {AppInfo.Version}";
+        VersionText.Text = L.Format("Versão {0}", AppInfo.Version);
 
         StartupToggle.IsChecked = startup.IsOn;
         BuildFontChoices(TextFontChoices, AppFonts.TextOptions, "TextFont", choice => _preferences.TextFont = choice);
@@ -46,10 +46,13 @@ public partial class SettingsWindow : Window
         InitializeCatalog();
         ShowPetSize();
         ShowNumbers();
+        ShowLanguage();
+        L.Current.Changed += OnLanguageChanged;
         preferences.PropertyChanged += OnPreferenceChanged;
         card.ViewChanged += ShowNumbers;
         Closed += (_, _) =>
         {
+            L.Current.Changed -= OnLanguageChanged;
             preferences.PropertyChanged -= OnPreferenceChanged;
             card.ViewChanged -= ShowNumbers;
         };
@@ -99,7 +102,7 @@ public partial class SettingsWindow : Window
                 choice.IsChecked = (FontChoice)choice.Tag == selected;
         }
 
-        NumericText.Show(FontPreview, "MiniInfos · 12.345.678 · 42%");
+        NumericText.Show(FontPreview, $"MiniInfos · {Formatting.Format.Full(12_345_678)} · {Formatting.Format.Percent(42)}");
     }
 
     private void OnPreferenceChanged(object? sender, PropertyChangedEventArgs e)

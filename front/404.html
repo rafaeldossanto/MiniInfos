@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <meta name="color-scheme" content="dark light" />
-    <title>Página não encontrada — MiniInfos</title>
+    <title data-i18n="Página não encontrada — MiniInfos">Página não encontrada — MiniInfos</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       try {
@@ -16,17 +16,37 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
+    <div class="language-bar container">
+      <label class="language-picker"
+        ><svg aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <ellipse cx="12" cy="12" rx="4" ry="9" />
+          <path d="M3 12h18" /></svg
+        ><span class="sr-only" data-i18n="Idioma">Idioma</span
+        ><select data-language-choice aria-label="Idioma" data-i18n-aria-label="Idioma">
+          <option value="auto">Auto</option>
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+        </select></label
+      >
+    </div>
     <main class="container legal-page">
       <a class="brand" href="/"
         ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg>MiniInfos</a
       >
-      <p class="eyebrow">404 / Fora de vista</p>
-      <h1>Este canto<br />está vazio.</h1>
-      <p>
+      <p class="eyebrow" data-i18n="404 / Fora de vista">404 / Fora de vista</p>
+      <h1>
+        <span data-i18n="Este canto">Este canto</span><br /><span data-i18n="está vazio."
+          >está vazio.</span
+        >
+      </h1>
+      <p
+        data-i18n="A página que você procurou não foi encontrada. Volte ao início para conhecer o MiniInfos e encontrar o download."
+      >
         A página que você procurou não foi encontrada. Volte ao início para conhecer o MiniInfos e
         encontrar o download.
       </p>
-      <a class="button" href="/">Voltar ao início</a>
+      <a class="button" href="/" data-i18n="Voltar ao início">Voltar ao início</a>
     </main>
   </body>
 </html>

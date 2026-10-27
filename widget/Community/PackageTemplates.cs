@@ -28,8 +28,8 @@ public static class PackageTemplates
         }
         var definition = new ThemeDefinition(Colors: colors, HeaderImage: header,
             HeaderHeight: (double)resources["HeaderHeight"], HeaderTitleSize: (double)resources["HeaderTitleSize"]);
-        return new(new(1, PackageKind.Theme, "community.meu-tema", "Meu tema", "Seu nome", "1.0.0", "UNLICENSED",
-            "Edite o manifest.json e compartilhe seu tema.", Theme: definition), assets);
+        return new(new(1, PackageKind.Theme, "community.meu-tema", L.Text("Meu tema"), L.Text("Seu nome"), "1.0.0", "UNLICENSED",
+            L.Text("Edite o manifest.json e compartilhe seu tema."), Theme: definition), assets);
     }
 
     /// <summary>A built-in mascot laid out as a package's grid: a row per state, in the enum's order, and a column per pose.</summary>
@@ -65,30 +65,9 @@ public static class PackageTemplates
     }
 
     /// <summary>The manifest the mascot model ships with: every state's track and the selected character's anatomy.</summary>
-    public static PackageManifest MascotManifest(MascotSheet sheet) => new(1, PackageKind.Mascot, "community.meu-mascote", "Meu mascote",
-        "Seu nome", "1.0.0", "UNLICENSED", "Substitua as ilustrações, ajuste a anatomia e edite sua identificação antes de publicar.",
+    public static PackageManifest MascotManifest(MascotSheet sheet) => new(1, PackageKind.Mascot, "community.meu-mascote", L.Text("Meu mascote"),
+        L.Text("Seu nome"), "1.0.0", "UNLICENSED", L.Text("Substitua as ilustrações, ajuste a anatomia e edite sua identificação antes de publicar."),
         Mascot: new("sprites.png", sheet.Columns, sheet.Tracks.Count, new(sheet.Tracks), sheet.Anatomy ?? PetAnatomy.Athena));
 
-    private static byte[] Instructions(PackageKind kind) => Encoding.UTF8.GetBytes("""
-        # Meu pacote do MiniInfos
-
-        Este arquivo .miniinfos é um ZIP. Faça uma cópia, renomeie para .zip e extraia.
-        Edite manifest.json: use um ID próprio (autor.nome), nome, autor, versão e licença.
-        UNLICENSED é apenas um marcador do modelo: preencha a licença antes de compartilhar.
-        Mantenha schemaVersion 1 e manifest.json na raiz do ZIP ao compactar novamente.
-        Para testar, use Adicionar tema ou Adicionar mascote nas configurações do MiniInfos.
-        Os nomes das propriedades do manifesto são o contrato do pacote; campos desconhecidos são rejeitados.
-        """ + (kind == PackageKind.Theme ? """
-
-        As cores ficam em theme.colors, no formato #RRGGBB ou #AARRGGBB.
-        O tema base pode ser Simple, Light ou Classic. headerImage é um PNG opcional.
-        """ : """
-
-        sprites.png é uma grade de células iguais, com fundo transparente.
-        mascot.columns e mascot.rows descrevem a grade; states associa cada animação a uma linha.
-        Idle é obrigatória. Frames e durationsMs permitem escolher os quadros e suas durações.
-        A anatomia usa coordenadas de 0 a 320, independentemente do tamanho da imagem.
-        Ajuste regiões clicáveis, pontos das poses e centros de massa para sua personagem.
-        A física de arraste e rotação é fornecida pelo MiniInfos.
-        """));
+    private static byte[] Instructions(PackageKind kind) => Encoding.UTF8.GetBytes(L.Text("# Meu pacote do MiniInfos\n\nEste arquivo .miniinfos é um ZIP. Faça uma cópia, renomeie para .zip e extraia.\nEdite manifest.json: use um ID próprio (autor.nome), nome, autor, versão e licença.\nUNLICENSED é apenas um marcador do modelo: preencha a licença antes de compartilhar.\nMantenha schemaVersion 1 e manifest.json na raiz do ZIP ao compactar novamente.\nPara testar, use Adicionar tema ou Adicionar mascote nas configurações do MiniInfos.\nOs nomes das propriedades do manifesto são o contrato do pacote; campos desconhecidos são rejeitados.") + (kind == PackageKind.Theme ? L.Text("\nAs cores ficam em theme.colors, no formato #RRGGBB ou #AARRGGBB.\nO tema base pode ser Simple, Light ou Classic. headerImage é um PNG opcional.") : L.Text("\nsprites.png é uma grade de células iguais, com fundo transparente.\nmascot.columns e mascot.rows descrevem a grade; states associa cada animação a uma linha.\nIdle é obrigatória. Frames e durationsMs permitem escolher os quadros e suas durações.\nA anatomia usa coordenadas de 0 a 320, independentemente do tamanho da imagem.\nAjuste regiões clicáveis, pontos das poses e centros de massa para sua personagem.\nA física de arraste e rotação é fornecida pelo MiniInfos.")));
 }

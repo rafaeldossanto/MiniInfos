@@ -173,10 +173,12 @@ public partial class MainWindow : Window
         ShowTitle();
         ThemeManager.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;
+        L.Current.Changed += OnLanguageChanged;
         Closed += (_, _) =>
         {
             ThemeManager.Changed -= OnAppearanceChanged;
             AppFonts.Changed -= OnAppearanceChanged;
+            L.Current.Changed -= OnLanguageChanged;
         };
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
         TopmostItem.SetBinding(MenuItem.IsCheckedProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences, Mode = BindingMode.TwoWay });
@@ -185,8 +187,8 @@ public partial class MainWindow : Window
         _selection = PageSelection.Restore(IndexOf(settings?.Page), IndexOf(settings?.BesidePage), providers.Count);
         BuildPageIcons();
         LayOutColumns();
-        DismissButton.ToolTip = _kind == CardKind.Main ? "Esconder (volta quando um app acompanhado abrir de novo)" : "Fechar esta janela";
-        DismissItem.Header = _kind == CardKind.Main ? "Esconder" : "Fechar esta janela";
+        DismissButton.ToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
+        DismissItem.Header = _kind == CardKind.Main ? L.Text("Esconder") : L.Text("Fechar esta janela");
         (settings?.IsDetailed == true ? DetailedView : CompactView).IsChecked = true;
 
         // It keeps counting while hidden, so the tray icon's numbers stay current.
@@ -360,7 +362,7 @@ public partial class MainWindow : Window
         {
             var button = (Button)PageIcons.Children[index];
             button.ToolTip = pages[index].Title;
-            AutomationProperties.SetName(button, $"Mostrar {pages[index].Title}");
+            AutomationProperties.SetName(button, L.Format("Mostrar {0}", pages[index].Title));
         }
 
         Show(pages, now);
@@ -376,8 +378,8 @@ public partial class MainWindow : Window
         }
 
         var first = pages[_selection.Shown[0]];
-        RefreshButton.ToolTip = _selection.IsSplit ? "Atualizar agora as páginas na tela." : first.RefreshHint;
-        SummaryChanged?.Invoke($"MiniInfos · {first.Title}\n{_columns[0].LimitsLine}\nHoje {Format.Count(first.Today.Total)} tokens");
+        RefreshButton.ToolTip = _selection.IsSplit ? L.Text("Atualizar agora as páginas na tela.") : first.RefreshHint;
+        SummaryChanged?.Invoke(L.Format("MiniInfos · {0}\n{1}\nHoje {2} tokens", first.Title, _columns[0].LimitsLine, Format.Count(first.Today.Total)));
 
         if (_isMeasureDue) FitColumns();
     }
@@ -494,6 +496,14 @@ public partial class MainWindow : Window
         }, DispatcherPriority.Loaded);
     }
 
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        DismissButton.ToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
+        DismissItem.Header = _kind == CardKind.Main ? L.Text("Esconder") : L.Text("Fechar esta janela");
+        BuildPageIcons();
+        OnAppearanceChanged();
+    }
+
     /// <summary>The line between two columns, in the theme's divider color.</summary>
     private static Border ColumnDivider()
     {
@@ -522,7 +532,7 @@ public partial class MainWindow : Window
                 Width = 20,
                 Height = 20,
                 Content = icon,
-                ToolTip = $"Página {index + 1}",
+                ToolTip = L.Format("Página {0}", index + 1),
                 ContextMenu = PageMenu(page),
             };
             button.Click += (_, _) => Select(PageSelection.Single(page, _providers.Count));
@@ -538,14 +548,14 @@ public partial class MainWindow : Window
     /// </summary>
     private ContextMenu PageMenu(int page)
     {
-        var split = new MenuItem { Header = "Visualização dividida" };
+        var split = new MenuItem { Header = L.Text("Visualização dividida") };
         split.Click += (_, _) => Select(_selection.SplitWith(page));
-        var single = new MenuItem { Header = "Visualização única" };
+        var single = new MenuItem { Header = L.Text("Visualização única") };
         single.Click += (_, _) => Select(PageSelection.Single(page, _providers.Count));
-        var newWindow = new MenuItem { Header = "Nova janela" };
+        var newWindow = new MenuItem { Header = L.Text("Nova janela") };
         newWindow.Click += (_, _) => NewWindowRequested?.Invoke(this, _providers[page].Id);
 
-        var openIn = new MenuItem { Header = "Abrir em" };
+        var openIn = new MenuItem { Header = L.Text("Abrir em") };
         openIn.Items.Add(split);
         openIn.Items.Add(single);
         openIn.Items.Add(new Separator());

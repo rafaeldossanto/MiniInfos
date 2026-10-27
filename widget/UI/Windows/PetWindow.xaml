@@ -1,8 +1,9 @@
 <Window x:Class="MiniInfos.UI.Windows.PetWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:MiniInfos.Localization"
         xmlns:local="clr-namespace:MiniInfos.UI.Controls"
-        Title="Mascote — MiniInfos" Width="160" Height="160"
+        Title="{loc:Text 'Mascote — MiniInfos'}" Width="160" Height="160"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False"
         FontFamily="{DynamicResource AppFont}" Foreground="{DynamicResource PrimaryText}"
@@ -12,12 +13,12 @@
            Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality">
         <Image.ContextMenu>
             <local:CardContextMenu>
-                <MenuItem Header="Mostrar MiniInfos" Click="OnShowCards" />
-                <MenuItem Header="Configurar mascote" Click="OnSettings" />
-                <MenuItem Header="Voltar pro canto" Click="OnBackToCorner" />
+                <MenuItem Header="{loc:Text 'Mostrar MiniInfos'}" Click="OnShowCards" />
+                <MenuItem Header="{loc:Text 'Configurar mascote'}" Click="OnSettings" />
+                <MenuItem Header="{loc:Text 'Voltar pro canto'}" Click="OnBackToCorner" />
                 <Separator />
-                <MenuItem Header="Esconder mascote" Click="OnHidePet" />
-                <MenuItem Header="Sair do MiniInfos" Click="OnQuit" />
+                <MenuItem Header="{loc:Text 'Esconder mascote'}" Click="OnHidePet" />
+                <MenuItem Header="{loc:Text 'Sair do MiniInfos'}" Click="OnQuit" />
             </local:CardContextMenu>
         </Image.ContextMenu>
     </Image>

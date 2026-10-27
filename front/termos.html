@@ -4,12 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
-    <title>Termos de uso — MiniInfos</title>
+    <title data-i18n="Termos de uso — MiniInfos">Termos de uso — MiniInfos</title>
     <meta
       name="description"
       content="Informações sobre a página, as demonstrações e os downloads oficiais do MiniInfos."
+      data-i18n-content="Informações sobre a página, as demonstrações e os downloads oficiais do MiniInfos."
     />
     <link rel="canonical" href="https://miniinfos.com/termos.html" />
+    <link rel="alternate" hreflang="pt-BR" href="https://miniinfos.com/termos.html" />
+    <link rel="alternate" hreflang="en" href="https://miniinfos.com/en/terms.html" />
+    <link rel="alternate" hreflang="x-default" href="https://miniinfos.com/termos.html" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       try {
@@ -20,43 +24,73 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div class="language-bar container">
+      <label class="language-picker"
+        ><svg aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <ellipse cx="12" cy="12" rx="4" ry="9" />
+          <path d="M3 12h18" /></svg
+        ><span class="sr-only" data-i18n="Idioma">Idioma</span
+        ><select data-language-choice aria-label="Idioma" data-i18n-aria-label="Idioma">
+          <option value="auto">Auto</option>
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+        </select></label
+      >
+    </div>
+    <a class="skip-link" href="#conteudo" data-i18n="Pular para o conteúdo"
+      >Pular para o conteúdo</a
+    >
     <main class="container legal-page" id="conteudo">
       <a class="brand" href="/"
         ><svg class="brand-icon" aria-hidden="true"><use href="/icons.svg#owl" /></svg>MiniInfos</a
       >
-      <h1>Sobre o uso do site.</h1>
-      <p>
+      <h1 data-i18n="Sobre o uso do site.">Sobre o uso do site.</h1>
+      <p
+        data-i18n="Esta página apresenta o MiniInfos, um aplicativo independente para acompanhar dados de uso de IA no Windows. O site não é um serviço de conversa com IA e não pede credenciais dos provedores."
+      >
         Esta página apresenta o MiniInfos, um aplicativo independente para acompanhar dados de uso
         de IA no Windows. O site não é um serviço de conversa com IA e não pede credenciais dos
         provedores.
       </p>
-      <h2>Demonstrações</h2>
-      <p>
+      <h2 data-i18n="Demonstrações">Demonstrações</h2>
+      <p
+        data-i18n="Os cartões identificados como “Demonstração” usam números de exemplo. Eles não leem sua conta e não representam consumo real, cobrança ou uma estimativa do seu plano. Aparência e funcionalidades podem acompanhar a evolução das versões do aplicativo."
+      >
         Os cartões identificados como “Demonstração” usam números de exemplo. Eles não leem sua
         conta e não representam consumo real, cobrança ou uma estimativa do seu plano. Aparência e
         funcionalidades podem acompanhar a evolução das versões do aplicativo.
       </p>
-      <h2>Downloads e pacotes</h2>
-      <p>
+      <h2 data-i18n="Downloads e pacotes">Downloads e pacotes</h2>
+      <p
+        data-i18n="O botão “Baixar para Windows” aponta para o instalador da release do aplicativo marcada como latest no GitHub. As informações de cada versão ficam no repositório. As condições e licenças dos arquivos e dos pacotes da comunidade são as informadas em suas respectivas publicações."
+      >
         O botão “Baixar para Windows” aponta para o instalador da release do aplicativo marcada como
         latest no GitHub. As informações de cada versão ficam no repositório. As condições e
         licenças dos arquivos e dos pacotes da comunidade são as informadas em suas respectivas
         publicações.
       </p>
-      <h2>Independência do projeto</h2>
-      <p>
+      <h2 data-i18n="Independência do projeto">Independência do projeto</h2>
+      <p
+        data-i18n="MiniInfos não é afiliado, patrocinado ou endossado pela Anthropic ou pela OpenAI. Claude, Codex, ChatGPT e OpenAI são citados somente em texto para identificar compatibilidade e pertencem aos seus respectivos titulares."
+      >
         MiniInfos não é afiliado, patrocinado ou endossado pela Anthropic ou pela OpenAI. Claude,
         Codex, ChatGPT e OpenAI são citados somente em texto para identificar compatibilidade e
         pertencem aos seus respectivos titulares.
       </p>
-      <h2>Informações e contato</h2>
+      <h2 data-i18n="Informações e contato">Informações e contato</h2>
       <p>
-        Os detalhes do funcionamento e o canal de relatos do projeto estão no
-        <a href="https://github.com/rafaeldossanto/MiniInfos">repositório do MiniInfos</a>. Veja
-        também as <a href="/privacidade.html">informações de privacidade desta página</a>.
+        <span data-i18n="Os detalhes do funcionamento e o canal de relatos do projeto estão no"
+          >Os detalhes do funcionamento e o canal de relatos do projeto estão no</span
+        >
+        <a href="https://github.com/rafaeldossanto/MiniInfos" data-i18n="repositório do MiniInfos"
+          >repositório do MiniInfos</a
+        ><span data-i18n=". Veja também as">. Veja também as</span>
+        <a href="/privacidade.html" data-i18n="informações de privacidade desta página"
+          >informações de privacidade desta página</a
+        >.
       </p>
-      <a class="button" href="/">Voltar ao MiniInfos</a>
+      <a class="button" href="/" data-i18n="Voltar ao MiniInfos">Voltar ao MiniInfos</a>
     </main>
   </body>
 </html>

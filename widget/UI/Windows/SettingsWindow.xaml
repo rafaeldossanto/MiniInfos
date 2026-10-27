@@ -1,8 +1,9 @@
 <Window x:Class="MiniInfos.UI.Windows.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:MiniInfos.Localization"
         xmlns:mascot="clr-namespace:MiniInfos.Mascot"
-        Title="Configurações do MiniInfos"
+        Title="{loc:Text 'Configurações do MiniInfos'}"
         Width="600"
         Height="500"
         WindowStyle="None"
@@ -23,65 +24,78 @@
             BorderThickness="1" CornerRadius="12" RenderOptions.ClearTypeHint="Enabled">
         <DockPanel>
             <Grid DockPanel.Dock="Top" Height="40" Background="Transparent" MouseLeftButtonDown="OnTitlePressed">
-                <TextBlock Text="Configurações" FontWeight="SemiBold" Margin="16,0" VerticalAlignment="Center" />
+                <TextBlock Text="{loc:Text 'Configurações'}" FontWeight="SemiBold" Margin="16,0" VerticalAlignment="Center" />
                 <Button x:Name="CloseButton" Style="{StaticResource HeaderButton}" HorizontalAlignment="Right"
-                        Margin="0,0,10,0" Click="OnClose" ToolTip="Fechar">
+                        Margin="0,0,10,0" Click="OnClose" ToolTip="{loc:Text 'Fechar'}">
                     <TextBlock Text="&#xE711;" />
                 </Button>
             </Grid>
             <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource Divider}" />
 
             <TabControl x:Name="Pages" Style="{StaticResource SettingsPages}">
-                <TabItem x:Name="GeneralPage" Header="Geral" Tag="&#xE713;">
+                <TabItem x:Name="GeneralPage" Header="{loc:Text 'Geral'}" Tag="&#xE713;">
                     <StackPanel>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Sempre por cima"
-                                                Tag="O cartão fica na frente das outras janelas.">
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Idioma'}"
+                                                Tag="{loc:Text 'Use o idioma do Windows ou escolha o seu.'}">
+                            <Border Style="{StaticResource SegmentGroup}">
+                                <StackPanel x:Name="LanguageChoices" Orientation="Horizontal">
+                                    <RadioButton Tag="Automatic" GroupName="Language" Style="{StaticResource Segment}"
+                                                 Content="{loc:Text 'Automático'}" Checked="OnLanguageChosen" />
+                                    <RadioButton Tag="Portuguese" GroupName="Language" Style="{StaticResource Segment}"
+                                                 Content="Português" Checked="OnLanguageChosen" />
+                                    <RadioButton Tag="English" GroupName="Language" Style="{StaticResource Segment}"
+                                                 Content="English" Checked="OnLanguageChosen" />
+                                </StackPanel>
+                            </Border>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Sempre por cima'}"
+                                                Tag="{loc:Text 'O cartão fica na frente das outras janelas.'}">
                             <CheckBox x:Name="TopmostToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsTopmost}" />
                         </HeaderedContentControl>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Acompanhar o Claude e o Codex"
-                                                Tag="Aparece quando um deles abre e some quando o último fecha.">
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Acompanhar o Claude e o Codex'}"
+                                                Tag="{loc:Text 'Aparece quando um deles abre e some quando o último fecha.'}">
                             <CheckBox x:Name="FollowToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding FollowsApps}" />
                         </HeaderedContentControl>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Iniciar com o Windows"
-                                                Tag="Abre sozinho quando você entra no Windows.">
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Iniciar com o Windows'}"
+                                                Tag="{loc:Text 'Abre sozinho quando você entra no Windows.'}">
                             <CheckBox x:Name="StartupToggle" Style="{StaticResource ToggleSwitch}"
                                       Checked="OnStartupToggled" Unchecked="OnStartupToggled" />
                         </HeaderedContentControl>
                     </StackPanel>
                 </TabItem>
 
-                <TabItem x:Name="AppearancePage" Header="Aparência" Tag="&#xE790;">
+                <TabItem x:Name="AppearancePage" Header="{loc:Text 'Aparência'}" Tag="&#xE790;">
                     <ScrollViewer Style="{StaticResource SettingsScroll}">
                     <StackPanel>
                         <StackPanel Margin="0,0,0,16">
-                            <TextBlock Text="Tema" />
-                            <TextBlock Text="O último tema escolhido fica em primeiro. A Biblioteca mostra todos, com prévia."
+                            <TextBlock Text="{loc:Text 'Tema'}" />
+                            <TextBlock Text="{loc:Text 'O último tema escolhido fica em primeiro. A Biblioteca mostra todos, com prévia.'}"
                                        Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,8" />
                             <!-- Filled from the theme history: the one in use first, built-in and community alike. -->
                             <Border Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
                                 <StackPanel x:Name="ThemeChoices" Orientation="Horizontal" />
                             </Border>
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Button x:Name="ThemeLibraryButton" Content="Biblioteca" Style="{StaticResource SettingsButton}"
-                                        Click="OnShowThemeLibrary" ToolTip="Todos os temas, com prévia" />
-                                <Button x:Name="AddThemePackage" Content="Adicionar tema" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnAddTheme" />
-                                <Button x:Name="ExportThemePackage" Content="Exportar" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnExportTheme" />
-                                <Button x:Name="RemoveThemePackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemoveTheme" />
+                                <Button x:Name="ThemeLibraryButton" Content="{loc:Text 'Biblioteca'}" Style="{StaticResource SettingsButton}"
+                                        Click="OnShowThemeLibrary" ToolTip="{loc:Text 'Todos os temas, com prévia'}" />
+                                <Button x:Name="AddThemePackage" Content="{loc:Text 'Adicionar tema'}" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnAddTheme" />
+                                <Button x:Name="ExportThemePackage" Content="{loc:Text 'Exportar'}" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnExportTheme" />
+                                <Button x:Name="RemoveThemePackage" Content="{loc:Text 'Remover'}" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemoveTheme" />
                             </StackPanel>
                             <TextBlock x:Name="ThemePackageStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,6,0,0"
-                                       Text="Adicione temas da comunidade ou exporte um modelo para criar o seu." />
+                                       Text="{loc:Text 'Adicione temas da comunidade ou exporte um modelo para criar o seu.'}" />
                         </StackPanel>
 
                         <StackPanel Margin="0,0,0,16">
-                            <TextBlock Text="Fontes" />
-                            <TextBlock Text="Escolha a fonte dos textos e dos números."
+                            <TextBlock Text="{loc:Text 'Fontes'}" />
+                            <TextBlock Text="{loc:Text 'Escolha a fonte dos textos e dos números.'}"
                                        Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,8" />
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="64" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Textos" VerticalAlignment="Center" />
+                                <TextBlock Text="{loc:Text 'Textos'}" VerticalAlignment="Center" />
                                 <Border Grid.Column="1" Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
                                     <StackPanel x:Name="TextFontChoices" Orientation="Horizontal" />
                                 </Border>
@@ -91,7 +105,7 @@
                                     <ColumnDefinition Width="64" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Números" VerticalAlignment="Center" />
+                                <TextBlock Text="{loc:Text 'Números'}" VerticalAlignment="Center" />
                                 <Border Grid.Column="1" Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
                                     <StackPanel x:Name="NumberFontChoices" Orientation="Horizontal" />
                                 </Border>
@@ -100,23 +114,23 @@
                                        Foreground="{DynamicResource DimText}" Margin="64,8,0,0" />
                         </StackPanel>
 
-                        <TextBlock Text="Este cartão" Style="{StaticResource SectionTitle}" />
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Números"
-                                                Tag="Resumido: 1,4B. Detalhado: cada dígito.">
+                        <TextBlock Text="{loc:Text 'Este cartão'}" Style="{StaticResource SectionTitle}" />
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Números'}"
+                                                Tag="{loc:Text 'Resumido: 1,4B. Detalhado: cada dígito.'}">
                             <Border Style="{StaticResource SegmentGroup}">
                                 <StackPanel Orientation="Horizontal">
                                     <RadioButton x:Name="CompactNumbers" Style="{StaticResource Segment}" GroupName="Numbers"
-                                                 Content="Resumido" Checked="OnNumbersChosen" />
+                                                 Content="{loc:Text 'Resumido'}" Checked="OnNumbersChosen" />
                                     <RadioButton x:Name="DetailedNumbers" Style="{StaticResource Segment}" GroupName="Numbers"
-                                                 Content="Detalhado" Checked="OnNumbersChosen" />
+                                                 Content="{loc:Text 'Detalhado'}" Checked="OnNumbersChosen" />
                                 </StackPanel>
                             </Border>
                         </HeaderedContentControl>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Lugar e tamanho"
-                                                Tag="Volta pro canto ou pro tamanho original.">
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Lugar e tamanho'}"
+                                                Tag="{loc:Text 'Volta pro canto ou pro tamanho original.'}">
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource SettingsButton}" Content="Pro canto" Click="OnBackToCorner" />
-                                <Button Style="{StaticResource SettingsButton}" Content="Tamanho padrão" Margin="6,0,0,0"
+                                <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Pro canto'}" Click="OnBackToCorner" />
+                                <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Tamanho padrão'}" Margin="6,0,0,0"
                                         Click="OnDefaultSize" />
                             </StackPanel>
                         </HeaderedContentControl>
@@ -124,7 +138,7 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem x:Name="PetPage" Header="Mascote">
+                <TabItem x:Name="PetPage" Header="{loc:Text 'Mascote'}">
                     <TabItem.Tag>
                         <Viewbox Width="14" Height="14" IsHitTestVisible="False">
                             <Canvas Width="24" Height="24">
@@ -149,14 +163,14 @@
                             <Image x:Name="PetPreview" Width="144" Height="144"
                                    RenderOptions.BitmapScalingMode="HighQuality" />
                             <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
-                                <TextBlock x:Name="PetName" Text="Coruja de Atena" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                <TextBlock Text="Uma companhia para acompanhar seus tokens."
+                                <TextBlock x:Name="PetName" Text="{loc:Text 'Coruja de Atena'}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{loc:Text 'Uma companhia para acompanhar seus tokens.'}"
                                            Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" />
                             </StackPanel>
                         </Grid>
                         <WrapPanel x:Name="CommunityPetChoices" Margin="0,0,0,4">
                             <Button x:Name="AddPetPackage" Style="{StaticResource PetLibraryAdd}" Click="OnAddPet"
-                                    ToolTip="Adicionar mascote" AutomationProperties.Name="Adicionar mascote">
+                                    ToolTip="{loc:Text 'Adicionar mascote'}" AutomationProperties.Name="{loc:Text 'Adicionar mascote'}">
                                 <Viewbox Width="40" Height="48" IsHitTestVisible="False">
                                     <Canvas Width="40" Height="48">
                                         <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -177,69 +191,69 @@
                             </Button>
                             <RadioButton x:Name="AthenaPet" GroupName="MascotChoice"
                                          Style="{StaticResource PetLibraryChoice}" Checked="OnAthenaChosen"
-                                         ToolTip="Coruja de Atena · Incluída no MiniInfos" AutomationProperties.Name="Coruja de Atena" />
+                                         ToolTip="{loc:Text 'Coruja de Atena · Incluída no MiniInfos'}" AutomationProperties.Name="{loc:Text 'Coruja de Atena'}" />
                         </WrapPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <Button x:Name="ExportPetPackage" Content="Exportar" Style="{StaticResource SettingsButton}" Click="OnExportPet" />
-                            <Button x:Name="RemovePetPackage" Content="Remover" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemovePet" />
-                            <Button x:Name="PetExampleButton" Content="Exemplo" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnShowPetExample"
-                                    ToolTip="Mostra a grade e o manifesto de um mascote, com o modelo para criar o seu" />
+                            <Button x:Name="ExportPetPackage" Content="{loc:Text 'Exportar'}" Style="{StaticResource SettingsButton}" Click="OnExportPet" />
+                            <Button x:Name="RemovePetPackage" Content="{loc:Text 'Remover'}" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnRemovePet" />
+                            <Button x:Name="PetExampleButton" Content="{loc:Text 'Exemplo'}" Style="{StaticResource SettingsButton}" Margin="6,0,0,0" Click="OnShowPetExample"
+                                    ToolTip="{loc:Text 'Mostra a grade e o manifesto de um mascote, com o modelo para criar o seu'}" />
                         </StackPanel>
                         <TextBlock x:Name="PetPackageStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12"
-                                   Text="Use + para adicionar um mascote e clique em uma miniatura para selecionar. Exporte para compartilhar ou criar o seu." />
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Mostrar mascote"
-                                                Tag="Fica solto na área de trabalho, mesmo com o cartão escondido.">
+                                   Text="{loc:Text 'Use + para adicionar um mascote e clique em uma miniatura para selecionar. Exporte para compartilhar ou criar o seu.'}" />
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Mostrar mascote'}"
+                                                Tag="{loc:Text 'Fica solto na área de trabalho, mesmo com o cartão escondido.'}">
                             <CheckBox x:Name="PetToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PetEnabled}" />
                         </HeaderedContentControl>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="Tamanho">
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Tamanho'}">
                             <Border Style="{StaticResource SegmentGroup}">
                                 <StackPanel Orientation="Horizontal">
                                     <RadioButton x:Name="SmallPet" Style="{StaticResource Segment}" GroupName="PetSize"
-                                                 Content="Pequeno" Tag="{x:Static mascot:PetSizeChoice.Small}" Checked="OnPetSizeChosen" />
+                                                 Content="{loc:Text 'Pequeno'}" Tag="{x:Static mascot:PetSizeChoice.Small}" Checked="OnPetSizeChosen" />
                                     <RadioButton x:Name="MediumPet" Style="{StaticResource Segment}" GroupName="PetSize"
-                                                 Content="Médio" Tag="{x:Static mascot:PetSizeChoice.Medium}" Checked="OnPetSizeChosen" />
+                                                 Content="{loc:Text 'Médio'}" Tag="{x:Static mascot:PetSizeChoice.Medium}" Checked="OnPetSizeChosen" />
                                     <RadioButton x:Name="LargePet" Style="{StaticResource Segment}" GroupName="PetSize"
-                                                 Content="Grande" Tag="{x:Static mascot:PetSizeChoice.Large}" Checked="OnPetSizeChosen" />
+                                                 Content="{loc:Text 'Grande'}" Tag="{x:Static mascot:PetSizeChoice.Large}" Checked="OnPetSizeChosen" />
                                 </StackPanel>
                             </Border>
                         </HeaderedContentControl>
-                        <TextBlock Text="Toque nos olhos para brincar. Segure pela cabeça, braços ou asas, barriga ou pés para mover. Clique duplo para mostrar o MiniInfos. Alt + roda muda o tamanho."
+                        <TextBlock Text="{loc:Text 'Toque nos olhos para brincar. Segure pela cabeça, braços ou asas, barriga ou pés para mover. Clique duplo para mostrar o MiniInfos. Alt + roda muda o tamanho.'}"
                                    Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" Margin="0,0,0,12" />
-                        <TextBlock Text="O mascote se anima quando os tokens aumentam, fica atento em 90% de uso e dorme após dois minutos sem novos tokens."
+                        <TextBlock Text="{loc:Text 'O mascote se anima quando os tokens aumentam, fica atento em 90% de uso e dorme após dois minutos sem novos tokens.'}"
                                    Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" />
                     </StackPanel>
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem x:Name="CommunityPage" Header="Comunidade" Tag="&#xE716;">
+                <TabItem x:Name="CommunityPage" Header="{loc:Text 'Comunidade'}" Tag="&#xE716;">
                     <ScrollViewer x:Name="CatalogScroll" Style="{StaticResource SettingsScroll}" ScrollChanged="OnCatalogScrolled">
                         <StackPanel>
                             <DockPanel Margin="0,0,0,12">
-                                <Button x:Name="RefreshCatalog" DockPanel.Dock="Right" Content="Atualizar lista"
+                                <Button x:Name="RefreshCatalog" DockPanel.Dock="Right" Content="{loc:Text 'Atualizar lista'}"
                                         Style="{StaticResource SettingsButton}" Click="OnRefreshCatalog" Margin="8,0,0,0" />
                                 <Border Style="{StaticResource SegmentGroup}" HorizontalAlignment="Left">
                                     <StackPanel Orientation="Horizontal">
-                                        <RadioButton x:Name="CatalogMascots" GroupName="CatalogKind" Content="Mascotes"
+                                        <RadioButton x:Name="CatalogMascots" GroupName="CatalogKind" Content="{loc:Text 'Mascotes'}"
                                                      Style="{StaticResource Segment}" IsChecked="True" Checked="OnCatalogKindChosen" />
-                                        <RadioButton x:Name="CatalogThemes" GroupName="CatalogKind" Content="Temas"
+                                        <RadioButton x:Name="CatalogThemes" GroupName="CatalogKind" Content="{loc:Text 'Temas'}"
                                                      Style="{StaticResource Segment}" Checked="OnCatalogKindChosen" />
                                     </StackPanel>
                                 </Border>
                             </DockPanel>
-                            <TextBlock x:Name="CatalogStatus" Text="Explore mascotes e temas da comunidade."
+                            <TextBlock x:Name="CatalogStatus" Text="{loc:Text 'Explore mascotes e temas da comunidade.'}"
                                        Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12" />
                             <WrapPanel x:Name="CatalogChoices" />
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem x:Name="AboutPage" Header="Sobre" Tag="&#xE946;">
+                <TabItem x:Name="AboutPage" Header="{loc:Text 'Sobre'}" Tag="&#xE946;">
                     <StackPanel>
                         <TextBlock Text="MiniInfos" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock x:Name="VersionText" Style="{StaticResource Caption}" Margin="0,2,0,0" />
-                        <TextBlock Text="Limites e tokens do Claude e do Codex, num cartão sempre à mão." TextWrapping="Wrap"
+                        <TextBlock Text="{loc:Text 'Limites e tokens do Claude e do Codex, num cartão sempre à mão.'}" TextWrapping="Wrap"
                                    Margin="0,12,0,20" />
-                        <Button Style="{StaticResource SettingsButton}" Content="Sair do MiniInfos" HorizontalAlignment="Left"
+                        <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Sair do MiniInfos'}" HorizontalAlignment="Left"
                                 Click="OnQuit" />
                     </StackPanel>
                 </TabItem>

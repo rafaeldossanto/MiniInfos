@@ -46,29 +46,29 @@ public sealed class CodexUsage : IUsageProvider
             new WindowLine(secondary, snapshot.Tokens.LongWindow),
             snapshot.Tokens.Today,
             snapshot.Tokens.Total,
-            "Das sessões locais e arquivadas do Codex encontradas automaticamente.",
+            L.Text("Das sessões locais e arquivadas do Codex encontradas automaticamente."),
             Activity(snapshot),
-            "Sessão local mais recente",
+            L.Text("Sessão local mais recente"),
             Updated(account, now),
-            "Atualizar agora os dados locais e os limites da conta Codex.");
+            L.Text("Atualizar agora os dados locais e os limites da conta Codex."));
     }
 
     public void Flush() => _ledger.Flush();
 
     private static string Activity(CodexUsageSnapshot snapshot)
     {
-        if (snapshot.UpdatedAt is null) return "Nenhuma sessão local do Codex ainda";
+        if (snapshot.UpdatedAt is null) return L.Text("Nenhuma sessão local do Codex ainda");
 
-        var parts = new List<string> { snapshot.LatestProject ?? "Sessão Codex" };
-        if (snapshot.ContextPercent is { } fill) parts.Add($"contexto {Format.Percent(fill)}");
+        var parts = new List<string> { snapshot.LatestProject ?? L.Text("Sessão Codex") };
+        if (snapshot.ContextPercent is { } fill) parts.Add(L.Format("contexto {0}", Format.Percent(fill)));
 
         return string.Join(" · ", parts);
     }
 
     private static string Updated(CodexAccountState account, DateTimeOffset now) => account.Status switch
     {
-        CodexAccountStatus.Ready when account.UpdatedAt is { } updated => $"atualizado {Format.Ago(updated, now)}",
-        CodexAccountStatus.NotInstalled => "Codex não encontrado",
-        _ => "sem limites ainda",
+        CodexAccountStatus.Ready when account.UpdatedAt is { } updated => L.Format("atualizado {0}", Format.Ago(updated, now)),
+        CodexAccountStatus.NotInstalled => L.Text("Codex não encontrado"),
+        _ => L.Text("sem limites ainda"),
     };
 }

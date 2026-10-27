@@ -19,7 +19,8 @@ public sealed record AppSettings(
     PetSizeChoice PetSize = PetSizeChoice.Medium,
     string? CommunityThemeId = null,
     string? PetId = null,
-    IReadOnlyList<string>? RecentThemes = null);
+    IReadOnlyList<string>? RecentThemes = null,
+    LanguageChoice Language = LanguageChoice.Automatic);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -37,6 +38,12 @@ public sealed class Preferences : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public LanguageChoice Language
+    {
+        get => Enum.IsDefined(_settings.Language) ? _settings.Language : LanguageChoice.Automatic;
+        set => Change(_settings with { Language = Enum.IsDefined(value) ? value : LanguageChoice.Automatic });
+    }
 
     /// <summary>The app's own settings, in its data folder.</summary>
     public static Preferences Load() => new(Path.Combine(AppPaths.Data, "settings.json"));

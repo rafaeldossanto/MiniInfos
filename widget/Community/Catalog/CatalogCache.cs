@@ -69,7 +69,7 @@ public sealed class CatalogCache(string root, Func<DateTimeOffset>? clock = null
                     await File.WriteAllBytesAsync(path, bytes, cancellation).ConfigureAwait(false);
                     File.SetLastWriteTimeUtc(path, Now.UtcDateTime);
                 }
-                if (PackageImages.Dimensions(path) != (PackagePreviews.Size, PackagePreviews.Size)) throw new PackageException("A prévia do catálogo precisa ter 128 × 128 pixels.");
+                if (PackageImages.Dimensions(path) != (PackagePreviews.Size, PackagePreviews.Size)) throw new PackageException(L.Text("A prévia do catálogo precisa ter 128 × 128 pixels."));
                 return PackageImages.Load(path);
             }, cancellation).ConfigureAwait(false);
         }

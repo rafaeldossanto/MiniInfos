@@ -12,9 +12,9 @@ public sealed class GitHubCatalog(HttpClient http, long repositoryId, CatalogCac
         var client = new GitHubReleaseClient(http);
         var release = await client.ByTagAsync(repositoryId, GitHubRepository.CatalogTag, cancellation).ConfigureAwait(false);
         if (release is null || release.Tag != GitHubRepository.CatalogTag || release.Draft || !release.Prerelease || release.Assets is null)
-            throw new PackageException("Nenhum catálogo publicado foi encontrado.");
+            throw new PackageException(L.Text("Nenhum catálogo publicado foi encontrado."));
         var indexes = release.Assets.Where(asset => asset.Name == "index.json").ToArray();
-        if (indexes.Length != 1) throw new PackageException("A publicação precisa conter um único index.json.");
+        if (indexes.Length != 1) throw new PackageException(L.Text("A publicação precisa conter um único index.json."));
         var bytes = await client.DownloadAsync(indexes[0], CatalogIndex.MaxBytes, null, null, cancellation).ConfigureAwait(false);
         var snapshot = new CatalogSnapshot(CatalogIndex.Read(bytes), release.Assets);
         foreach (var entry in snapshot.Index.Packages)

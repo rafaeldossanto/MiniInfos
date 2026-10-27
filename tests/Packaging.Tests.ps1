@@ -85,7 +85,17 @@ try {
     if ($create -notmatch ' --draft ' -or $create -match '--latest' -or $appWorkflow -notmatch 'assets.Count -ne 1') {
         throw 'A release do app precisa nascer como rascunho, sem latest, e só com o instalador.'
     }
-    Write-Host 'Empacotamento: app/mod isolados e pacotes excluídos do ZIP de código.'
+    $setup = Get-Content -LiteralPath (Join-Path $repository 'installer/MiniInfos.iss') -Raw
+    $languages = [regex]::Match($setup, '(?ms)^\[Languages\]\s*(.*?)^\[').Groups[1].Value
+    $names = @([regex]::Matches($languages, 'Name: "([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+    if ($names.Count -ne 2 -or $names[0] -ne 'en' -or $names -notcontains 'ptbr' -or $setup -notmatch 'LanguageDetectionMethod=uilanguage') {
+        throw 'The installer must detect Windows UI language, with Portuguese and an English fallback.'
+    }
+    $messages = [regex]::Matches($setup, '(?m)^(en|ptbr)\.(\w+)=')
+    $english = @($messages | Where-Object { $_.Groups[1].Value -eq 'en' } | ForEach-Object { $_.Groups[2].Value } | Sort-Object)
+    $portuguese = @($messages | Where-Object { $_.Groups[1].Value -eq 'ptbr' } | ForEach-Object { $_.Groups[2].Value } | Sort-Object)
+    if ($english.Count -eq 0 -or ($english -join ',') -ne ($portuguese -join ',')) { throw 'Installer custom messages must exist in both languages.' }
+    Write-Host 'Empacotamento: app/mod isolados, pacotes fora do ZIP e instalador em dois idiomas.'
 }
 finally {
     $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
