@@ -7,7 +7,7 @@ internal static partial class Program
     private static void CheckThemes(CardSet cards, Preferences preferences, SettingsWindow settings, string pictures)
     {
         var simple = ThemeKeys(ThemeManager.Load(ThemeChoice.Simple));
-        Check(simple.Length > 0 && new[] { ThemeChoice.Light, ThemeChoice.Classic, ThemeChoice.ClassicLight }
+        Check(simple.Length > 0 && new[] { ThemeChoice.Light, ThemeChoice.Classic, ThemeChoice.ClassicDark, ThemeChoice.ClassicLight }
             .All(theme => simple.SequenceEqual(ThemeKeys(ThemeManager.Load(theme)))),
             "all themes provide the same resources, including merged dictionaries");
 
@@ -46,10 +46,10 @@ internal static partial class Program
             "Clássico adds Athena and measures its header immediately");
         Check(Preferences.Load().Theme == ThemeChoice.Classic, "the classic choice is kept for the next launch");
         var band = Find<Grid>(card, "HeaderArt");
-        var refresh = Find<Button>(card, "RefreshButton");
-        Check(band.TranslatePoint(new Point(), face).Y >= refresh.TranslatePoint(new Point(0, refresh.ActualHeight), face).Y,
-            "the Athena band starts below the controls without covering them");
-        var engraved = artwork.Source;
+        Check(artwork.Source is BitmapImage original && original.UriSource.ToString().EndsWith("/Assets/athena-header.png")
+            && band.Tag is false && band.Margin == new Thickness(0)
+            && Find<Grid>(card, "HeaderRegion").Height == 96 && Find<TextBlock>(card, "AppTitle").FontSize == 20,
+            "the existing Classic key keeps its original artwork, overlay layout and header dimensions");
         Render(card, System.IO.Path.Combine(pictures, "card-classic.png"));
         Render(settings, System.IO.Path.Combine(pictures, "settings-classic.png"));
 
@@ -62,6 +62,20 @@ internal static partial class Program
         Check(icons.Children.OfType<Button>().Count() == icons.Children.Count,
             "the provider icons have no separator between them");
         Render(card, System.IO.Path.Combine(pictures, "split-classic.png"));
+
+        ChooseTheme(settings, ThemeChoice.ClassicDark);
+        Pump(TimeSpan.FromMilliseconds(500));
+        var refresh = Find<Button>(card, "RefreshButton");
+        Check(!IsLight(face.Background) && band.Tag is true
+            && band.TranslatePoint(new Point(), face).Y >= refresh.TranslatePoint(new Point(0, refresh.ActualHeight), face).Y
+            && artwork.Source is BitmapImage dark && dark.UriSource.ToString().EndsWith("/Assets/athena-banner-dark.png")
+            && Preferences.Load().Theme == ThemeChoice.ClassicDark,
+            "Clássico escuro is a separate saved choice with its band below the controls");
+        Check(Columns(card).Count == 2
+            && Math.Abs(artwork.TranslatePoint(new Point(artwork.ActualWidth / 2, 0), face).X - face.ActualWidth / 2) < 1,
+            "the new dark Athena stays centered across split view");
+        var engraved = artwork.Source;
+        Render(card, System.IO.Path.Combine(pictures, "split-classic-dark.png"));
 
         ChooseTheme(settings, ThemeChoice.ClassicLight);
         Pump(TimeSpan.FromMilliseconds(500));
@@ -96,8 +110,11 @@ internal static partial class Program
         try
         {
             var uses = LibraryUses(library);
-            Check(uses.Count >= 5 && uses.All(use => LibraryPreview(use) is BitmapSource { PixelWidth: PackagePreviews.Size, IsFrozen: true }),
+            Check(uses.Count >= 6 && uses.All(use => LibraryPreview(use) is BitmapSource { PixelWidth: PackagePreviews.Size, IsFrozen: true }),
                 $"the library shows every theme with its preview ({uses.Count})");
+            Check(new[] { ThemeChoice.Classic, ThemeChoice.ClassicDark, ThemeChoice.ClassicLight }
+                .All(theme => uses.Any(use => (string)use.Tag == ThemeHistory.Key(theme))),
+                "the library offers the original Classic alongside both new editions");
             Check(uses[0] is { IsEnabled: false, Content: "Em uso" } && (string)uses[0].Tag == preferences.ThemeKey
                 && uses.Skip(1).All(use => use is { IsEnabled: true, Content: "Usar" }),
                 "the theme in use comes first and reads Em uso; the others offer Usar");

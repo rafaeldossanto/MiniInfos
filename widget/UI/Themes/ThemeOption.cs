@@ -16,10 +16,11 @@ public sealed record ThemeOption(string Key, string Name, string Origin, Func<Re
     private static readonly IReadOnlyList<ThemeOption> BuiltIns =
     [
         BuiltIn(ThemeChoice.Simple, "Simples", Included),
-        BuiltIn(ThemeChoice.Classic, "Clássico escuro", Included),
+        BuiltIn(ThemeChoice.Classic, "Clássico", Included),
         BuiltIn(ThemeChoice.Light, "Claro", Included),
         BuiltIn(ThemeChoice.System, "Windows", "Segue o modo claro ou escuro do Windows"),
         BuiltIn(ThemeChoice.ClassicLight, "Clássico claro", Included),
+        BuiltIn(ThemeChoice.ClassicDark, "Clássico escuro", Included),
     ];
 
     /// <summary>Every theme there is to choose, the one in use first and then the last chosen.</summary>

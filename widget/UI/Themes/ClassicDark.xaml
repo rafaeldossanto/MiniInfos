@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Classic.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <!-- A separate edition; Classic keeps its original artwork and overlay header. -->
+    <sys:Double x:Key="HeaderHeight">128</sys:Double>
+    <sys:Double x:Key="HeaderTitleSize">14</sys:Double>
+    <sys:Boolean x:Key="HeaderArtworkInset">True</sys:Boolean>
+    <BitmapImage x:Key="HeaderArtwork" UriSource="pack://application:,,,/MiniInfos;component/Assets/athena-banner-dark.png" />
+</ResourceDictionary>
