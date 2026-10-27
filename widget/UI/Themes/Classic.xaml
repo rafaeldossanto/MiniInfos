@@ -18,9 +18,8 @@
     <SolidColorBrush x:Key="AccentText" Color="#1F1F1F" />
     <SolidColorBrush x:Key="Warning" Color="#CDA66B" />
     <SolidColorBrush x:Key="Danger" Color="#D7786B" />
-    <sys:Double x:Key="HeaderHeight">128</sys:Double>
-    <sys:Double x:Key="HeaderTitleSize">14</sys:Double>
-    <sys:Boolean x:Key="HeaderArtworkInset">True</sys:Boolean>
+    <sys:Double x:Key="HeaderHeight">96</sys:Double>
+    <sys:Double x:Key="HeaderTitleSize">20</sys:Double>
     <Visibility x:Key="HeaderArtworkVisibility">Visible</Visibility>
-    <BitmapImage x:Key="HeaderArtwork" UriSource="pack://application:,,,/MiniInfos;component/Assets/athena-banner-dark.png" />
+    <BitmapImage x:Key="HeaderArtwork" UriSource="pack://application:,,,/MiniInfos;component/Assets/athena-header.png" />
 </ResourceDictionary>

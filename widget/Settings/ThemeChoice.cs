@@ -19,4 +19,7 @@ public enum ThemeChoice
 
     /// <summary>The illustrated Athena card in ivory marble and warm light stone tones.</summary>
     ClassicLight,
+
+    /// <summary>The separate dark edition with an engraved Athena band below the controls.</summary>
+    ClassicDark,
 }

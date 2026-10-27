@@ -11,7 +11,7 @@
     <AssemblyName>MiniInfos</AssemblyName>
     <ApplicationIcon>Assets\MiniInfos.ico</ApplicationIcon>
     <!-- The one version: build.ps1 hands it to the installer, and the app tells it to codex. -->
-    <Version>1.14.0</Version>
+    <Version>1.14.1</Version>
     <!-- The source-generated P/Invoke in DesktopApps. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -28,6 +28,7 @@
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
     <Resource Include="Assets\MiniInfos.ico" />
+    <Resource Include="Assets\athena-header.png" />
     <Resource Include="Assets\athena-banner-*.png" />
     <Resource Include="Assets\athena-owl-smooth.png" />
     <Resource Include="Assets\athena-owl-interactions.png" />
