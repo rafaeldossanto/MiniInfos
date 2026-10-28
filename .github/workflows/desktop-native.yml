@@ -1,10 +1,11 @@
 name: Desktop Linux e macOS
 on:
+  # The shared tests the native project compiles (MiniInfos.Desktop.Tests.csproj) count as its own.
   push:
     branches: [dev, main]
-    paths: ['desktop/**', 'widget/Providers/**', 'widget/Sources/**', 'widget/Infrastructure/**', 'widget/Settings/**', 'widget/Localization/**', 'widget/Community/**', 'widget/Mascot/**', 'widget/Updates/**', 'widget/UI/Formatting/**', 'widget/UI/Themes/**', 'widget/Assets/**', 'tests/MiniInfos.Desktop.Tests/**', '.github/workflows/desktop-native.yml']
+    paths: ['desktop/**', 'widget/Providers/**', 'widget/Sources/**', 'widget/Infrastructure/**', 'widget/Settings/**', 'widget/Localization/**', 'widget/Community/**', 'widget/Mascot/**', 'widget/Updates/**', 'widget/UI/Formatting/**', 'widget/UI/Themes/**', 'widget/Assets/**', 'tests/MiniInfos.Tests/Providers/**', 'tests/MiniInfos.Tests/Sources/**', 'tests/MiniInfos.Tests/Infrastructure/Storage/**', 'tests/MiniInfos.Tests/Support/**', 'tests/MiniInfos.Desktop.Tests/**', '.github/workflows/desktop-native.yml']
   pull_request:
-    paths: ['desktop/**', 'widget/**', 'tests/MiniInfos.Desktop.Tests/**', '.github/workflows/desktop-native.yml']
+    paths: ['desktop/**', 'widget/**', 'tests/MiniInfos.Tests/Providers/**', 'tests/MiniInfos.Tests/Sources/**', 'tests/MiniInfos.Tests/Infrastructure/Storage/**', 'tests/MiniInfos.Tests/Support/**', 'tests/MiniInfos.Desktop.Tests/**', '.github/workflows/desktop-native.yml']
   workflow_dispatch:
 permissions:
   contents: read
