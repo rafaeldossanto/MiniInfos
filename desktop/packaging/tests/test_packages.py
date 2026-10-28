@@ -46,6 +46,28 @@ class Packages(unittest.TestCase):
                 self.assertTrue(any("claude-plugin/mod/hooks/register.ts" in name for name in names))
                 self.assertFalse(any("marketplace/packages" in name or "front/" in name or "/tests/" in name for name in names))
 
+    def test_mac_signing_covers_every_file_the_bundle_seals_before_the_bundle(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            payload = root / "publish"
+            (payload / "pt-BR").mkdir(parents=True)
+            for name in ("MiniInfos.Desktop", "MiniInfos.Desktop.dll", "System.Diagnostics.Contracts.dll",
+                         "libSkiaSharp.dylib", "MiniInfos.Desktop.runtimeconfig.json", "pt-BR/MiniInfos.Desktop.resources.dll"):
+                (payload / name).write_bytes(b"test")
+            bundle = pack.mac_bundle(payload, root / "image")
+            commands = []
+            original = pack.run
+            pack.run = lambda *command: commands.append(command)
+            try:
+                pack.sign_mac(bundle, "-")
+            finally:
+                pack.run = original
+            signed = [Path(command[-1]) for command in commands if command[:2] == ("codesign", "--force")]
+            inner = sorted(path for path in (bundle / "Contents/MacOS").rglob("*") if path.is_file() and path.name != "MiniInfos.Desktop")
+            self.assertEqual(inner, sorted(signed[:-1]))
+            self.assertEqual(bundle, signed[-1])
+            self.assertEqual(("codesign", "--verify", "--deep", "--strict", str(bundle)), commands[-1])
+
 
 if __name__ == "__main__":
     unittest.main()

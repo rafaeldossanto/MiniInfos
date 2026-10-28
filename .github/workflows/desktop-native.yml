@@ -53,3 +53,9 @@ jobs:
           else
             dotnet run --project desktop -c Release -- --smoke-ui
           fi
+      # The package the release builds (ad-hoc signed on macOS), opened and run: a packaging fault shows here, not on the tag.
+      - name: Build and run the native package
+        shell: bash
+        run: |
+          python desktop/packaging/package.py --runtime ${{ matrix.runtime }}
+          desktop/packaging/run_package.sh
