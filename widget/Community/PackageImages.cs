@@ -1,6 +1,10 @@
 using System.Buffers.Binary;
 using System.IO;
+#if AVALONIA
+using BitmapSource = Avalonia.Media.Imaging.Bitmap;
+#else
 using System.Windows.Media.Imaging;
+#endif
 
 namespace MiniInfos.Community;
 
@@ -29,6 +33,11 @@ public static class PackageImages
     public static BitmapSource Load(string path)
     {
         Dimensions(path);
+#if AVALONIA
+        try { return new BitmapSource(path); }
+        catch (Exception e) when (e is ArgumentException or InvalidOperationException or NotSupportedException)
+        { throw new PackageException(L.Text("Não foi possível decodificar a imagem PNG."), e); }
+#else
         try
         {
             using var stream = File.OpenRead(path);
@@ -39,14 +48,21 @@ public static class PackageImages
         }
         catch (Exception e) when (e is NotSupportedException or FileFormatException or ArgumentException or InvalidOperationException)
         { throw new PackageException(L.Text("Não foi possível decodificar a imagem PNG."), e); }
+#endif
     }
 
     public static byte[] Encode(BitmapSource bitmap)
     {
+#if AVALONIA
+        using var stream = new MemoryStream();
+        bitmap.Save(stream, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+        return stream.ToArray();
+#else
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using var stream = new MemoryStream();
         encoder.Save(stream);
         return stream.ToArray();
+#endif
     }
 }

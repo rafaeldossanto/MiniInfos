@@ -2,3 +2,4 @@ marketplace/packages/ export-ignore
 marketplace/packages/** export-ignore
 front/ export-ignore
 front/** export-ignore
+desktop/packaging/linux/* text eol=lf

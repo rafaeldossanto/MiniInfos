@@ -1,4 +1,4 @@
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Kimi;
 

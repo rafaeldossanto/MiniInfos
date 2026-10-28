@@ -1,4 +1,9 @@
 using System.Runtime.InteropServices;
+#if AVALONIA
+using Rect = Avalonia.Rect;
+#else
+using Rect = System.Windows.Rect;
+#endif
 
 namespace MiniInfos.Mascot;
 
@@ -60,7 +65,7 @@ public static class PetPixels
         MemoryMarshal.Cast<byte, uint>(pixels).Reverse();
     }
 
-    public static System.Windows.Rect Bounds(ReadOnlySpan<byte> pixels, int size)
+    public static Rect Bounds(ReadOnlySpan<byte> pixels, int size)
     {
         if (pixels.Length != size * size * 4) throw new ArgumentException("Pet pixels do not match the canvas.");
         var left = size; var top = size; var right = 0; var bottom = 0;

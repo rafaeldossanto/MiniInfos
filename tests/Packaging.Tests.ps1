@@ -82,8 +82,8 @@ try {
     # The app's release starts as a draft, out of the update banner's sight until it is reviewed and published as latest.
     $create = [regex]::Match($appWorkflow, 'gh release create [^
 ]*').Value
-    if ($create -notmatch ' --draft ' -or $create -match '--latest' -or $appWorkflow -notmatch 'assets.Count -ne 1') {
-        throw 'A release do app precisa nascer como rascunho, sem latest, e só com o instalador.'
+    if ($create -notmatch ' --draft ' -or $create -match '--latest' -or $appWorkflow -notmatch 'check_release.py release-assets' -or $appWorkflow -notmatch 'needs: \[windows, native\]') {
+        throw 'A release do app precisa nascer como rascunho, sem latest, após validar os pacotes de todos os sistemas.'
     }
     $setup = Get-Content -LiteralPath (Join-Path $repository 'installer/MiniInfos.iss') -Raw
     $languages = [regex]::Match($setup, '(?ms)^\[Languages\]\s*(.*?)^\[').Groups[1].Value

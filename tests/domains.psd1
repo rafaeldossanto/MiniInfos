@@ -2,6 +2,8 @@
     # One map for local runs and CI. Rules use the first matching path, most specific first.
     Domains = @{
         Front = @{ Filter = ''; Suite = ''; Check = @{ Command = 'npm'; Arguments = @('--prefix', 'front', 'run', 'check') } }
+        Desktop = @{ Filter = ''; Suite = ''; Check = @{ Command = 'dotnet'; Arguments = @('test', 'tests/MiniInfos.Desktop.Tests', '-c', 'Release', '--filter', 'FullyQualifiedName~MiniInfos.Tests.Desktop.', '--logger', 'console;verbosity=minimal') } }
+        DesktopPackaging = @{ Filter = ''; Suite = ''; Check = @{ Command = 'python'; Arguments = @('-m', 'unittest', 'discover', '-s', 'desktop/packaging/tests', '-v') } }
         Localization = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Localization.|FullyQualifiedName~MiniInfos.Tests.Settings.|FullyQualifiedName~MiniInfos.Tests.UI.Formatting.'; Suite = 'Localization' }
         CatalogTool = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.CatalogToolTests'; Suite = '' }
         Community = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.'; Suite = 'Community' }
@@ -26,6 +28,13 @@
         @{ Path = '*.md'; Ignore = $true }
         @{ Path = '.gitignore'; Ignore = $true }
         @{ Path = 'front/*'; Domains = @('Front') }
+        @{ Path = 'desktop/packaging/*'; Domains = @('DesktopPackaging') }
+        @{ Path = 'desktop/MiniInfos.Desktop.csproj'; All = $true; Domains = @('Desktop') }
+        @{ Path = 'desktop/*'; Domains = @('Desktop') }
+        @{ Path = 'tests/MiniInfos.Desktop.Tests/Providers/Codex/*'; Domains = @('Codex') }
+        @{ Path = 'tests/MiniInfos.Desktop.Tests/*'; Domains = @('Desktop') }
+        @{ Path = '.github/workflows/desktop-native.yml'; Domains = @('Desktop', 'DesktopPackaging') }
+        @{ Path = '.github/workflows/release-app.yml'; All = $true; Domains = @('DesktopPackaging') }
         @{ Path = 'widget/Localization/*'; Domains = @('Localization') }
         @{ Path = 'widget/Settings/LanguageChoice.cs'; Domains = @('Localization') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.Language.cs'; Domains = @('Localization') }
@@ -85,6 +94,7 @@
         @{ Path = 'widget/Infrastructure/Windows/AspectSizing.cs'; Domains = @('Windows', 'Cards') }
         @{ Path = 'widget/Infrastructure/Windows/StartupShortcut.cs'; Domains = @('Windows', 'Settings') }
         @{ Path = 'widget/Infrastructure/Network/*'; Domains = @('Community', 'Updates') }
+        @{ Path = 'widget/Infrastructure/Desktop/*'; Domains = @('Windows', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Desktop') }
         @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Claude/*'; Domains = @('Claude') }
         @{ Path = 'tests/MiniInfos.Tests/Community/CatalogToolTests.cs'; Domains = @('CatalogTool') }

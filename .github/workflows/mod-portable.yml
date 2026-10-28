@@ -1,0 +1,17 @@
+name: Mod portable integration
+on:
+  push:
+    paths: ['mod/**', '.github/workflows/mod-portable.yml']
+  pull_request:
+    paths: ['mod/**', '.github/workflows/mod-portable.yml']
+permissions:
+  contents: read
+jobs:
+  platforms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: node --test mod/tests/platforms.test.mjs

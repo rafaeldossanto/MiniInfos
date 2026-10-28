@@ -1,4 +1,4 @@
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Claude;
 
@@ -13,5 +13,5 @@ public static class ClaudeApp
 
     /// <summary>A path Windows keeps from us still counts: the Store app's window is enough.</summary>
     public static bool IsOpen() =>
-        DesktopApps.HasWindow("claude", path => path is null || !path.Contains(CodeFolder, StringComparison.OrdinalIgnoreCase));
+        DesktopApps.HasWindow("claude", path => path is null || !path.Replace('/', '\\').Contains(CodeFolder, StringComparison.OrdinalIgnoreCase));
 }

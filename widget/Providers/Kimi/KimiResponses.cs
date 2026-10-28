@@ -48,7 +48,7 @@ public static class KimiResponses
             using var stream = new FileStream(Path.Combine(session, "state.json"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             using var document = JsonDocument.Parse(stream);
             return document.RootElement.TryGetProperty("workDir", out var workDir) && workDir.GetString() is { Length: > 0 } folder
-                ? Path.GetFileName(Path.TrimEndingDirectorySeparator(folder.Replace('/', Path.DirectorySeparatorChar)))
+                ? MiniInfos.Infrastructure.Storage.SourceFiles.LeafName(folder)
                 : null;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)

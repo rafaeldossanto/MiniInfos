@@ -1,0 +1,51 @@
+import { t } from '../localization/messages';
+import { LANGUAGE_EVENT } from '../localization/model';
+import { availablePackages, detectPlatform, releaseApi, releasePage } from './model';
+
+export function initDownloads() {
+  const section = document.querySelector<HTMLElement>('#downloads');
+  if (!section) return;
+  const detected = detectPlatform(navigator.platform, navigator.userAgent);
+  const label = detected === 'windows' ? 'Baixar para Windows' : detected === 'macos' ? 'Baixar para macOS' : detected === 'linux' ? 'Baixar para Linux' : 'Baixar MiniInfos';
+  document.querySelectorAll<HTMLAnchorElement>('[data-download]').forEach((link) => {
+    link.href = '#downloads';
+    const text = link.querySelector('span');
+    if (text) { text.dataset.i18n = label; text.textContent = t(label); }
+    const icon = link.querySelector('use');
+    if (icon) icon.setAttribute('href', '/icons.svg#file');
+  });
+  section.querySelector(`[data-platform="${detected}"]`)?.setAttribute('data-detected', 'true');
+  const links = section.querySelectorAll<HTMLAnchorElement>('[data-package]');
+  let availability: Map<string, string> | null = null;
+  let failed = false;
+  const render = () => {
+    document.querySelectorAll<HTMLAnchorElement>('[data-download] span').forEach((text) => text.textContent = t(label));
+    links.forEach((link) => {
+      const address = availability?.get(link.dataset.package!);
+      link.href = address ?? releasePage;
+      link.setAttribute('aria-label', `${link.querySelector('span')?.textContent}: ${t(address ? 'Baixar' : 'Ver releases')}`);
+      link.dataset.available = String(Boolean(address));
+      const state = link.querySelector('[data-download-state]');
+      if (state) state.textContent = t(address ? 'Baixar' : failed ? 'Ver releases' : availability ? 'Ainda não publicado' : 'Verificando…');
+    });
+    const status = section.querySelector('[data-download-status]');
+    if (status) status.textContent = t(failed ? 'Não foi possível consultar as versões. Confira os arquivos publicados no GitHub.' : 'Os downloads são ativados conforme os pacotes são publicados no GitHub.');
+  };
+  window.addEventListener(LANGUAGE_EVENT, render);
+  render();
+  // Fetch only when the download area is approached or a main download CTA is used.
+  let requested = false;
+  const load = async () => {
+    if (requested) return;
+    requested = true;
+    try {
+      const response = await fetch(releaseApi, { headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error('Release unavailable');
+      availability = availablePackages(await response.json());
+    } catch { failed = true; }
+    render();
+  };
+  document.querySelectorAll('[data-download]').forEach((link) => link.addEventListener('click', () => void load()));
+  const observer = new IntersectionObserver((entries) => { if (entries.some((entry) => entry.isIntersecting)) { void load(); observer.disconnect(); } }, { rootMargin: '240px' });
+  observer.observe(section);
+}

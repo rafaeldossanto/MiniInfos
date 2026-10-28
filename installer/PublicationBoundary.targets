@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
-    <MiniInfosMarketplaceRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\marketplace\'))</MiniInfosMarketplaceRoot>
-    <MiniInfosToolsRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\tools\'))</MiniInfosToolsRoot>
-    <MiniInfosFrontRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\front\'))</MiniInfosFrontRoot>
+    <MiniInfosMarketplaceRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../marketplace/'))</MiniInfosMarketplaceRoot>
+    <MiniInfosToolsRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../tools/'))</MiniInfosToolsRoot>
+    <MiniInfosFrontRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../front/'))</MiniInfosFrontRoot>
   </PropertyGroup>
   <Target Name="CheckMiniInfosPublicationBoundary" BeforeTargets="CopyFilesToPublishDirectory">
     <Error Condition="$([System.String]::Copy('%(ResolvedFileToPublish.FullPath)').StartsWith('$(MiniInfosMarketplaceRoot)', System.StringComparison.OrdinalIgnoreCase)) Or $([System.String]::Copy('%(ResolvedFileToPublish.FullPath)').StartsWith('$(MiniInfosToolsRoot)', System.StringComparison.OrdinalIgnoreCase)) Or $([System.String]::Copy('%(ResolvedFileToPublish.FullPath)').StartsWith('$(MiniInfosFrontRoot)', System.StringComparison.OrdinalIgnoreCase))"

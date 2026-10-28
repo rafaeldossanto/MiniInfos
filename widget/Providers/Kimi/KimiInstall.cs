@@ -1,5 +1,5 @@
 using System.IO;
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Kimi;
 
@@ -12,6 +12,7 @@ public static class KimiInstall
     public static AppFootprint Footprint { get; } = new()
     {
         StorePackages = ["KimiShareTarget_m564vt17ty7ce"],
+        Bundles = HostPaths.AppBundles("Kimi"),
         Commands = ["kimi"],
         Files = [Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Kimi", "Kimi.exe")],
         Processes = ["Kimi"],

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MiniInfos</RootNamespace>
+    <AssemblyName>MiniInfos.Desktop</AssemblyName>
+    <DefineConstants>$(DefineConstants);AVALONIA</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>../widget/Assets/MiniInfos.ico</ApplicationIcon>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <AvaloniaResource Include="../widget/Assets/*.png;../widget/Assets/*.ico" Link="Assets/%(Filename)%(Extension)" />
+    <AvaloniaResource Include="../widget/Assets/Fonts/*.ttf" Link="Assets/Fonts/%(Filename)%(Extension)" />
+    <Content Include="../widget/Assets/Fonts/OFL*.txt" LinkBase="Licenses" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="../widget/Localization/en.json" LogicalName="MiniInfos.Localization.en.json" />
+    <EmbeddedResource Include="../widget/UI/Themes/Simple.xaml;../widget/UI/Themes/Light.xaml;../widget/UI/Themes/Classic.xaml;../widget/UI/Themes/ClassicDark.xaml;../widget/UI/Themes/ClassicLight.xaml" LogicalName="Themes.%(Filename).xaml" />
+    <Compile Include="../widget/Providers/**/*.cs;../widget/Sources/*.cs;../widget/Settings/*.cs;../widget/Infrastructure/Storage/*.cs;../widget/Infrastructure/Network/*.cs;../widget/Infrastructure/AppInfo.cs;../widget/Localization/Localizer.cs;../widget/UI/Formatting/Format.cs" LinkBase="Shared" />
+    <Compile Include="../widget/Infrastructure/Desktop/*.cs" LinkBase="Shared/Platform" />
+    <Compile Include="../widget/Mascot/PetActivity.cs;../widget/Mascot/PetAnatomy.cs;../widget/Mascot/PetAnimation.cs;../widget/Mascot/PetInteraction.cs;../widget/Mascot/PetPendulum.cs;../widget/Mascot/PetDrop.cs;../widget/Mascot/PetFrameClock.cs;../widget/Mascot/PetPlacement.cs" LinkBase="Shared/Mascot" />
+    <Compile Include="../widget/Community/PackageManifest.cs;../widget/Community/ThemeDefinition.cs;../widget/Community/MascotDefinition.cs;../widget/Community/PackageFiles.cs;../widget/Community/PackageImages.cs;../widget/Community/PackageValidation.cs;../widget/Community/PackageLibrary.cs;../widget/Community/MascotPreviewCache.cs;../widget/Community/Catalog/*.cs" LinkBase="Shared/Community" />
+    <Compile Include="../widget/Updates/AvailableUpdate.cs;../widget/Updates/IUpdateSource.cs;../widget/Updates/GitHubReleases.cs;../widget/Updates/ReleaseAssets.cs" LinkBase="Shared/Updates" />
+    <InternalsVisibleTo Include="MiniInfos.Desktop.Tests" />
+  </ItemGroup>
+  <!-- Both UIs compile the same domain sources. The Windows project remains the version authority. -->
+  <Target Name="ReadAppVersion" BeforeTargets="PrepareForBuild;GenerateAssemblyInfo">
+    <XmlPeek XmlInputPath="../widget/MiniInfos.csproj" Query="/Project/PropertyGroup/Version/text()">
+      <Output TaskParameter="Result" PropertyName="Version" />
+    </XmlPeek>
+  </Target>
+  <Import Project="../installer/PublicationBoundary.targets" />
+</Project>

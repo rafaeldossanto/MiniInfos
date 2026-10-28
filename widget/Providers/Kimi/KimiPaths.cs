@@ -11,7 +11,7 @@ namespace MiniInfos.Providers.Kimi;
 /// </summary>
 public static class KimiPaths
 {
-    public static string DesktopData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "kimi-desktop");
+    public static string DesktopData => Path.Combine(MiniInfos.Infrastructure.Desktop.HostPaths.Configuration, "kimi-desktop");
 
     /// <summary>The desktop app's runtime: sessions under it are the app's agent, not the CLI.</summary>
     public static string DesktopHome => Path.Combine(DesktopData, "daimon-share", "daimon", "runtime", "kimi-code", "home");

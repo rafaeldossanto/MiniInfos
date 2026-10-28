@@ -1,4 +1,4 @@
-namespace MiniInfos.Infrastructure.Windows;
+namespace MiniInfos.Infrastructure.Desktop;
 
 /// <summary>
 /// What installing an app leaves for this Windows user and uninstalling takes away, as
@@ -17,6 +17,9 @@ public sealed record AppFootprint
 
     /// <summary>Files an installer lays where no PATH may name them.</summary>
     public IReadOnlyList<string> Files { get; init; } = [];
+
+    /// <summary>macOS application bundles; their presence is an install, unlike a leftover data folder.</summary>
+    public IReadOnlyList<string> Bundles { get; init; } = [];
 
     /// <summary>Process names: one running means it is installed, however that was done.</summary>
     public IReadOnlyList<string> Processes { get; init; } = [];

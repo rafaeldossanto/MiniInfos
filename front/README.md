@@ -52,3 +52,9 @@ O site fica em `https://miniinfos.com`, servido pelo CloudFront a partir de um b
 Cada push na `main` que altera `front/` dispara `.github/workflows/front-deploy.yml`: valida, gera o `dist/`, envia ao bucket e renova o cache. O job entra na AWS por OIDC, numa sessão de uma hora de uma role que só esta branch deste repositório assume e que só escreve neste bucket e renova esta distribuição. Não existe chave da AWS no repositório, nos secrets ou em máquina alguma; nunca crie uma. O repositório guarda os valores de saída da stack: `AWS_DEPLOY_ROLE_ARN` como secret, `SITE_BUCKET` e `SITE_DISTRIBUTION_ID` como variáveis. Sem eles o deploy é pulado.
 
 Não são necessárias chaves de API. Não há analytics, formulários, consulta a contas ou dados pessoais nas demonstrações. Os textos de Privacidade e Termos descrevem essa página; devem acompanhar eventuais serviços adicionados na publicação.
+
+## Downloads por sistema
+
+`src/downloads/` identifica Windows, macOS ou Linux sem tentar adivinhar a arquitetura de Macs a partir do navegador. A seção oferece Windows x64, Mac Apple Silicon/Intel e Linux x64/ARM64. Ao chegar à área de downloads ou clicar em uma CTA, consulta uma vez a release pública `repositories/1432597159/releases/latest`. Só oferece uma URL direta se o nome exato do pacote aparecer em uma release publicada do aplicativo. Rascunhos, pré-lançamentos, catálogo e URLs externas são rejeitados. Uma plataforma ainda não publicada mostra esse estado e leva à página de releases; erro de rede mantém o mesmo caminho de consulta manual. Não use URLs de assets futuros como se já estivessem disponíveis.
+
+A consulta não envia dados do aplicativo; a política de privacidade informa a conexão com o GitHub. Os estados de download acompanham Português/English e os cartões acompanham os temas claro/escuro.

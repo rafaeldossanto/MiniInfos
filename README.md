@@ -1,6 +1,6 @@
 # MiniInfos
 
-**Para usar, baixe o `MiniInfos-Setup.exe` da última versão.** O catálogo de mascotes e temas é separado do instalador, mesmo estando no mesmo repositório.
+**Para usar, escolha o pacote do seu sistema na última release publicada.** Windows usa `MiniInfos-Setup.exe`; macOS tem DMG para Apple Silicon e Intel; Linux tem `.tar.gz` para x64 e ARM64, com instalador por usuário. Os downloads do site são ativados quando cada arquivo é publicado. O catálogo de mascotes e temas é separado dos pacotes do app, mesmo estando no mesmo repositório. O código de Linux/macOS e os detalhes de distribuição estão em [desktop/README.md](desktop/README.md).
 
 Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para cada IA: Claude, Codex (GPT), Gemini e Kimi. Pra trocar de página: as setinhas ou os ícones das IAs no rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. Os ícones são monocromáticos, com o selecionado branco e os demais cinza. A página escolhida fica salva.
 
@@ -31,7 +31,7 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
-O aplicativo abre em português quando o idioma de exibição do Windows é português; nos demais idiomas, abre em inglês. Em **Configurações → Geral → Idioma**, escolha **Automático**, **Português** ou **English**. A escolha manual fica salva e atualiza janelas abertas, menus e números sem reiniciar. Ela não muda o tema selecionado. A landing page também detecta o idioma do navegador e oferece a escolha manual.
+O aplicativo abre em português quando o idioma de exibição do sistema é português; nos demais idiomas, abre em inglês. Em **Configurações → Geral → Idioma**, escolha **Automático**, **Português** ou **English**. A escolha manual fica salva e atualiza janelas abertas, menus e números sem reiniciar. Ela não muda o tema selecionado. A landing page também detecta o idioma do navegador e oferece a escolha manual.
 
 O instalador também inclui os dois idiomas e usa o idioma de exibição do Windows, com inglês como alternativa. A detecção usa a opção [`LanguageDetectionMethod=uilanguage` do Inno Setup](https://jrsoftware.org/ishelp/topic_setup_languagedetectionmethod.htm); a escolha manual dentro do app continua independente.
 
@@ -121,6 +121,7 @@ São duas partes:
 | --- | --- |
 | `mod/` (plugin `miniinfos`) | Roda dentro de cada chat do Claude Code. A cada resposta do modelo, grava na pasta de configuração desse Claude os limites do plano (5h e semanal), o contexto e o custo daquele chat, e informa automaticamente sua localização ao widget. |
 | `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude, do Codex, do Gemini e do Kimi, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
+| `desktop/` (Linux/macOS, Avalonia e .NET 10) | Interface nativa, integração por sistema e pacotes. Compila os mesmos leitores, ledgers, preferências e regras de `widget/`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 | `tools/MiniInfos.Catalog/` | Ferramenta separada para validar e gerar o catálogo da comunidade; não entra no instalador. |
 | `front/` | Landing page do MiniInfos; fora do instalador, do zip de código das releases e dos testes do app (`front/README.md`). |
@@ -151,7 +152,8 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `UI/Themes/` | Dicionários de temas, `ThemeManager` e tipografia compartilhada. |
 | `UI/Styles/` e `UI/Icons/` | Estilos e símbolos vetoriais compartilhados. |
 | `Infrastructure/Storage/` | Caminhos do aplicativo, arquivos JSON, livros-caixa, leitura incremental e acesso defensivo aos arquivos. |
-| `Infrastructure/Windows/` | Processos, comandos no PATH, apps instalados, atalhos, bandeja e geometria de janelas do Windows. |
+| `Infrastructure/Desktop/` | Processos, comandos no PATH, instalações e pastas nativas, compartilhados entre os sistemas. |
+| `Infrastructure/Windows/` | Atalhos, bandeja, acompanhamento e geometria de janelas específicos do aplicativo WPF. |
 | `Infrastructure/AppInfo.cs` | Versão do aplicativo obtida do assembly. |
 | `Assets/` | Ícone do aplicativo, ilustrações, sprites, fontes e respectivas licenças. |
 

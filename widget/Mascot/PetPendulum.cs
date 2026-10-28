@@ -1,4 +1,8 @@
+#if AVALONIA
+using Avalonia;
+#else
 using System.Windows;
+#endif
 
 namespace MiniInfos.Mascot;
 
@@ -57,7 +61,7 @@ public sealed class PetPendulum
         var duration = Math.Min(elapsed, 0.1);
         var steps = Math.Max(1, (int)Math.Ceiling(duration / StepSeconds));
         var dt = duration / steps;
-        var inertia = massOffset.LengthSquared + GyrationRadius * GyrationRadius;
+        var inertia = (massOffset.X * massOffset.X + massOffset.Y * massOffset.Y) + GyrationRadius * GyrationRadius;
         for (var step = 0; step < steps; step++)
         {
             // Smooth the force itself and interpolate it within the frame, rather than changing torque in jumps.
@@ -66,7 +70,7 @@ public sealed class PetPendulum
             var sin = Math.Sin(_angle);
             var cos = Math.Cos(_angle);
             var mass = new Vector(massOffset.X * cos - massOffset.Y * sin, massOffset.X * sin + massOffset.Y * cos);
-            var torque = Vector.CrossProduct(mass, force) / inertia;
+            var torque = (mass.X * force.Y - mass.Y * force.X) / inertia;
             _angularVelocity = Math.Clamp((_angularVelocity + torque * dt) * Math.Exp(-Damping * dt), -Math.Tau * 6, Math.Tau * 6);
             _angle += _angularVelocity * dt; // Unwrapped: momentum can carry the owl through any number of revolutions.
         }

@@ -58,6 +58,10 @@ Assert-Selection ($mixedFront.Filter -eq $pet.Filter -and ($mixedFront.Suites -j
 Assert-Selection ((Get-TestSelection -All).Checks.Count -eq 0) 'Regressão do app acionou o front sem mudanças'
 
 $unknown = Get-TestSelection -Paths @('widget/NewFeature/NewFile.cs')
+$native = Get-TestSelection -Paths @('desktop/UI/CardWindow.cs')
+Assert-Selection (($native.Domains -join ',') -eq 'Desktop' -and -not $native.All -and -not $native.Filter -and $native.Checks.Count -eq 1) 'Interface nativa selecionou testes WPF'
+$nativePackage = Get-TestSelection -Paths @('desktop/packaging/package.py')
+Assert-Selection (($nativePackage.Domains -join ',') -eq 'DesktopPackaging' -and -not $nativePackage.All) 'Empacotamento nativo selecionou domínios sem vínculo'
 Assert-Selection ($unknown.All) 'Código sem regra foi ignorado'
 Assert-Selection ((Get-TestSelection -Paths @('widget/MiniInfos.csproj')).All) 'Projeto não selecionou regressão completa'
 Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponível'
@@ -65,4 +69,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 28 cenários passaram.'
+Write-Host 'Seleção de testes: 30 cenários passaram.'

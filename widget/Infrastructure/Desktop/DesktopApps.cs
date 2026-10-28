@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace MiniInfos.Infrastructure.Windows;
+namespace MiniInfos.Infrastructure.Desktop;
 
 /// <summary>
 /// Whether a desktop app is open: a process of its name with a main window, running from a path
@@ -29,7 +29,7 @@ public static partial class DesktopApps
     {
         try
         {
-            return process.MainWindowHandle != IntPtr.Zero && acceptsPath(PathOf(process.Id));
+            return (!OperatingSystem.IsWindows() || process.MainWindowHandle != IntPtr.Zero) && acceptsPath(PathOf(process.Id));
         }
         catch (InvalidOperationException)
         {
@@ -65,6 +65,11 @@ public static partial class DesktopApps
 
     private static string? PathOf(int processId)
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            try { using var process = Process.GetProcessById(processId); return process.MainModule?.FileName; }
+            catch (Exception e) when (e is InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException) { return null; }
+        }
         var handle = OpenProcess(QueryLimitedInformation, inheritHandle: false, processId);
         if (handle == IntPtr.Zero) return null;
 

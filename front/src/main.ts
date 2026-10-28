@@ -2,16 +2,15 @@ import './styles/base.css';
 import './styles/landing.css';
 import './styles/widget.css';
 import './styles/language.css';
+import './styles/downloads.css';
 import './components/usage-widget';
 import { project } from './config';
 import { initTheme } from './theme/controller';
 import { initMotion } from './features/motion';
 import { initNavigation } from './features/navigation';
 import { initLanguage } from './localization/controller';
+import { initDownloads } from './downloads/controller';
 
-document.querySelectorAll<HTMLAnchorElement>('[data-download]').forEach((link) => {
-  link.href = project.download;
-});
 document.querySelectorAll<HTMLAnchorElement>('[data-repository]').forEach((link) => {
   link.href = project.repository;
 });
@@ -32,6 +31,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-card-theme]').forEach((butto
   });
 });
 initLanguage();
+initDownloads();
 initTheme();
 initNavigation();
 initMotion();

@@ -111,7 +111,7 @@ public sealed class CodexUsageLedger
                 var cwd = ReadString(payload, "cwd");
                 var id = ReadString(payload, "id") ?? cursor.SessionId ?? SessionKey(path);
                 if (Guid.TryParse(id, out var guid)) id = guid.ToString("D");
-                return Rebase(cursor with { SessionId = id, Project = cwd is null ? null : Path.GetFileName(Path.TrimEndingDirectorySeparator(cwd)) });
+                return Rebase(cursor with { SessionId = id, Project = cwd is null ? null : SourceFiles.LeafName(cwd) });
             }
 
             if (type.GetString() != "event_msg" || !payload.TryGetProperty("type", out var payloadType)

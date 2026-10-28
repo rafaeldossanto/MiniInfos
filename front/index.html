@@ -10,8 +10,8 @@
     </title>
     <meta
       name="description"
-      content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows. Personalize temas, fontes e mascotes."
-      data-i18n-content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows. Personalize temas, fontes e mascotes."
+      content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows, macOS e Linux. Personalize temas, fontes e mascotes."
+      data-i18n-content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows, macOS e Linux. Personalize temas, fontes e mascotes."
     />
     <meta property="og:type" content="website" />
     <meta
@@ -205,7 +205,7 @@
         <div class="container hero-inner">
           <div class="hero-copy">
             <p class="eyebrow" data-reveal>
-              Claude Code <span>·</span> Codex <span>·</span> Windows<i></i>
+              Claude Code <span>·</span> Codex <span>·</span> Desktop<i></i>
             </p>
             <h1 id="hero-title" data-reveal>
               <span data-i18n="Seu uso de IA,">Seu uso de IA,</span><br /><span
@@ -518,7 +518,7 @@
           <ol class="steps">
             <li data-reveal>
               <span>01</span>
-              <h3 data-i18n="Instale no Windows.">Instale no Windows.</h3>
+              <h3 data-i18n="Instale no seu computador.">Instale no seu computador.</h3>
               <p
                 data-i18n="Baixe o instalador oficial do MiniInfos pela última versão publicada no GitHub."
               >
@@ -563,10 +563,9 @@
               </svg>
             </summary>
             <p
-              data-i18n="O aplicativo é feito para Windows. O botão de download abre o instalador da última versão publicada no repositório do projeto."
+              data-i18n="Windows, macOS e Linux. Escolha seu sistema e a arquitetura do processador na área de downloads. Os pacotes aparecem quando são publicados no GitHub."
             >
-              O aplicativo é feito para Windows. O botão de download abre o instalador da última
-              versão publicada no repositório do projeto.
+              Windows, macOS e Linux. Escolha seu sistema e a arquitetura do processador na área de downloads. Os pacotes aparecem quando são publicados no GitHub.
             </p>
           </details>
           <details>
@@ -648,7 +647,7 @@
           </details>
         </div>
       </section>
-      <section class="final-section" aria-labelledby="download-title">
+      <section id="downloads" class="final-section" aria-labelledby="download-title">
         <div class="container final-inner" data-reveal>
           <svg class="final-owl" aria-hidden="true"><use href="/icons.svg#owl" /></svg>
           <p class="eyebrow" data-i18n="Uma ferramenta pequena. Um pouco mais de clareza.">
@@ -660,15 +659,23 @@
               >Seus tokens à vista.</span
             >
           </h2>
-          <a
-            class="button button-primary"
-            data-download
-            href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
-            ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg
-            ><span data-i18n="Baixar para Windows">Baixar para Windows</span
-            ><svg class="button-arrow" aria-hidden="true">
-              <use href="/icons.svg#arrow-up-right" /></svg
-          ></a>
+          <div class="download-grid">
+            <article class="download-platform" data-platform="windows">
+              <h3>Windows</h3><p data-i18n="Instalador para Windows 10 e 11.">Instalador para Windows 10 e 11.</p>
+              <a data-package="MiniInfos-Setup.exe" href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"><span>Windows · x64</span><span data-download-state data-i18n="Ver releases">Ver releases</span></a>
+            </article>
+            <article class="download-platform" data-platform="macos">
+              <h3>macOS</h3><p data-i18n="Para Mac com chip Apple ou Intel.">Para Mac com chip Apple ou Intel.</p>
+              <a data-package="MiniInfos-macos-arm64.dmg" href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"><span>Apple Silicon</span><span data-download-state data-i18n="Ver releases">Ver releases</span></a>
+              <a data-package="MiniInfos-macos-x64.dmg" href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"><span>Intel</span><span data-download-state data-i18n="Ver releases">Ver releases</span></a>
+            </article>
+            <article class="download-platform" data-platform="linux">
+              <h3>Linux</h3><p data-i18n="Pacote portátil. X11 ou XWayland.">Pacote portátil. X11 ou XWayland.</p>
+              <a data-package="MiniInfos-linux-x64.tar.gz" href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"><span>x64</span><span data-download-state data-i18n="Ver releases">Ver releases</span></a>
+              <a data-package="MiniInfos-linux-arm64.tar.gz" href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"><span>ARM64</span><span data-download-state data-i18n="Ver releases">Ver releases</span></a>
+            </article>
+          </div>
+          <p class="micro-note" data-download-status data-i18n="Os downloads são ativados conforme os pacotes são publicados no GitHub.">Os downloads são ativados conforme os pacotes são publicados no GitHub.</p>
           <p class="micro-note" data-i18n="Download direto pelo GitHub. Sem cadastro neste site.">
             Download direto pelo GitHub. Sem cadastro neste site.
           </p>

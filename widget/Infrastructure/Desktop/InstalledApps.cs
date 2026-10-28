@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using MiniInfos.Infrastructure.Storage;
 
-namespace MiniInfos.Infrastructure.Windows;
+namespace MiniInfos.Infrastructure.Desktop;
 
 /// <summary>
 /// Whether an app is installed for this Windows user, by its <see cref="AppFootprint"/>. The cheap signs
@@ -21,12 +21,14 @@ public static partial class InstalledApps
         app.StorePackages.Any(context.HasStorePackage)
         || app.Commands.Any(command => CommandPath.Find(context.Path, command) is not null)
         || app.Files.Any(File.Exists)
+        || app.Bundles.Any(Directory.Exists)
         || app.EditorExtensions.Any(extension => HasEditorExtension(context.UserProfile, extension))
         || app.Processes.Any(context.IsRunning);
 
     /// <summary>Whether a Store package of this family is registered to the user: uninstalling takes it away.</summary>
     public static bool HasStorePackage(string familyName)
     {
+        if (!OperatingSystem.IsWindows()) return false;
         // Asked with no room for the names, Windows answers how many there are.
         uint count = 0, bufferLength = 0;
         var result = GetPackagesByPackageFamily(familyName, ref count, IntPtr.Zero, ref bufferLength, IntPtr.Zero);

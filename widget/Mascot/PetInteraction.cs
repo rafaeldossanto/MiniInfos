@@ -1,4 +1,8 @@
+#if AVALONIA
+using Avalonia;
+#else
 using System.Windows;
+#endif
 
 namespace MiniInfos.Mascot;
 
@@ -48,10 +52,10 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
     {
         if (!IsPressed) return;
         if (now < _lastMove) return;
-        if ((screenPoint - PointerScreen).Length < 0.001) return;
+        if (Distance(screenPoint, PointerScreen) < 0.001) return;
         PointerScreen = screenPoint;
         _lastMove = now;
-        if ((screenPoint - _pressScreen).Length >= 5) BeginHold(now);
+        if (Distance(screenPoint, _pressScreen) >= 5) BeginHold(now);
     }
 
     public PetHold? HoldAt(TimeSpan now)
@@ -107,6 +111,8 @@ public sealed class PetInteraction(PetAnatomy? anatomy = null, Func<PetState, bo
         _physics.Reset(_pressScreen, _pressedTime, _screenScale);
         AnimationRevision++;
     }
+
+    private static double Distance(Point a, Point b) => Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
 
     private static PetState HeldState(PetBodyPart part) => part switch
     {

@@ -1,5 +1,9 @@
 using System.Net.Http;
+#if AVALONIA
+using BitmapSource = Avalonia.Media.Imaging.Bitmap;
+#else
 using System.Windows.Media.Imaging;
+#endif
 using MiniInfos.Infrastructure.Network;
 using MiniInfos.Infrastructure.Storage;
 

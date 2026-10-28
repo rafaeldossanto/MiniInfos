@@ -2,6 +2,9 @@ bin/
 obj/
 installer/out/
 installer/dist/
+desktop/out/
+desktop/dist/
+__pycache__/
 .idea/
 .vs/
 *.user
