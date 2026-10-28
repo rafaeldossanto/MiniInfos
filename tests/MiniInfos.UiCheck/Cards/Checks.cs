@@ -66,7 +66,7 @@ internal static partial class Program
         Pump(TimeSpan.FromSeconds(1));
         Check(Find<TextBlock>(Columns(extra)[0], "PageTitle").Text == "Codex (GPT)", "showing the page it was opened from");
         Check(Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Count() == 1, "and kept, so it comes back with the app");
-        Check((Find<Button>(extra, "DismissButton").ToolTip as string) == "Fechar esta janela", "its ✕ closes it");
+        Check((Find<Button>(Find<CardHeader>(extra, "Header"), "DismissButton").ToolTip as string) == "Fechar esta janela", "its ✕ closes it");
         var mainIcons = Find<StackPanel>(cards.Main, "PageIcons");
         var extraIcons = Find<StackPanel>(extra, "PageIcons");
         Check(IconIsLit(mainIcons, 0) && IconIsLit(mainIcons, 1) && IconIsLit(extraIcons, 0) && IconIsLit(extraIcons, 1),
@@ -86,7 +86,7 @@ internal static partial class Program
         Pump(TimeSpan.FromSeconds(1));
         Check(extra.IsVisible && cards.Main.IsVisible, "and bringing them back brings it back");
 
-        Find<Button>(extra, "DismissButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Find<Button>(Find<CardHeader>(extra, "Header"), "DismissButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Pump(TimeSpan.FromSeconds(1));
         Check(cards.Extras.Count == 0 && !Directory.EnumerateFiles(System.IO.Path.Combine(Data, "windows"), "*.json").Any(),
             "closing it forgets it for good");
@@ -137,8 +137,9 @@ internal static partial class Program
 
     private static void CheckRefresh(MainWindow window, List<string> summaries)
     {
-        var refresh = Find<Button>(window, "RefreshButton");
-        var spin = Find<RotateTransform>(window, "RefreshSpin");
+        var header = Find<CardHeader>(window, "Header");
+        var refresh = Find<Button>(header, "RefreshButton");
+        var spin = Find<RotateTransform>(header, "RefreshSpin");
         var before = summaries.Count;
         refresh.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Pump(TimeSpan.FromMilliseconds(250));
@@ -165,7 +166,7 @@ internal static partial class Program
         // Asked for by hand on the page now shown: the limits come back from the provider itself.
         _ = window.ForceRefreshAsync();
         Pump(TimeSpan.FromMilliseconds(100));
-        PumpUntil(() => Find<Button>(window, "RefreshButton").IsEnabled, TimeSpan.FromSeconds(20));
+        PumpUntil(() => Find<Button>(Find<CardHeader>(window, "Header"), "RefreshButton").IsEnabled, TimeSpan.FromSeconds(20));
         if (!_quiet) Console.WriteLine($"     page 2: {Find<TextBlock>(Columns(window)[0], "ShortPercent").Text} / {Find<TextBlock>(Columns(window)[0], "LongPercent").Text} | {Find<TextBlock>(Columns(window)[0], "Note").Text} | {Find<TextBlock>(Columns(window)[0], "ChatText").Text}");
         Check(Math.Abs(window.ActualHeight - height) < 1, "both pages keep the card's size");
         Render(window, System.IO.Path.Combine(pictures, "page-2.png"));
@@ -252,7 +253,7 @@ internal static partial class Program
         return icons.TransformToAncestor(card).Transform(new Point(0, 0)).X + icons.ActualWidth / 2 - card.ActualWidth / 2;
     }
 
-    private static void CheckDragKeepsProportions(MainWindow window, IntPtr handle, string when)
+    private static void CheckDragKeepsProportions(Window window, IntPtr handle, string when)
     {
         var rect = WindowRect(handle);
         var dragged = new PixelRect(rect.Left, rect.Top, rect.Left + rect.Width * 8 / 5, rect.Bottom);

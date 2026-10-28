@@ -116,7 +116,7 @@ public sealed class CardSet
     /// Opens the settings for a card, shown first since the window stays above it. One window at a
     /// time: asked again for the same card, it comes to the front; for another, it reopens for that one.
     /// </summary>
-    public void OpenSettings(MainWindow card)
+    public void OpenSettings(ISettingsCard card)
     {
         if (Settings is { } open)
         {
@@ -153,7 +153,8 @@ public sealed class CardSet
     private ConversationsWindow CreateConversations()
     {
         var window = new ConversationsWindow(() => _providers.Shown, _preferences);
-        window.SettingsRequested += () => OpenSettings(Main);
+        window.SettingsRequested += () => OpenSettings(window);
+        window.QuitRequested += Quit;
         window.UsageRequested += BringBackUsage;
         window.RefreshRequested += async () =>
         {

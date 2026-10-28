@@ -38,6 +38,7 @@
         @{ Path = '.github/workflows/release-app.yml'; All = $true; Domains = @('DesktopPackaging') }
         @{ Path = 'widget/Localization/*'; Domains = @('Localization') }
         @{ Path = 'widget/UI/Windows/ConversationsWindow.*'; Domains = @('Conversations') }
+        @{ Path = 'widget/UI/Windows/ISettingsCard.cs'; Domains = @('Cards', 'Settings', 'Conversations') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.MainCard.cs'; Domains = @('Conversations', 'Settings') }
         @{ Path = 'widget/Settings/MainCardChoice.cs'; Domains = @('Conversations', 'Settings') }
         @{ Path = 'tests/MiniInfos.UiCheck/Conversations/*'; Domains = @('Conversations') }
@@ -64,16 +65,20 @@
         @{ Path = 'widget/UI/Windows/ThemeLibraryWindow.*'; Domains = @('Themes', 'Community') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot', 'Community') }
         @{ Path = 'widget/UI/Windows/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
-        @{ Path = 'widget/UI/Themes/AppFonts.cs'; Domains = @('Fonts') }
+        @{ Path = 'widget/UI/Themes/AppFonts.cs'; Domains = @('Fonts', 'Conversations') }
         @{ Path = 'widget/UI/Themes/ThemeOption.cs'; Domains = @('Themes', 'Fonts', 'Community') }
-        @{ Path = 'widget/UI/Themes/*'; Domains = @('Themes') }
-        @{ Path = 'widget/UI/Controls/CardContextMenu.cs'; Domains = @('Cards', 'Themes', 'Mascot') }
+        @{ Path = 'widget/UI/Themes/*'; Domains = @('Themes', 'Conversations') }
+        @{ Path = 'widget/UI/Controls/CardContextMenu.cs'; Domains = @('Cards', 'Themes', 'Mascot', 'Conversations') }
+        @{ Path = 'widget/UI/Controls/CardHeader.*'; Domains = @('Cards', 'Themes', 'Fonts', 'Community', 'Conversations') }
+        @{ Path = 'widget/UI/Controls/CardResize.cs'; Domains = @('Cards', 'Conversations') }
+        @{ Path = 'widget/UI/Controls/ConversationView.*'; Domains = @('Conversations') }
+        @{ Path = 'widget/UI/Controls/NumericText.cs'; Domains = @('Cards', 'Fonts', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Controls/PackageCard.cs'; Domains = @('Community', 'Themes') }
         @{ Path = 'widget/UI/Controls/*'; Domains = @('Cards', 'Fonts', 'Updates') }
-        @{ Path = 'widget/UI/Styles/MenuStyles.xaml'; Domains = @('Cards', 'Themes', 'Mascot') }
+        @{ Path = 'widget/UI/Styles/MenuStyles.xaml'; Domains = @('Cards', 'Themes', 'Mascot', 'Conversations') }
         @{ Path = 'widget/UI/Styles/SettingsStyles.xaml'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Community') }
-        @{ Path = 'widget/UI/Styles/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates') }
-        @{ Path = 'widget/UI/Icons/*'; Domains = @('Cards') }
+        @{ Path = 'widget/UI/Styles/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
+        @{ Path = 'widget/UI/Icons/*'; Domains = @('Cards', 'Conversations') }
         @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Updates') }
         @{ Path = 'widget/Assets/Fonts/*'; Domains = @('Fonts') }
         @{ Path = 'widget/Assets/athena-owl-*'; Domains = @('Mascot') }

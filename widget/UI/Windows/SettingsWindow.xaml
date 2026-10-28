@@ -140,8 +140,8 @@
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Lugar e tamanho'}"
                                                 Tag="{loc:Text 'Volta pro canto ou pro tamanho original.'}">
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Pro canto'}" Click="OnBackToCorner" />
-                                <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Tamanho padrão'}" Margin="6,0,0,0"
+                                <Button x:Name="CornerButton" Style="{StaticResource SettingsButton}" Content="{loc:Text 'Pro canto'}" Click="OnBackToCorner" />
+                                <Button x:Name="DefaultSizeButton" Style="{StaticResource SettingsButton}" Content="{loc:Text 'Tamanho padrão'}" Margin="6,0,0,0"
                                         Click="OnDefaultSize" />
                             </StackPanel>
                         </HeaderedContentControl>

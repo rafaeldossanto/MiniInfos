@@ -70,5 +70,6 @@ internal static partial class Program
         Pump(TimeSpan.FromMilliseconds(300));
         Check(preferences.MainCard == MainCardChoice.Usage && card.IsVisible && !window.IsVisible,
             "with Uso as main, the usage card opens and the conversations card waits for its button");
+        CheckConversationParity(cards, preferences, pictures);
     }
 }

@@ -14,9 +14,15 @@ Assert-Selection ((Get-TestSelection -Paths @('tests/MiniInfos.UiCheck/Support/C
 Assert-Selection (((Get-TestSelection -Paths @('tests/MiniInfos.UiCheck/Providers/Checks.cs')).Suites -join ',') -eq 'Providers') 'Integração visual não selecionou seu próprio cenário'
 
 $theme = Get-TestSelection -Paths @('widget/UI/Themes/Classic.xaml')
+$conversation = Get-TestSelection -Paths @('widget/UI/Windows/ConversationsWindow.xaml', 'widget/UI/Controls/ConversationView.xaml.cs')
+Assert-Selection (($conversation.Domains -join ',') -eq 'Conversations' -and -not $conversation.All) 'Linhas de conversas selecionaram domínios sem vínculo'
+$cardHeader = Get-TestSelection -Paths @('widget/UI/Controls/CardHeader.xaml')
+Assert-Selection (($cardHeader.Domains -join ',') -eq 'Cards,Community,Conversations,Fonts,Themes' -and -not $cardHeader.All) 'Cabeçalho compartilhado perdeu consumidores'
+$cardResize = Get-TestSelection -Paths @('widget/UI/Controls/CardResize.cs')
+Assert-Selection (($cardResize.Domains -join ',') -eq 'Cards,Conversations' -and -not $cardResize.All) 'Redimensionamento perdeu um dos cartões'
 $language = Get-TestSelection -Paths @('widget/Localization/en.json', 'widget/Settings/LanguageChoice.cs')
 Assert-Selection (($language.Domains -join ',') -eq 'Localization' -and ($language.Suites -join ',') -eq 'Localization') 'Idioma selecionou cenários não relacionados'
-Assert-Selection (($theme.Suites -join ',') -eq 'Themes') 'Tema selecionou cenários não relacionados'
+Assert-Selection (($theme.Suites -join ',') -eq 'Conversations,Themes') 'Tema perdeu um dos cartões que o consomem'
 $banners = Get-TestSelection -Paths @('widget/Assets/athena-banner-dark.png', 'widget/Assets/athena-banner-light.png')
 Assert-Selection (($banners.Domains -join ',') -eq 'Themes' -and -not $banners.All) 'Artes de Atena selecionaram outros domínios'
 $community = Get-TestSelection -Paths @('widget/Community/PackageLibrary.cs')
@@ -69,4 +75,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 30 cenários passaram.'
+Write-Host 'Seleção de testes: cenários passaram.'
