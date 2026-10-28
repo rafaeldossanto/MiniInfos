@@ -118,7 +118,19 @@ var
   BundledPath: String;
   BundledHigh, BundledLow: Cardinal;
 
-// Keeps the newest <Base>\<version>\<build>\claude.exe seen so far in BundledPath.
+// Keeps Candidate in BundledPath when it is the newest copy of Claude Code seen so far.
+procedure KeepIfNewest(Candidate: String; Written: TFileTime);
+begin
+  if (BundledPath = '') or (Written.dwHighDateTime > BundledHigh)
+    or ((Written.dwHighDateTime = BundledHigh) and (Written.dwLowDateTime > BundledLow)) then
+  begin
+    BundledPath := Candidate;
+    BundledHigh := Written.dwHighDateTime;
+    BundledLow := Written.dwLowDateTime;
+  end;
+end;
+
+// The desktop app's copies: <Base>\<version>\<build>\claude.exe.
 procedure FindNewestClaudeUnder(Base: String);
 var
   Candidate: String;
@@ -133,13 +145,7 @@ begin
           repeat
             Candidate := Base + '\' + Version.Name + '\' + Build.Name + '\claude.exe';
             if (Build.Name <> '.') and (Build.Name <> '..') and FileExists(Candidate) then
-              if (BundledPath = '') or (Build.LastWriteTime.dwHighDateTime > BundledHigh)
-                or ((Build.LastWriteTime.dwHighDateTime = BundledHigh) and (Build.LastWriteTime.dwLowDateTime > BundledLow)) then
-              begin
-                BundledPath := Candidate;
-                BundledHigh := Build.LastWriteTime.dwHighDateTime;
-                BundledLow := Build.LastWriteTime.dwLowDateTime;
-              end;
+              KeepIfNewest(Candidate, Build.LastWriteTime);
           until not FindNext(Build);
         finally
           FindClose(Build);
@@ -150,16 +156,42 @@ begin
   end;
 end;
 
-// The Claude Code the desktop app carries, newest first. The Store app keeps it in its package's
-// own folder (Packages\Claude_*\LocalCache\Roaming\Claude), the other installer in %APPDATA%\Claude.
-function BundledClaude(): String;
+// The editor extension's own copy, which it never puts on PATH:
+// <Extensions>\anthropic.claude-code-<version>-<platform>\resources\native-binary\claude.exe.
+procedure FindNewestExtensionClaude(Extensions: String);
+var
+  Candidate: String;
+  Extension: TFindRec;
+begin
+  if not FindFirst(Extensions + '\anthropic.claude-code-*', Extension) then exit;
+  try
+    repeat
+      Candidate := Extensions + '\' + Extension.Name + '\resources\native-binary\claude.exe';
+      if (Extension.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and FileExists(Candidate) then
+        KeepIfNewest(Candidate, Extension.LastWriteTime);
+    until not FindNext(Extension);
+  finally
+    FindClose(Extension);
+  end;
+end;
+
+// A Claude Code installed outside PATH, or before PATH reached this setup. The native installer's
+// %USERPROFILE%\.local\bin\claude.exe and npm's claude.cmd first, then the newest copy the desktop app
+// carries (the Store app in its package's own folder, the other installer in %APPDATA%\Claude) or an
+// editor extension carries (VS Code and its forks, the folders InstalledApps.EditorFolders names).
+function InstalledClaude(): String;
 var
   Package: TFindRec;
-  Packages: String;
+  Packages, Profile: String;
 begin
+  Profile := ExpandConstant('{%USERPROFILE}');
+  Result := Profile + '\.local\bin\claude.exe';
+  if FileExists(Result) then exit;
+  Result := ExpandConstant('{userappdata}\npm\claude.cmd');
+  if FileExists(Result) then exit;
+
   BundledPath := '';
   FindNewestClaudeUnder(ExpandConstant('{userappdata}\Claude\claude-code'));
-
   Packages := ExpandConstant('{localappdata}\Packages');
   if FindFirst(Packages + '\Claude_*', Package) then
   try
@@ -169,14 +201,22 @@ begin
   finally
     FindClose(Package);
   end;
+  if BundledPath = '' then
+  begin
+    FindNewestExtensionClaude(Profile + '\.vscode\extensions');
+    FindNewestExtensionClaude(Profile + '\.vscode-insiders\extensions');
+    FindNewestExtensionClaude(Profile + '\.vscode-oss\extensions');
+    FindNewestExtensionClaude(Profile + '\.cursor\extensions');
+    FindNewestExtensionClaude(Profile + '\.windsurf\extensions');
+  end;
 
   Result := BundledPath;
 end;
 
-// Runs a `claude` command: the one on PATH (a terminal install), else the desktop app's. -1 when none ran.
+// Runs a `claude` command: the one on PATH (a terminal install), else one installed elsewhere. -1 when none ran.
 function RunClaude(Arguments: String): Integer;
 var
-  Bundled: String;
+  Claude: String;
   Code: Integer;
 begin
   Result := -1;
@@ -187,8 +227,15 @@ begin
     exit;
   end;
 
-  Bundled := BundledClaude();
-  if (Bundled <> '') and Exec(Bundled, Arguments, '', SW_HIDE, ewWaitUntilTerminated, Code) then
+  Claude := InstalledClaude();
+  if Claude = '' then exit;
+  // npm's claude.cmd is a script: cmd runs it, keeping the quotes around its path and arguments.
+  if CompareText(ExtractFileExt(Claude), '.cmd') = 0 then
+  begin
+    if Exec(ExpandConstant('{cmd}'), '/c ""' + Claude + '" ' + Arguments + '"', '', SW_HIDE, ewWaitUntilTerminated, Code) then
+      Result := Code;
+  end
+  else if Exec(Claude, Arguments, '', SW_HIDE, ewWaitUntilTerminated, Code) then
     Result := Code;
 end;
 
