@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MiniInfos.Sources;
+using MiniInfos.Providers.Claude;
 using MiniInfos.Tests.Support;
 
 namespace MiniInfos.Tests.Sources;
@@ -73,6 +74,41 @@ public sealed class UsageSourceDiscoveryTests : IDisposable
         Assert.Contains(portable, found.ClaudeRoots);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ClaudeDesktopHistoriesFeedTheLedgerFromRegularAndStoreInstallations(bool packaged)
+    {
+        var root = packaged
+            ? Folder("local", "Packages", "Claude_example", "LocalCache", "Roaming", "Claude", ".claude")
+            : Folder("roaming", "Claude", ".claude");
+        var project = Path.Combine(root, "projects", "project");
+        Directory.CreateDirectory(project);
+        var now = DateTimeOffset.UtcNow;
+        File.WriteAllText(Path.Combine(project, "session.jsonl"), JsonSerializer.Serialize(new
+        {
+            type = "assistant", timestamp = now, sessionId = "desktop-session",
+            message = new { id = "desktop-response", usage = new { input_tokens = 30, output_tokens = 10, cache_read_input_tokens = 100 } },
+        }) + "\n");
+        var sources = UsageSourceDiscovery.Find(Context());
+        var ledger = ClaudeUsageLedger.LoadSources(() => sources.ClaudeProjects, _folder.File("ledger.json"));
+
+        ledger.Scan();
+
+        Assert.Contains(root, sources.ClaudeRoots);
+        Assert.Equal(140, ledger.Summarize(now, now.AddHours(-5), now.AddDays(-7)).Total.Total);
+    }
+
+    [Fact]
+    public void TheStoreAppsRegistrationFindsAPrivateHistoryOutsideTheSandbox()
+    {
+        var root = Folder("private", "far-away", "custom");
+        File.WriteAllText(_folder.File("local", "Packages", "Claude_example", "LocalCache", "Local", "MiniInfos", "sources", "claude.json"),
+            JsonSerializer.Serialize(new { Provider = "claude", Root = root }));
+
+        Assert.Contains(root, UsageSourceDiscovery.Find(Context()).ClaudeRoots);
+    }
+
     [Fact]
     public void AClaudeChatCanRegisterAPrivateHomeOutsideTheSearchArea()
     {
@@ -84,6 +120,33 @@ public sealed class UsageSourceDiscoveryTests : IDisposable
 
         Assert.Contains(root, found.ClaudeRoots);
         Assert.Contains(Path.Combine(root, "miniinfos", "sessions"), found.ClaudeFeeds);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CustomClaudeHomesFeedTheTokenLedgerWithoutDefaultPathsOrAModFeed(bool registered)
+    {
+        var root = Folder("outside", "deep", "custom-config");
+        var context = Context();
+        if (registered)
+            File.WriteAllText(_folder.File("local", "MiniInfos", "sources", "claude-test.json"),
+                JsonSerializer.Serialize(new { Provider = "claude", Root = root }));
+        else context = context with { ClaudeHomes = [root] };
+        var now = DateTimeOffset.UtcNow;
+        File.WriteAllText(_folder.File("outside", "deep", "custom-config", "projects", "project", "session.jsonl"),
+            JsonSerializer.Serialize(new
+            {
+                type = "assistant", timestamp = now, sessionId = "chat",
+                message = new { id = "msg", usage = new { input_tokens = 10, output_tokens = 5, cache_read_input_tokens = 100, cache_creation_input_tokens = 20 } },
+            }) + "\n");
+        var sources = UsageSourceDiscovery.Find(context);
+        var ledger = ClaudeUsageLedger.LoadSources(() => sources.ClaudeProjects, _folder.File("ledger.json"));
+
+        ledger.Scan();
+
+        Assert.Equal(135, ledger.Summarize(now, now.AddHours(-5), now.AddDays(-7)).Total.Total);
+        Assert.Equal(135, Assert.Single(ledger.Sessions()).Tokens.Total);
     }
 
     [Fact]

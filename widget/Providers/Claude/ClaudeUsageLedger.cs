@@ -40,11 +40,12 @@ public sealed class ClaudeUsageLedger
             using var document = JsonDocument.Parse(line.ToArray());
             var root = document.RootElement;
 
-            if (!root.TryGetProperty("type", out var type) || type.GetString() != "assistant") return null;
-            if (!root.TryGetProperty("message", out var message)) return null;
+            if (root.ValueKind != JsonValueKind.Object || ReadText(root, "type") != "assistant") return null;
+            if (!root.TryGetProperty("message", out var message) || message.ValueKind != JsonValueKind.Object) return null;
             if (!message.TryGetProperty("usage", out var usage) || usage.ValueKind != JsonValueKind.Object) return null;
-            if (!message.TryGetProperty("id", out var id) || id.GetString() is not { Length: > 0 } key) return null;
-            if (!root.TryGetProperty("timestamp", out var timestamp) || !timestamp.TryGetDateTimeOffset(out var at)) return null;
+            if (ReadText(message, "id") is not { } key) return null;
+            if (!root.TryGetProperty("timestamp", out var timestamp) || timestamp.ValueKind != JsonValueKind.String
+                || !timestamp.TryGetDateTimeOffset(out var at)) return null;
 
             var cwd = ReadText(root, "cwd");
             return new LoggedResponse(key, new LedgerEntry(
@@ -63,7 +64,8 @@ public sealed class ClaudeUsageLedger
     }
 
     private static long ReadCount(JsonElement usage, string name) =>
-        usage.TryGetProperty(name, out var value) && value.TryGetInt64(out var count) ? count : 0;
+        usage.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number
+            && value.TryGetInt64(out var count) ? Math.Max(0, count) : 0;
 
     private static string? ReadText(JsonElement value, string name) =>
         value.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.String

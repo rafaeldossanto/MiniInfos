@@ -140,6 +140,16 @@ São duas partes:
 | `front/` | Landing page do MiniInfos; fora do instalador, do zip de código das releases e dos testes do app (`front/README.md`). |
 | `marketplace/` | Guia, contratos, exemplos e fontes dos pacotes publicados em `marketplace/packages/`. |
 
+### Cobertura do rastreamento
+
+Os tokens vêm dos históricos locais disponíveis, e não do consumo completo da conta do provedor. No Claude Code, a leitura inclui respostas e subagentes, soma entrada, saída, cache lido e cache escrito e evita contar cópias da mesma resposta duas vezes. Uma linha com campos inesperados não interrompe as respostas válidas seguintes.
+
+Claude e Codex procuram pastas padrão, variáveis de ambiente, fontes já encontradas e registros publicados pelo mod. Uma pasta privada do Claude indicada por `CLAUDE_CONFIG_DIR` ou registrada pelo mod alimenta o mesmo leitor, sem depender de um feed de limites. Gemini lê `~/.gemini/tmp`; Kimi considera a pasta padrão, `KIMI_CODE_HOME` e os registros do agente do aplicativo desktop.
+
+No Claude, encontrar o executável e conseguir instalar o mod são resultados separados. O instalador lembra uma cópia encontrada mesmo quando ela recusa o mod; o cartão reutiliza esse caminho enquanto ainda apontar para um Claude Code válido. Os tokens não exigem o mod. Percentuais dos limites, contexto informado pelo mod e acompanhamento automático de chats de terminal/editor dependem dele.
+
+A descoberta local tem limites de profundidade e tempo. O aplicativo Windows não procura automaticamente dentro de WSL, contêineres ou máquinas remotas. Conversas do navegador e sessões que não gravam históricos locais não fornecem tokens a esses leitores. Registros apagados antes da primeira leitura não podem ser recuperados; o ledger preserva o que o MiniInfos já leu.
+
 ### Organização do código
 
 Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`App.xaml.cs`, que conecta os componentes e controla o ciclo de vida do aplicativo. As implementações ficam agrupadas por responsabilidade:

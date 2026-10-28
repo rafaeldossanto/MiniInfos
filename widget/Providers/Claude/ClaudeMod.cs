@@ -19,16 +19,20 @@ public sealed class ClaudeMod(string rememberedPath, Func<IEnumerable<string>> f
     public static ClaudeMod Default { get; } = new(Path.Combine(AppPaths.Data, "claude-code.txt"), () => ClaudeCode.Find(),
         (claude, arguments) => CommandRunner.Run(claude, arguments, CommandTimeout));
 
+    /// <summary>The installer already found this copy, even when no terminal or editor exposes it on PATH.</summary>
+    public string? InstalledCode => Remembered();
+
     /// <param name="pluginFolder">The mod's marketplace as installed with the app.</param>
     /// <returns>Whether a Claude Code took the mod.</returns>
     public bool Install(string pluginFolder)
     {
         foreach (var claude in Candidates())
         {
+            // Finding Code and installing its mod are different results: tokens need only the former.
+            Remember(claude);
             Unregister(claude);
             if (run(claude, $"plugin marketplace add \"{pluginFolder}\"") == 0 && run(claude, $"plugin install {Plugin} --scope user") == 0)
             {
-                Remember(claude);
                 return true;
             }
         }
@@ -45,7 +49,7 @@ public sealed class ClaudeMod(string rememberedPath, Func<IEnumerable<string>> f
         }
     }
 
-    /// <summary>The one that worked last, if it is still there, then every one found.</summary>
+    /// <summary>The last copy found (the successful one when the mod installed), then every other copy.</summary>
     private IEnumerable<string> Candidates()
     {
         var remembered = Remembered();

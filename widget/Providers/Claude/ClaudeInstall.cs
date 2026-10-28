@@ -25,5 +25,6 @@ public static class ClaudeInstall
         Processes = ["claude"],
     };
 
-    public static bool IsPresent() => InstalledApps.Has(Footprint, InstallContext.Current());
+    public static bool IsPresent() => ClaudeMod.Default.InstalledCode is not null
+        || InstalledApps.Has(Footprint, InstallContext.Current());
 }

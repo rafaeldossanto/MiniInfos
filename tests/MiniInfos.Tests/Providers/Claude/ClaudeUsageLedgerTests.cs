@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using MiniInfos.Providers.Claude;
 using MiniInfos.Providers;
 using MiniInfos.Tests.Support;
@@ -36,6 +37,48 @@ public sealed class ClaudeUsageLedgerTests : IDisposable
             Response("msg_1", input: 7, output: 3));
 
         Assert.Equal(10, Summarize(Ledger()).Total.Total);
+    }
+
+    [Theory]
+    [InlineData("[\"usage\"]")]
+    [InlineData("{\"type\":12,\"usage\":{}}")]
+    [InlineData("{\"type\":\"assistant\",\"message\":[],\"usage\":{}}")]
+    [InlineData("{\"type\":\"assistant\",\"message\":{\"id\":42,\"usage\":{}}}")]
+    [InlineData("{\"type\":\"assistant\",\"timestamp\":42,\"message\":{\"id\":\"bad\",\"usage\":{}}}")]
+    public void AnUnexpectedJsonShapeDoesNotHideTheValidResponsesAfterIt(string line)
+    {
+        WriteTranscript(line, Response("valid", input: 7, output: 3));
+
+        Assert.Equal(10, Summarize(Ledger()).Total.Total);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("\"unavailable\"")]
+    [InlineData("true")]
+    [InlineData("{}")]
+    [InlineData("-12")]
+    public void InvalidTokenCountersCannotInterruptOrReduceTheCount(string counter)
+    {
+        var line = JsonNode.Parse(Response("bad", 0, 0))!;
+        line["message"]!["usage"]!["input_tokens"] = JsonNode.Parse(counter);
+        WriteTranscript(line.ToJsonString(), Response("valid", input: 7, output: 3));
+
+        Assert.Equal(10, Summarize(Ledger()).Total.Total);
+    }
+
+    [Fact]
+    public void NestedSubagentsCountWithTheirParentAndCopiedMessagesCountOnce()
+    {
+        WriteTranscript(Response("parent", 10, 5, cacheRead: 7, cacheWrite: 2, session: "chat"));
+        File.WriteAllText(_folder.File("projects", "C--code", "chat", "subagents", "agent.jsonl"),
+            Response("agent", 4, 6, cacheRead: 8, cacheWrite: 2, session: "chat") + "\n");
+        File.WriteAllText(_folder.File("projects", "copied", "session.jsonl"),
+            Response("parent", 10, 5, cacheRead: 7, cacheWrite: 2, session: "chat") + "\n");
+        var ledger = Ledger();
+
+        Assert.Equal(44, Summarize(ledger).Total.Total);
+        Assert.Equal(44, Assert.Single(ledger.Sessions()).Tokens.Total);
     }
 
     [Fact]

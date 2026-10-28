@@ -46,6 +46,24 @@ public sealed class ClaudeCodeTests : IDisposable
         Assert.Equal([user, drive], ClaudeCode.Find([Path.Combine(_folder.Path, "Users", "friend"), _folder.Path], path: ""));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TheDesktopCopyIsFoundWithoutPathAndWithoutAssumingItsVersionLayout(bool packaged)
+    {
+        var root = packaged
+            ? Path.Combine("AppData", "Local", "Packages", "Claude_example", "LocalCache", "Roaming", "Claude", "claude-code")
+            : Path.Combine("AppData", "Roaming", "Claude", "claude-code");
+        var versioned = ClaudeCodeIn(root, "2.1.304", "build-id");
+        var changedLayout = ClaudeCodeIn(root, "new-version", "native", "runtime", "build-id");
+
+        var found = ClaudeCode.Find([_folder.Path], path: "").ToArray();
+
+        Assert.Equal(2, found.Length);
+        Assert.Contains(versioned, found);
+        Assert.Contains(changedLayout, found);
+    }
+
     [Fact]
     public void NothingFoundIsNothing() =>
         Assert.Empty(ClaudeCode.Find([_folder.Path, Path.Combine(_folder.Path, "missing")], path: ""));
