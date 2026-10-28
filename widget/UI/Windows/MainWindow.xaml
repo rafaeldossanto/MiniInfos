@@ -29,54 +29,6 @@
             <ResourceDictionary Source="/MiniInfos;component/UI/Styles/CardStyles.xaml" />
             <ResourceDictionary Source="/MiniInfos;component/UI/Icons/ProviderIcons.xaml" />
         </ResourceDictionary.MergedDictionaries>
-
-        <!-- The two view buttons, as in Explorer's corner: the chosen one stays lit. -->
-        <Style x:Key="ViewSwitch" TargetType="RadioButton">
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="GroupName" Value="View" />
-            <Setter Property="Foreground" Value="{DynamicResource DimText}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Face" Width="22" Height="18" CornerRadius="4" Background="Transparent"
-                                BorderThickness="1" BorderBrush="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource Hover}" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource Selected}" />
-                                <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource SelectedBorder}" />
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PageArrow" TargetType="Button">
-            <Setter Property="Width" Value="18" />
-            <Setter Property="Height" Value="18" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{DynamicResource DimText}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -226,11 +178,17 @@
                     <StackPanel x:Name="Columns" Orientation="Horizontal" />
 
                     <Grid Margin="0,12,0,0">
-                        <!-- The gear, under the name: the settings window. -->
-                        <Button x:Name="SettingsButton" Style="{StaticResource HeaderButton}" FontSize="12"
-                                HorizontalAlignment="Left" Click="OnSettings" ToolTip="{loc:Text 'Configurações'}">
-                            <TextBlock Text="&#xE713;" />
-                        </Button>
+                        <!-- The gear, under the name: the settings window; beside it, the conversations card. -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button x:Name="SettingsButton" Style="{StaticResource HeaderButton}" FontSize="12"
+                                    Click="OnSettings" ToolTip="{loc:Text 'Configurações'}">
+                                <TextBlock Text="&#xE713;" />
+                            </Button>
+                            <Button x:Name="ConversationsButton" Style="{StaticResource HeaderButton}" FontSize="12" Margin="2,0,0,0"
+                                    Click="OnConversations" ToolTip="{loc:Text 'Conversas: os tokens de cada chat'}">
+                                <TextBlock Text="&#xE8F2;" />
+                            </Button>
+                        </StackPanel>
 
                         <!-- Monochrome provider marks, centered in the card; the selected page's is lit. -->
                         <StackPanel x:Name="Pager" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">

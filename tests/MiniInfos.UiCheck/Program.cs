@@ -19,7 +19,7 @@ internal static partial class Program
     {
         if (args.Contains("--help"))
         {
-            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization|All] [--quiet]");
+            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization,Conversations|All] [--quiet]");
             return 0;
         }
         CheckOptions options;
@@ -103,6 +103,7 @@ internal static partial class Program
             RunSuite("Mascot", () => WithSettings(settings => CheckPet(cards, preferences, settings, pictures)));
             RunSuite("Community", () => WithSettings(settings => CheckCommunity(cards, preferences, settings, pictures)));
             RunSuite("Updates", () => CheckUpdateBanner(cards, preferences, pictures));
+            RunSuite("Conversations", () => WithSettings(settings => CheckConversations(cards, preferences, settings, pictures)));
             RunSuite("Providers", () =>
             {
                 if (!options.Includes("Cards")) CheckPages(window, handle, cards.Providers.Count, pictures);

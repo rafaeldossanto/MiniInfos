@@ -11,6 +11,9 @@ public sealed record CodexUsageSnapshot(
     double? ContextPercent,
     DateTimeOffset? UpdatedAt);
 
+/// <summary>One Codex session as the conversations card lists it.</summary>
+public sealed record CodexSession(string Id, string? Project, long LastAt, TokenCount Tokens, double? ContextPercent);
+
 /// <summary>
 /// Counts the differences between cumulative token readings in Codex session logs. The cursor
 /// and ledger survive log cleanup, while a repeated reading cannot add tokens twice.
@@ -66,6 +69,18 @@ public sealed class CodexUsageLedger
                 latest?.Project,
                 latest?.ContextPercent,
                 updated);
+        }
+    }
+
+    /// <summary>Each session at its greatest reading: its tokens, folder, context and when it last answered.</summary>
+    public IReadOnlyList<CodexSession> Sessions()
+    {
+        lock (_gate)
+        {
+            return _sessions.Values
+                .Where(cursor => cursor.SessionId is not null && cursor.Totals.Total > 0)
+                .Select(cursor => new CodexSession(cursor.SessionId!, cursor.Project, cursor.LastAt, cursor.Totals.Count(), cursor.ContextPercent))
+                .ToArray();
         }
     }
 
@@ -129,13 +144,10 @@ public sealed class CodexUsageLedger
                 ReadLong(total, "total_tokens"));
             if (totals.Total <= cursor.Totals.Total) return cursor;
 
-            var delta = totals - cursor.Totals;
             // The ID belongs to the session, not its directory. A moved/copied file only contributes growth.
-            var output = Math.Min(delta.Output, delta.Total);
-            var cacheRead = Math.Min(delta.CacheRead, delta.Total - output);
-            var cacheWrite = Math.Min(delta.CacheWrite, delta.Total - output - cacheRead);
+            var delta = (totals - cursor.Totals).Count();
             _readings[$"session:{cursor.SessionId}:{totals.Total}"] = new LedgerEntry(
-                at.ToUnixTimeSeconds(), delta.Total - output - cacheRead - cacheWrite, output, cacheRead, cacheWrite);
+                at.ToUnixTimeSeconds(), delta.Input, delta.Output, delta.CacheRead, delta.CacheWrite, cursor.SessionId);
 
             double? contextPercent = cursor.ContextPercent;
             if (info.TryGetProperty("last_token_usage", out var last) && last.ValueKind == JsonValueKind.Object
@@ -210,6 +222,15 @@ public sealed class CodexUsageLedger
             Math.Max(0, current.CacheWrite - previous.CacheWrite),
             Math.Max(0, current.Output - previous.Output),
             Math.Max(0, current.Total - previous.Total));
+
+        /// <summary>As the ledger counts them: Codex's input holds its cache, and no part may pass the total.</summary>
+        public TokenCount Count()
+        {
+            var output = Math.Min(Output, Total);
+            var cacheRead = Math.Min(CacheRead, Total - output);
+            var cacheWrite = Math.Min(CacheWrite, Total - output - cacheRead);
+            return new TokenCount(Total - output - cacheRead - cacheWrite, output, cacheRead, cacheWrite);
+        }
     }
 
     private sealed record Cursor

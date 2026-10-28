@@ -28,7 +28,7 @@ public static class KimiResponses
                 Count(usage, "inputCacheRead"),
                 Count(usage, "inputCacheCreation"));
             var model = root.TryGetProperty("model", out var name) && name.ValueKind == JsonValueKind.String ? name.GetString() : null;
-            return new LoggedResponse($"{Agent(path)}:{milliseconds}:{entry.Count.Total}", entry, model);
+            return new LoggedResponse($"{Agent(path)}:{milliseconds}:{entry.Count.Total}", entry, model, KimiSessions.Key(path));
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or FormatException or ArgumentOutOfRangeException)
         {
@@ -40,22 +40,7 @@ public static class KimiResponses
     public static string? SessionFolder(string wirePath) => Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(wirePath)));
 
     /// <summary>The folder the session worked in, by name, from its state.json; null when it has none.</summary>
-    public static string? Project(string wirePath)
-    {
-        if (SessionFolder(wirePath) is not { } session) return null;
-        try
-        {
-            using var stream = new FileStream(Path.Combine(session, "state.json"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            using var document = JsonDocument.Parse(stream);
-            return document.RootElement.TryGetProperty("workDir", out var workDir) && workDir.GetString() is { Length: > 0 } folder
-                ? MiniInfos.Infrastructure.Storage.SourceFiles.LeafName(folder)
-                : null;
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)
-        {
-            return null;
-        }
-    }
+    public static string? Project(string wirePath) => SessionFolder(wirePath) is { } session ? KimiSessions.Project(session) : null;
 
     /// <summary>Session and agent, which name a turn together with its time.</summary>
     private static string Agent(string path)

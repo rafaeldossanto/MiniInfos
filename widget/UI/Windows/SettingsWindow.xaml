@@ -48,6 +48,17 @@
                                 </StackPanel>
                             </Border>
                         </HeaderedContentControl>
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Cartão principal'}"
+                                                Tag="{loc:Text 'O que abre junto com as IAs, com o Windows e pela bandeja. O outro abre pelo botão ao lado da engrenagem.'}">
+                            <Border Style="{StaticResource SegmentGroup}">
+                                <StackPanel x:Name="MainCardChoices" Orientation="Horizontal">
+                                    <RadioButton Tag="Usage" GroupName="MainCard" Style="{StaticResource Segment}"
+                                                 Content="{loc:Text 'Uso'}" Checked="OnMainCardChosen" />
+                                    <RadioButton Tag="Conversations" GroupName="MainCard" Style="{StaticResource Segment}"
+                                                 Content="{loc:Text 'Conversas'}" Checked="OnMainCardChosen" />
+                                </StackPanel>
+                            </Border>
+                        </HeaderedContentControl>
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Sempre por cima'}"
                                                 Tag="{loc:Text 'O cartão fica na frente das outras janelas.'}">
                             <CheckBox x:Name="TopmostToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsTopmost}" />

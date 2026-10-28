@@ -319,5 +319,16 @@
   "Seguir aplicativos": "Follow apps",
   "Iniciar com o sistema": "Start at login",
   "Sistema": "System",
-  "Números detalhados": "Detailed numbers"
+  "Números detalhados": "Detailed numbers",
+  "Conversas": "Conversations",
+  "Conversas: os tokens de cada chat": "Conversations: each chat's tokens",
+  "Respondeu por último primeiro": "Latest response first",
+  "Nenhuma conversa com tokens ainda": "No conversations with tokens yet",
+  "Uso: os limites e os tokens de cada IA": "Usage: each AI's limits and tokens",
+  "Só esta IA; de novo, todas": "Only this AI; again for all",
+  "1 conversa · {0} tokens": "1 conversation · {0} tokens",
+  "{0} conversas · {1} tokens": "{0} conversations · {1} tokens",
+  "Cartão principal": "Main card",
+  "O que abre junto com as IAs, com o Windows e pela bandeja. O outro abre pelo botão ao lado da engrenagem.": "What opens with your AI apps, with Windows and from the tray. The other opens from the button beside the gear.",
+  "Uso": "Usage"
 }

@@ -47,6 +47,7 @@ public partial class SettingsWindow : Window
         ShowPetSize();
         ShowNumbers();
         ShowLanguage();
+        ShowMainCard();
         L.Current.Changed += OnLanguageChanged;
         preferences.PropertyChanged += OnPreferenceChanged;
         card.ViewChanged += ShowNumbers;

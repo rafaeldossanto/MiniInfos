@@ -16,6 +16,7 @@ public sealed class KimiUsage : IUsageProvider
 
     private readonly ResponseLedger _ledger;
     private readonly Func<double?> _context;
+    private readonly TitleCache _titles = new();
 
     public KimiUsage(Func<IReadOnlyList<string>>? sessions = null, string? storePath = null, Func<double?>? context = null)
     {
@@ -51,6 +52,23 @@ public sealed class KimiUsage : IUsageProvider
             L.Text("Sessão que respondeu por último"),
             Format.LastResponse(latest?.At, now),
             L.Text("Atualizar agora os dados locais. O Kimi não guarda os limites do plano no computador."));
+    }
+
+    /// <summary>
+    /// Each conversation: its first request as its name, the app's agent or Kimi Code's folder beside it. The app
+    /// keeps a context meter for its latest conversation only, so the context shows on that one.
+    /// </summary>
+    public IReadOnlyList<Conversation> Conversations()
+    {
+        var latest = _ledger.Latest;
+        return _ledger.Sessions().Select(conversation =>
+        {
+            var desktop = KimiPaths.IsDesktop(conversation.Source.Path);
+            var place = desktop ? L.Text("App Kimi") : _titles.Of("project:" + conversation.Session, () => KimiSessions.Project(conversation.Session));
+            var title = _titles.Of(conversation.Session, () => KimiSessions.Title(conversation.Session)) ?? place ?? "Kimi Code";
+            var context = desktop && latest is not null && KimiSessions.Key(latest.Path) == conversation.Session ? _context() : null;
+            return new Conversation(Id, conversation.Session, title, title == place ? null : place, conversation.LastAt, conversation.Tokens, context);
+        }).ToArray();
     }
 
     public void Flush() => _ledger.Flush();

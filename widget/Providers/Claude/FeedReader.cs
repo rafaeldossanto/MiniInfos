@@ -30,11 +30,13 @@ public sealed record FeedEntry(
 /// <param name="Limits">The plan's limits by kind, which are the account's, not a chat's.</param>
 /// <param name="LimitsUpdated">When the chat holding the newest of those readings last wrote.</param>
 /// <param name="HasOpenChat">Some Claude Code chat runs now: in the app, a terminal or an editor.</param>
+/// <param name="Chats">Every chat the mod wrote for in the last week: each one's context, for the conversations card.</param>
 public sealed record FeedState(
     FeedEntry? Latest,
     IReadOnlyDictionary<string, RateLimit> Limits,
     DateTimeOffset? LimitsUpdated,
-    bool HasOpenChat);
+    bool HasOpenChat,
+    IReadOnlyList<FeedEntry>? Chats = null);
 
 public static class FeedReader
 {
@@ -70,7 +72,7 @@ public static class FeedReader
         DateTimeOffset? limitsUpdated = readings.Count > 0 ? readings.Max(reading => reading.Entry.Updated) : null;
         var hasOpenChat = entries.Any(entry => entry.EndedAt is null && entry.AliveAt is not null && now - entry.LastSeen <= SilentFor);
 
-        return new FeedState(latest, limits, limitsUpdated, hasOpenChat);
+        return new FeedState(latest, limits, limitsUpdated, hasOpenChat, entries);
     }
 
     /// <summary>

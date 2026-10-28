@@ -11,26 +11,27 @@ public static class ChatTitles
         FindCustomTitle(entry.SessionId)
         ?? (entry.Cwd is { Length: > 0 } cwd ? MiniInfos.Infrastructure.Storage.SourceFiles.LeafName(cwd) : "chat");
 
-    private static string? FindCustomTitle(string sessionId)
+    /// <summary>The name given in the app to the chat of this transcript: its custom-title.json sits beside it, in the chat's folder.</summary>
+    public static string? Custom(string transcriptPath, string sessionId) =>
+        Path.GetDirectoryName(transcriptPath) is { } project ? Read(Path.Combine(project, sessionId, "custom-title.json")) : null;
+
+    private static string? FindCustomTitle(string sessionId) =>
+        ClaudePaths.ProjectFolders.SelectMany(root => SourceFiles.Directories(root))
+            .Select(project => Read(Path.Combine(project, sessionId, "custom-title.json")))
+            .FirstOrDefault(title => title is not null);
+
+    private static string? Read(string file)
     {
-        foreach (var project in ClaudePaths.ProjectFolders.SelectMany(root => SourceFiles.Directories(root)))
+        if (!File.Exists(file)) return null;
+
+        try
         {
-            var file = Path.Combine(project, sessionId, "custom-title.json");
-            if (!File.Exists(file)) continue;
-
-            try
-            {
-                using var document = JsonDocument.Parse(File.ReadAllText(file));
-                if (document.RootElement.TryGetProperty("customTitle", out var title) && title.GetString() is { Length: > 0 } name)
-                {
-                    return name;
-                }
-            }
-            catch (Exception exception) when (exception is IOException or JsonException or UnauthorizedAccessException)
-            {
-            }
+            using var document = JsonDocument.Parse(File.ReadAllText(file));
+            return document.RootElement.TryGetProperty("customTitle", out var title) && title.GetString() is { Length: > 0 } name ? name : null;
         }
-
-        return null;
+        catch (Exception exception) when (exception is IOException or JsonException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 }

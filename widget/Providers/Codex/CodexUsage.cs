@@ -15,6 +15,7 @@ public sealed class CodexUsage : IUsageProvider
 
     private readonly CodexUsageLedger _ledger = CodexUsageLedger.Load();
     private readonly CodexAccountReader _account = new();
+    private readonly TitleCache _titles = new();
 
     public string Id => "codex";
 
@@ -52,6 +53,14 @@ public sealed class CodexUsage : IUsageProvider
             Updated(account, now),
             L.Text("Atualizar agora os dados locais e os limites da conta Codex."));
     }
+
+    /// <summary>Each local session: its name in the Codex app, else its folder.</summary>
+    public IReadOnlyList<Conversation> Conversations() => _ledger.Sessions().Select(session =>
+    {
+        var name = _titles.Of(session.Id, () => CodexThreadNames.Find(CodexPaths.Roots, session.Id));
+        return new Conversation(Id, session.Id, name ?? session.Project ?? "Codex", name is null ? null : session.Project,
+            session.LastAt, session.Tokens, session.ContextPercent);
+    }).ToArray();
 
     public void Flush() => _ledger.Flush();
 

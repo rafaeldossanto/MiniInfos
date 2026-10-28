@@ -31,6 +31,19 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
+## Cartão de conversas
+
+O botão ao lado da engrenagem abre um segundo cartão, **Conversas**, com cada chat ou sessão e os tokens que gastou. A conversa que respondeu por último fica no topo, como na fila de temas: o ícone dela fica aceso e, enquanto responde, aparece um ponto azul ao lado de "agora". Cada linha mostra o nome, a pasta e há quanto tempo respondeu, os tokens da conversa (passe o mouse para ver entrada, cache e saída) e o contexto usado, quando a IA informa. Embaixo, o número de conversas e a soma delas. Os ícones das IAs no rodapé filtram a lista; clicar de novo mostra todas. Os botões Resumido e Detalhado funcionam como no cartão de uso. A lista mostra as 50 mais recentes.
+
+- **Claude:** cada chat do Claude Code, com o nome dado no app e o contexto publicado pelo mod.
+- **Codex:** cada sessão, com o nome que o app do Codex dá à conversa e o contexto.
+- **Kimi:** cada conversa do modo agente do app (com a sessão que só gera o título somada a ela) ou do Kimi Code, nomeada pelo primeiro pedido.
+- **Gemini:** cada conversa do Gemini CLI, pela pasta do projeto.
+
+Em **Configurações → Geral → Cartão principal**, escolha **Uso** ou **Conversas**. O principal é o que abre junto com as IAs, com o Windows, pelo clique na bandeja e ao abrir o MiniInfos de novo; o outro abre pelo botão ao lado da engrenagem. Os dois somem juntos quando a última IA fecha. Com Conversas como principal, a faixa de atualização aparece quando o cartão de uso é aberto.
+
+Os tokens por conversa contam a partir das respostas que ainda estão nos históricos: na primeira abertura desta versão, o MiniInfos relê os históricos uma vez para descobrir a conversa de cada resposta, sem contar nenhuma duas vezes. Respostas de históricos já apagados continuam nos totais do cartão de uso, mas não aparecem em nenhuma conversa. No Linux e no macOS, o cartão de conversas ainda não existe; os dados por conversa já são os mesmos.
+
 O aplicativo abre em português quando o idioma de exibição do sistema é português; nos demais idiomas, abre em inglês. Em **Configurações → Geral → Idioma**, escolha **Automático**, **Português** ou **English**. A escolha manual fica salva e atualiza janelas abertas, menus e números sem reiniciar. Ela não muda o tema selecionado. A landing page também detecta o idioma do navegador e oferece a escolha manual.
 
 O instalador também inclui os dois idiomas e usa o idioma de exibição do Windows, com inglês como alternativa. A detecção usa a opção [`LanguageDetectionMethod=uilanguage` do Inno Setup](https://jrsoftware.org/ishelp/topic_setup_languagedetectionmethod.htm); a escolha manual dentro do app continua independente.
@@ -133,7 +146,7 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 
 | Pasta em `widget/` | Responsabilidade |
 | --- | --- |
-| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders`, escolha das páginas instaladas `InstalledProviders` e modelos de tokens, limites e páginas compartilhados. |
+| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders`, escolha das páginas instaladas `InstalledProviders`, o livro-caixa por resposta `ResponseLedger`, a lista `ConversationList` e modelos de tokens, limites, conversas e páginas compartilhados. |
 | `Providers/Claude/` | Históricos, feeds, títulos, caminhos e detecção do Claude. |
 | `Providers/Codex/` | Históricos, conta, app-server, caminhos e detecção do Codex. |
 | `Providers/Gemini/` | Conversas, caminhos e detecção do Gemini CLI. |
@@ -146,7 +159,7 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `Localization/` | Detecção e troca de idioma, catálogo inglês e bindings de tradução para o XAML. |
 | `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |
 | `Infrastructure/Network/` | Identidade do repositório e cliente de releases e assets compartilhado pelo atualizador e pelo catálogo. |
-| `UI/Windows/` | Janelas, coordenação dos cartões e seleção de páginas. Cada XAML fica junto de seu code-behind. |
+| `UI/Windows/` | Janelas, coordenação dos cartões (o de uso, os extras e o de conversas, pelo cartão principal escolhido) e seleção de páginas. Cada XAML fica junto de seu code-behind. |
 | `UI/Controls/` | Controles compartilhados, menus e apresentação animada dos números. |
 | `UI/Formatting/` | Formatação dos números, horários, custos e legendas. |
 | `UI/Themes/` | Dicionários de temas, `ThemeManager` e tipografia compartilhada. |

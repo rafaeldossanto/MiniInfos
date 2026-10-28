@@ -108,6 +108,9 @@ public partial class MainWindow : Window
     /// <summary>The gear, or "Configurações" in the card's menu: whoever holds the cards opens the settings window for this one.</summary>
     public event Action<MainWindow>? SettingsRequested;
 
+    /// <summary>The button beside the gear: whoever holds the cards opens the conversations card.</summary>
+    public event Action? ConversationsRequested;
+
     /// <summary>The card switched between Resumido and Detalhado.</summary>
     public event Action? ViewChanged;
 
@@ -716,6 +719,8 @@ public partial class MainWindow : Window
     private void OnDefaultSize(object sender, RoutedEventArgs e) => ResetSize();
 
     private void OnSettings(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke(this);
+
+    private void OnConversations(object sender, RoutedEventArgs e) => ConversationsRequested?.Invoke();
 
     private async void OnRefresh(object sender, RoutedEventArgs e) => await ForceRefreshAsync();
 

@@ -20,7 +20,8 @@ public sealed record AppSettings(
     string? CommunityThemeId = null,
     string? PetId = null,
     IReadOnlyList<string>? RecentThemes = null,
-    LanguageChoice Language = LanguageChoice.Automatic);
+    LanguageChoice Language = LanguageChoice.Automatic,
+    MainCardChoice MainCard = MainCardChoice.Usage);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -43,6 +44,12 @@ public sealed class Preferences : INotifyPropertyChanged
     {
         get => Enum.IsDefined(_settings.Language) ? _settings.Language : LanguageChoice.Automatic;
         set => Change(_settings with { Language = Enum.IsDefined(value) ? value : LanguageChoice.Automatic });
+    }
+
+    public MainCardChoice MainCard
+    {
+        get => Enum.IsDefined(_settings.MainCard) ? _settings.MainCard : MainCardChoice.Usage;
+        set => Change(_settings with { MainCard = Enum.IsDefined(value) ? value : MainCardChoice.Usage });
     }
 
     /// <summary>The app's own settings, in its data folder.</summary>

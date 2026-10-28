@@ -12,7 +12,8 @@ public readonly record struct TokenCount(long Input, long Output, long CacheRead
 }
 
 /// <summary>One counted use of a model: when, in unix seconds, and its tokens.</summary>
-public sealed record LedgerEntry(long At, long Input, long Output, long CacheRead, long CacheWrite)
+/// <param name="Session">The chat or session it belongs to, for the conversations card; null in ledgers saved before 1.16.</param>
+public sealed record LedgerEntry(long At, long Input, long Output, long CacheRead, long CacheWrite, string? Session = null)
 {
     public TokenCount Count => new(Input, Output, CacheRead, CacheWrite);
 }

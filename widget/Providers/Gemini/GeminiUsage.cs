@@ -48,5 +48,10 @@ public sealed class GeminiUsage : IUsageProvider
             L.Text("Atualizar agora os dados locais. O Gemini não guarda a cota da conta no computador."));
     }
 
+    /// <summary>Each chat by its project's folder: Gemini CLI keeps no name for its chats.</summary>
+    public IReadOnlyList<Conversation> Conversations() => _ledger.Sessions()
+        .Select(chat => new Conversation(Id, chat.Session, chat.Source.Project ?? "Gemini CLI", null, chat.LastAt, chat.Tokens))
+        .ToArray();
+
     public void Flush() => _ledger.Flush();
 }

@@ -64,6 +64,21 @@ public sealed class GeminiUsageTests : IDisposable
         Assert.Equal(220, page.Total.Total);
     }
 
+    [Fact]
+    public async Task EachChatIsAConversationWithItsSubagentsAndNamedByItsProject()
+    {
+        WriteChat("session-a", Response("g1", input: 100, output: 10));
+        File.WriteAllText(_folder.File("tmp", "project", "chats", "session-a", "helper.jsonl"), Response("s1", input: 50, output: 5) + "\n");
+        File.WriteAllText(_folder.File("tmp", new string('a', 64), "chats", "session-b.jsonl"), Response("g2", input: 1, output: 1) + "\n");
+        var gemini = new GeminiUsage(Chats, Store);
+        await gemini.ReadAsync(At, isShown: true, force: false);
+
+        var chats = gemini.Conversations().ToDictionary(chat => chat.Key);
+
+        Assert.Equal(("project", 165L), (chats["session-a"].Title, chats["session-a"].Tokens.Total));
+        Assert.Equal(("Gemini CLI", 2L), (chats["session-b"].Title, chats["session-b"].Tokens.Total));
+    }
+
     private string Store => Path.Combine(_folder.Path, "gemini-ledger.json");
 
     private IReadOnlyList<string> Chats() => [Path.Combine(_folder.Path, "tmp")];

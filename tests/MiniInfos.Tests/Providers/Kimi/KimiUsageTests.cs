@@ -81,6 +81,33 @@ public sealed class KimiUsageTests : IDisposable
         Assert.Null(KimiContext.LatestPercent(_folder.File("missing.json")));
     }
 
+    [Fact]
+    public async Task AKimiCodeSessionIsAConversationNamedByItsFirstRequest()
+    {
+        WriteWire("main", Usage(inputOther: 10, output: 5));
+        File.WriteAllText(_folder.File("sessions", "wd_abc", "session_1", "state.json"), JsonSerializer.Serialize(new
+        {
+            workDir = "C:/code/my-project",
+            title = "<meta awareness=\"low\" timestamp=\"2026-10-23 21:25\" /> faça uma   landing page",
+        }));
+
+        var kimi = new KimiUsage(Sessions, Store, () => null);
+        await kimi.ReadAsync(At, isShown: true, force: false);
+        var conversation = Assert.Single(kimi.Conversations());
+
+        Assert.Equal(("faça uma landing page", "my-project", 15L), (conversation.Title, conversation.Project, conversation.Tokens.Total));
+        Assert.Equal(Path.Combine(_folder.Path, "sessions", "wd_abc", "session_1"), KimiSessions.Key(Path.Combine(conversation.Key, "agents", "main", "wire.jsonl")));
+    }
+
+    [Fact]
+    public void ATaskFoldersTitleComesFromItsSessionNotTheHelperThatNamesIt()
+    {
+        File.WriteAllText(_folder.File("wd_task", "ctitle-1", "state.json"), JsonSerializer.Serialize(new { title = "Generate a concise title for the conversation below" }));
+        File.WriteAllText(_folder.File("wd_task", "conv-1", "state.json"), JsonSerializer.Serialize(new { title = "<meta awareness=\"low\" /> resuma este PDF" }));
+
+        Assert.Equal("resuma este PDF", KimiSessions.Title(Path.Combine(_folder.Path, "wd_task")));
+    }
+
     private string Store => Path.Combine(_folder.Path, "kimi-ledger.json");
 
     private IReadOnlyList<string> Sessions() => [Path.Combine(_folder.Path, "sessions")];

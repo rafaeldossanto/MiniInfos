@@ -172,6 +172,40 @@ public sealed class CodexUsageLedgerTests : IDisposable
         Assert.Equal(300, ledger.Summarize(At, At.AddHours(-5), At.AddDays(-7)).Tokens.Total.Total);
     }
 
+    [Fact]
+    public void EachSessionKeepsItsOwnTokensFolderAndContext()
+    {
+        var id = Guid.NewGuid().ToString("D");
+        WriteLog(
+            Meta(@"C:\code\wallet", id),
+            Reading(At, input: 100, cached: 20, output: 50, total: 150),
+            Reading(At.AddSeconds(5), input: 200, cached: 40, output: 80, total: 280, lastInput: 50_000, window: 200_000));
+        var ledger = Ledger();
+        ledger.Scan();
+
+        var session = Assert.Single(ledger.Sessions());
+
+        Assert.Equal((id, "wallet", 25d), (session.Id, session.Project, session.ContextPercent));
+        Assert.Equal(new TokenCount(160, 80, 40, 0), session.Tokens);
+        Assert.Equal(Total(ledger), session.Tokens.Total);
+        Assert.Equal(At.AddSeconds(5).ToUnixTimeSeconds(), session.LastAt);
+    }
+
+    [Fact]
+    public void TheCodexAppsThreadNameIsTheLatestLineForTheSession()
+    {
+        var id = Guid.NewGuid().ToString("D");
+        File.WriteAllLines(_folder.File("home", "session_index.jsonl"),
+        [
+            JsonSerializer.Serialize(new { id, thread_name = "Primeiro nome", updated_at = At }),
+            JsonSerializer.Serialize(new { id = Guid.NewGuid().ToString("D"), thread_name = "Outra", updated_at = At }),
+            JsonSerializer.Serialize(new { id, thread_name = "Nome atual", updated_at = At }),
+        ]);
+
+        Assert.Equal("Nome atual", CodexThreadNames.Find([Path.Combine(_folder.Path, "home")], id));
+        Assert.Null(CodexThreadNames.Find([Path.Combine(_folder.Path, "home")], Guid.NewGuid().ToString("D")));
+    }
+
     private CodexUsageSnapshot Scan()
     {
         var ledger = Ledger();

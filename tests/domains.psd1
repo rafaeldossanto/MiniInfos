@@ -4,6 +4,7 @@
         Front = @{ Filter = ''; Suite = ''; Check = @{ Command = 'npm'; Arguments = @('--prefix', 'front', 'run', 'check') } }
         Desktop = @{ Filter = ''; Suite = ''; Check = @{ Command = 'dotnet'; Arguments = @('test', 'tests/MiniInfos.Desktop.Tests', '-c', 'Release', '--filter', 'FullyQualifiedName~MiniInfos.Tests.Desktop.', '--logger', 'console;verbosity=minimal') } }
         DesktopPackaging = @{ Filter = ''; Suite = ''; Check = @{ Command = 'python'; Arguments = @('-m', 'unittest', 'discover', '-s', 'desktop/packaging/tests', '-v') } }
+        Conversations = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.ConversationListTests|FullyQualifiedName~MiniInfos.Tests.Settings.'; Suite = 'Conversations' }
         Localization = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Localization.|FullyQualifiedName~MiniInfos.Tests.Settings.|FullyQualifiedName~MiniInfos.Tests.UI.Formatting.'; Suite = 'Localization' }
         CatalogTool = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.CatalogToolTests'; Suite = '' }
         Community = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Community.'; Suite = 'Community' }
@@ -36,6 +37,11 @@
         @{ Path = '.github/workflows/desktop-native.yml'; Domains = @('Desktop', 'DesktopPackaging') }
         @{ Path = '.github/workflows/release-app.yml'; All = $true; Domains = @('DesktopPackaging') }
         @{ Path = 'widget/Localization/*'; Domains = @('Localization') }
+        @{ Path = 'widget/UI/Windows/ConversationsWindow.*'; Domains = @('Conversations') }
+        @{ Path = 'widget/UI/Windows/SettingsWindow.MainCard.cs'; Domains = @('Conversations', 'Settings') }
+        @{ Path = 'widget/Settings/MainCardChoice.cs'; Domains = @('Conversations', 'Settings') }
+        @{ Path = 'tests/MiniInfos.UiCheck/Conversations/*'; Domains = @('Conversations') }
+        @{ Path = 'tests/MiniInfos.Tests/Providers/ConversationListTests.cs'; Domains = @('Conversations') }
         @{ Path = 'widget/Settings/LanguageChoice.cs'; Domains = @('Localization') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.Language.cs'; Domains = @('Localization') }
         @{ Path = 'tests/MiniInfos.Tests/Localization/*'; Domains = @('Localization') }
@@ -57,7 +63,7 @@
         @{ Path = 'widget/UI/Windows/DialogWindow.cs'; Domains = @('Themes', 'Community', 'Mascot') }
         @{ Path = 'widget/UI/Windows/ThemeLibraryWindow.*'; Domains = @('Themes', 'Community') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot', 'Community') }
-        @{ Path = 'widget/UI/Windows/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates') }
+        @{ Path = 'widget/UI/Windows/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Themes/AppFonts.cs'; Domains = @('Fonts') }
         @{ Path = 'widget/UI/Themes/ThemeOption.cs'; Domains = @('Themes', 'Fonts', 'Community') }
         @{ Path = 'widget/UI/Themes/*'; Domains = @('Themes') }
@@ -79,13 +85,13 @@
         @{ Path = 'widget/Providers/Codex/*'; Domains = @('Codex') }
         @{ Path = 'widget/Providers/Gemini/*'; Domains = @('Gemini') }
         @{ Path = 'widget/Providers/Kimi/*'; Domains = @('Kimi') }
-        @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Mascot') }
+        @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Mascot', 'Conversations') }
         @{ Path = 'widget/Sources/*'; Domains = @('Sources', 'Claude', 'Codex', 'Kimi') }
         @{ Path = 'widget/Settings/FontChoice.cs'; Domains = @('Fonts', 'Settings') }
         @{ Path = 'widget/Settings/ThemeChoice.cs'; Domains = @('Themes', 'Settings') }
         @{ Path = 'widget/Settings/CardSettings.cs'; Domains = @('Cards') }
         @{ Path = 'widget/Settings/ThemeHistory.cs'; Domains = @('Settings', 'Themes', 'Fonts', 'Community') }
-        @{ Path = 'widget/Settings/*'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates') }
+        @{ Path = 'widget/Settings/*'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/Updates/*'; Domains = @('Updates') }
         @{ Path = 'widget/Infrastructure/Storage/JsonlTail.cs'; Domains = @('Storage', 'Claude', 'Codex', 'Gemini', 'Kimi') }
         @{ Path = 'widget/Infrastructure/Storage/SourceFiles.cs'; Domains = @('Storage', 'Sources', 'Claude', 'Codex', 'Kimi') }

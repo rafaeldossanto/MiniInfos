@@ -28,9 +28,11 @@ public sealed class ClaudeUsageLedger
     public TokenSummary Summarize(DateTimeOffset now, DateTimeOffset shortWindowStart, DateTimeOffset longWindowStart) =>
         _ledger.Summarize(now, shortWindowStart, longWindowStart);
 
+    public IReadOnlyList<SessionTally> Sessions() => _ledger.Sessions();
+
     public void Flush() => _ledger.Flush();
 
-    /// <summary>One response is written once per content block, all under the message's id.</summary>
+    /// <summary>One response is written once per content block, all under the message's id, with its chat's id and folder.</summary>
     private static LoggedResponse? Read(string path, ReadOnlySpan<byte> line)
     {
         try
@@ -44,12 +46,15 @@ public sealed class ClaudeUsageLedger
             if (!message.TryGetProperty("id", out var id) || id.GetString() is not { Length: > 0 } key) return null;
             if (!root.TryGetProperty("timestamp", out var timestamp) || !timestamp.TryGetDateTimeOffset(out var at)) return null;
 
+            var cwd = ReadText(root, "cwd");
             return new LoggedResponse(key, new LedgerEntry(
                 at.ToUnixTimeSeconds(),
                 ReadCount(usage, "input_tokens"),
                 ReadCount(usage, "output_tokens"),
                 ReadCount(usage, "cache_read_input_tokens"),
-                ReadCount(usage, "cache_creation_input_tokens")));
+                ReadCount(usage, "cache_creation_input_tokens")),
+                Session: ReadText(root, "sessionId"),
+                Project: cwd is null ? null : SourceFiles.LeafName(cwd));
         }
         catch (JsonException)
         {
@@ -59,4 +64,8 @@ public sealed class ClaudeUsageLedger
 
     private static long ReadCount(JsonElement usage, string name) =>
         usage.TryGetProperty(name, out var value) && value.TryGetInt64(out var count) ? count : 0;
+
+    private static string? ReadText(JsonElement value, string name) =>
+        value.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.String
+            && property.GetString() is { Length: > 0 } text ? text : null;
 }
