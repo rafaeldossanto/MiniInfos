@@ -1,0 +1,114 @@
+card-carousel {
+  display: block;
+  min-width: 0;
+  --card-index: 0;
+}
+card-carousel:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 16px;
+}
+.card-carousel-viewport {
+  overflow: hidden;
+  border-radius: 16px;
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+  user-select: none;
+}
+.card-carousel-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  transform: translate3d(calc(var(--card-index) * -100% + var(--card-drag, 0px)), 0, 0);
+  transition: transform 700ms var(--ease);
+}
+.is-dragging .card-carousel-track {
+  transition: none;
+}
+.is-dragging .card-carousel-viewport {
+  cursor: grabbing;
+}
+.card-carousel-slide {
+  min-width: 0;
+}
+.card-carousel-slide usage-widget,
+.card-carousel-slide .usage-widget {
+  height: 100%;
+}
+.card-carousel-slide .usage-widget {
+  display: flex;
+  flex-direction: column;
+}
+.card-carousel-slide .widget-columns {
+  flex: 1;
+  align-content: start;
+}
+.card-carousel-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.card-carousel-navigation button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 32px;
+  transition:
+    color 700ms var(--ease),
+    transform 700ms var(--ease);
+}
+.card-carousel-navigation button:hover {
+  color: var(--muted);
+}
+.card-carousel-navigation button:active {
+  transform: scale(0.98);
+}
+.card-carousel-navigation button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.card-carousel-navigation [data-carousel-label] {
+  min-width: 96px;
+  text-align: center;
+}
+.card-carousel-hint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+
+@media (max-width: 380px) {
+  .card-carousel-slide .widget-footer {
+    display: grid;
+    grid-template-columns: max-content 1fr max-content;
+    gap: 8px;
+  }
+  .card-carousel-slide .widget-demo-label,
+  .card-carousel-slide .widget-split,
+  .card-carousel-slide .widget-number-formats {
+    position: static;
+  }
+  .card-carousel-slide .widget-providers {
+    justify-self: center;
+    gap: 4px;
+  }
+  .card-carousel-slide .widget-providers button {
+    width: 24px;
+  }
+  .card-carousel-slide .widget-providers svg {
+    width: 16px;
+    height: 16px;
+  }
+}

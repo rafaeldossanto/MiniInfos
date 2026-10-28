@@ -17,6 +17,11 @@ export function detectPlatform(platform: string, userAgent = ''): Platform | nul
   return /linux|x11/.test(value) ? 'linux' : null;
 }
 
+/** The OS chooses a section; the visitor chooses their CPU architecture there. */
+export function downloadTarget(platform: Platform | null): string {
+  return platform ? `#download-${platform}` : '#downloads';
+}
+
 export function availablePackages(release: unknown): Map<string, string> {
   if (!release || typeof release !== 'object') return new Map();
   const data = release as { draft?: boolean; prerelease?: boolean; assets?: unknown };

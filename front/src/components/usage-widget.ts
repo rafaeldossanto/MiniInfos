@@ -1,4 +1,4 @@
-import { t, compactNumber } from '../localization/messages';
+import { t, compactNumber, activeLanguage } from '../localization/messages';
 import { LANGUAGE_EVENT } from '../localization/model';
 
 type Provider = 'claude' | 'codex';
@@ -33,13 +33,52 @@ const examples = [
     context: 78,
   },
 ] as const;
+const conversationExamples = [
+  {
+    provider: 'claude',
+    title: 'Landing page',
+    project: 'MiniInfos',
+    ago: 'agora',
+    tokens: 5_600_000,
+    context: 42,
+  },
+  {
+    provider: 'codex',
+    title: 'Ajustes do mascote',
+    project: 'MiniInfos',
+    ago: 'há 10 min',
+    tokens: 3_200_000,
+    context: 62,
+  },
+  {
+    provider: 'claude',
+    title: 'Tema Clássico',
+    project: 'Work',
+    ago: 'há 35 min',
+    tokens: 1_800_000,
+    context: 38,
+  },
+  {
+    provider: 'codex',
+    title: 'Revisão de código',
+    project: 'Work',
+    ago: 'há 1 h',
+    tokens: 980_000,
+    context: null,
+  },
+] as const;
 const icon = (name: string) =>
   '<svg aria-hidden="true"><use href="/icons.svg#' + name + '"></use></svg>';
 
 /** An interactive demo with fixed sample data; language changes keep its selected provider and appearance. */
 class UsageWidget extends HTMLElement {
   private view: View = 'split';
+  private filter: Provider | null = null;
+  private detailed = false;
   private readonly onLanguageChanged = () => this.render(false);
+  private get conversations() {
+    return this.getAttribute('card') === 'conversations';
+  }
 
   connectedCallback() {
     window.addEventListener(LANGUAGE_EVENT, this.onLanguageChanged);
@@ -54,43 +93,108 @@ class UsageWidget extends HTMLElement {
 
   private render(animate: boolean) {
     this.innerHTML = `
-      <div class="usage-widget">
-        <div class="widget-topline"><span>MiniInfos</span><div>
+      <div class="usage-widget${this.conversations ? ' conversation-widget' : ''}">
+        <div class="widget-topline"><span>${this.conversations ? t('Conversas') : 'MiniInfos'}</span><div>
           <button type="button" class="widget-refresh" aria-label="${t('Reiniciar a demonstração')}">${icon('refresh')}</button>
           <span class="widget-close" aria-hidden="true">${icon('close')}</span>
         </div></div>
         <div class="widget-art" aria-hidden="true"></div>
-        <div class="widget-columns">${examples
-          .map(
-            (provider) => `
-          <section class="provider" data-provider="${provider.id}" aria-label="${provider.name}">
-            <h3>${icon('ai')}${provider.name}</h3>
-            ${this.meter('Janela 5h', provider.short, provider.shortTokens, provider.reset)}
-            ${this.meter('Semanal', provider.week, provider.weekTokens, provider.weekReset)}
-            <div class="widget-totals">
-              <div><span>${t('Tokens hoje')}</span><strong>${compactNumber(provider.today)}</strong></div>
-              <div><span>${t('Tokens no total')}</span><strong>${compactNumber(provider.total)}</strong></div>
-            </div>
-            <p class="widget-context">${t('{project} · contexto {percent}%', { project: provider.project, percent: provider.context })}</p>
-          </section>`,
-          )
-          .join('')}
-        </div>
+        ${this.conversations ? this.conversationContent() : this.usageContent()}
         <div class="widget-footer">
           <span class="widget-demo-label">${t('Demonstração')}</span>
-          <div class="widget-providers" role="group" aria-label="${t('Escolher IA da demonstração')}">
+          <div class="widget-providers" role="group" aria-label="${t(this.conversations ? 'Filtrar conversas por IA' : 'Escolher IA da demonstração')}">
             <button type="button" data-view="claude" aria-label="${t('Mostrar apenas Claude')}">${icon('ai')}</button>
             <button type="button" data-view="codex" aria-label="${t('Mostrar apenas Codex')}">${icon('ai')}</button>
           </div>
-          <button type="button" class="widget-split" data-view="split" aria-label="${t('Mostrar Claude e Codex lado a lado')}">${icon('columns')}</button>
+          ${
+            this.conversations
+              ? `
+          <div class="widget-number-formats" role="group" aria-label="${t('Formato dos números')}">
+            <button type="button" data-number-format="detailed" aria-label="${t('Números detalhados')}" aria-pressed="${this.detailed}"><span aria-hidden="true">☰</span></button>
+            <button type="button" data-number-format="compact" aria-label="${t('Números resumidos')}" aria-pressed="${!this.detailed}"><span aria-hidden="true">□</span></button>
+          </div>`
+              : `
+          <button type="button" class="widget-split" data-view="split" aria-label="${t('Mostrar Claude e Codex lado a lado')}">${icon('columns')}</button>`
+          }
         </div>
       </div>`;
     this.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
-      button.addEventListener('click', () => this.selectView(button.dataset.view as View));
+      button.addEventListener('click', () => {
+        if (!this.conversations) {
+          this.selectView(button.dataset.view as View);
+          return;
+        }
+        const provider = button.dataset.view as Provider;
+        this.filter = this.filter === provider ? null : provider;
+        this.render(false);
+        this.querySelector<HTMLButtonElement>(`[data-view="${provider}"]`)?.focus({
+          preventScroll: true,
+        });
+      });
+    });
+    this.querySelectorAll<HTMLButtonElement>('[data-number-format]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const format = button.dataset.numberFormat!;
+        this.detailed = format === 'detailed';
+        this.render(false);
+        this.querySelector<HTMLButtonElement>(`[data-number-format="${format}"]`)?.focus({
+          preventScroll: true,
+        });
+      });
     });
     this.querySelector('.widget-refresh')?.addEventListener('click', () => this.reveal());
-    this.selectView(this.view);
+    if (this.conversations) {
+      this.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) =>
+        button.setAttribute(
+          'aria-pressed',
+          String(this.filter === null || this.filter === button.dataset.view),
+        ),
+      );
+    } else this.selectView(this.view);
     if (animate) this.reveal();
+  }
+
+  private usageContent() {
+    return `<div class="widget-columns">${examples
+      .map(
+        (provider) => `
+      <section class="provider" data-provider="${provider.id}" aria-label="${provider.name}">
+        <h3>${icon('ai')}${provider.name}</h3>
+        ${this.meter('Janela 5h', provider.short, provider.shortTokens, provider.reset)}
+        ${this.meter('Semanal', provider.week, provider.weekTokens, provider.weekReset)}
+        <div class="widget-totals">
+          <div><span>${t('Tokens hoje')}</span><strong>${compactNumber(provider.today)}</strong></div>
+          <div><span>${t('Tokens no total')}</span><strong>${compactNumber(provider.total)}</strong></div>
+        </div>
+        <p class="widget-context">${t('{project} · contexto {percent}%', { project: provider.project, percent: provider.context })}</p>
+      </section>`,
+      )
+      .join('')}</div>`;
+  }
+
+  private conversationContent() {
+    const rows = conversationExamples.filter(
+      (conversation) => !this.filter || conversation.provider === this.filter,
+    );
+    const count = (value: number) =>
+      this.detailed
+        ? new Intl.NumberFormat(activeLanguage() === 'pt' ? 'pt-BR' : 'en-US').format(value)
+        : compactNumber(value);
+    const total = rows.reduce((sum, conversation) => sum + conversation.tokens, 0);
+    return `<div class="conversation-body">
+      <div class="conversation-heading"><span>${t('Últimas conversas')}</span><span>Tokens</span></div>
+      <ul class="conversation-list">${rows
+        .map(
+          (conversation, index) => `
+        <li class="conversation-row" style="--row-delay:${index * 40}ms">
+          <span class="conversation-icon">${icon('ai')}</span>
+          <div class="conversation-name"><strong>${t(conversation.title)}</strong><span>${conversation.project} · ${t(conversation.ago)}</span></div>
+          <div class="conversation-amount"><strong>${count(conversation.tokens)}</strong>${conversation.context === null ? '' : `<span>${t('contexto')} <b>${conversation.context}%</b></span>`}</div>
+        </li>`,
+        )
+        .join('')}</ul>
+      <p class="conversation-summary">${t('{count} conversas · {tokens} tokens', { count: rows.length, tokens: count(total) })}</p>
+    </div>`;
   }
 
   /** Tokens and reset are kept whole, so a narrow column breaks the line only between them. */

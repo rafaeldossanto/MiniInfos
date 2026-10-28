@@ -1,6 +1,6 @@
 import { t } from '../localization/messages';
 import { LANGUAGE_EVENT } from '../localization/model';
-import { availablePackages, detectPlatform, releaseApi, releasePage } from './model';
+import { availablePackages, detectPlatform, downloadTarget, releaseApi, releasePage } from './model';
 
 export function initDownloads() {
   const section = document.querySelector<HTMLElement>('#downloads');
@@ -8,13 +8,14 @@ export function initDownloads() {
   const detected = detectPlatform(navigator.platform, navigator.userAgent);
   const label = detected === 'windows' ? 'Baixar para Windows' : detected === 'macos' ? 'Baixar para macOS' : detected === 'linux' ? 'Baixar para Linux' : 'Baixar MiniInfos';
   document.querySelectorAll<HTMLAnchorElement>('[data-download]').forEach((link) => {
-    link.href = '#downloads';
+    link.href = downloadTarget(detected);
     const text = link.querySelector('span');
     if (text) { text.dataset.i18n = label; text.textContent = t(label); }
     const icon = link.querySelector('use');
     if (icon) icon.setAttribute('href', '/icons.svg#file');
   });
   section.querySelector(`[data-platform="${detected}"]`)?.setAttribute('data-detected', 'true');
+  document.querySelector(`[data-platform-shortcut="${detected}"]`)?.setAttribute('data-detected', 'true');
   const links = section.querySelectorAll<HTMLAnchorElement>('[data-package]');
   let availability: Map<string, string> | null = null;
   let failed = false;
@@ -23,10 +24,12 @@ export function initDownloads() {
     links.forEach((link) => {
       const address = availability?.get(link.dataset.package!);
       link.href = address ?? releasePage;
-      link.setAttribute('aria-label', `${link.querySelector('span')?.textContent}: ${t(address ? 'Baixar' : 'Ver releases')}`);
+      const platform = link.closest('[data-platform]')?.querySelector('h3')?.textContent;
+      const stateText = t(address ? 'Baixar' : failed ? 'Ver releases' : availability ? 'Ainda não publicado' : 'Verificando…');
+      link.setAttribute('aria-label', `${platform} · ${link.querySelector('span')?.textContent}: ${stateText}`);
       link.dataset.available = String(Boolean(address));
       const state = link.querySelector('[data-download-state]');
-      if (state) state.textContent = t(address ? 'Baixar' : failed ? 'Ver releases' : availability ? 'Ainda não publicado' : 'Verificando…');
+      if (state) state.textContent = stateText;
     });
     const status = section.querySelector('[data-download-status]');
     if (status) status.textContent = t(failed ? 'Não foi possível consultar as versões. Confira os arquivos publicados no GitHub.' : 'Os downloads são ativados conforme os pacotes são publicados no GitHub.');
@@ -45,7 +48,7 @@ export function initDownloads() {
     } catch { failed = true; }
     render();
   };
-  document.querySelectorAll('[data-download]').forEach((link) => link.addEventListener('click', () => void load()));
+  document.querySelectorAll('[data-download], [data-platform-shortcut]').forEach((link) => link.addEventListener('click', () => void load()));
   const observer = new IntersectionObserver((entries) => { if (entries.some((entry) => entry.isIntersecting)) { void load(); observer.disconnect(); } }, { rootMargin: '240px' });
   observer.observe(section);
 }

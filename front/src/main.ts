@@ -1,9 +1,12 @@
 import './styles/base.css';
 import './styles/landing.css';
 import './styles/widget.css';
+import './styles/card-carousel.css';
+import './styles/conversations.css';
 import './styles/language.css';
 import './styles/downloads.css';
 import './components/usage-widget';
+import './components/card-carousel';
 import { project } from './config';
 import { initTheme } from './theme/controller';
 import { initMotion } from './features/motion';
@@ -23,8 +26,8 @@ document.querySelectorAll('[data-year]').forEach((element) => {
 document.querySelectorAll<HTMLButtonElement>('[data-card-theme]').forEach((button) => {
   button.addEventListener('click', () => {
     document
-      .querySelector('.personalization-stage usage-widget')
-      ?.setAttribute('appearance', button.dataset.cardTheme!);
+      .querySelectorAll('.personalization-stage usage-widget')
+      .forEach((card) => card.setAttribute('appearance', button.dataset.cardTheme!));
     document
       .querySelectorAll('[data-card-theme]')
       .forEach((choice) => choice.setAttribute('aria-pressed', String(choice === button)));
