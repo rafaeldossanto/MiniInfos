@@ -57,6 +57,8 @@ en.ModMissingReason=Claude Code was not found on this computer, or it rejected t
 ptbr.ModMissingReason=Não achei o Claude Code neste computador, ou ele recusou o mod. Os tokens aparecem normalmente; os limites de 5h e semanal e o chat atual só aparecem com o mod.
 en.ModMissingAction=Install Claude Code (the desktop or terminal app) and run this installer again.
 ptbr.ModMissingAction=Instale o Claude Code (o app desktop ou o do terminal) e rode este instalador de novo.
+en.SearchingClaude=Looking for Claude Code on this computer to install the mod...
+ptbr.SearchingClaude=Procurando o Claude Code neste computador para instalar o mod...
 
 [Tasks]
 Name: "withclaude"; Description: "{cm:WithApps}"
@@ -86,10 +88,6 @@ Type: filesandordirs; Name: "{localappdata}\MiniInfos"
 Type: filesandordirs; Name: "{%USERPROFILE}\.claude\miniinfos"
 
 [Code]
-const
-  MarketplaceName = 'miniinfos';
-  PluginId = 'miniinfos@miniinfos';
-
 var
   IsModMissing: Boolean;
 
@@ -114,144 +112,27 @@ begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM MiniInfos.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
 end;
 
+// Runs MiniInfos for one of the installer's jobs (see App.xaml.cs), waiting for its answer. -1 when it did not run.
+function RunApp(Argument: String): Integer;
 var
-  BundledPath: String;
-  BundledHigh, BundledLow: Cardinal;
-
-// Keeps Candidate in BundledPath when it is the newest copy of Claude Code seen so far.
-procedure KeepIfNewest(Candidate: String; Written: TFileTime);
-begin
-  if (BundledPath = '') or (Written.dwHighDateTime > BundledHigh)
-    or ((Written.dwHighDateTime = BundledHigh) and (Written.dwLowDateTime > BundledLow)) then
-  begin
-    BundledPath := Candidate;
-    BundledHigh := Written.dwHighDateTime;
-    BundledLow := Written.dwLowDateTime;
-  end;
-end;
-
-// The desktop app's copies: <Base>\<version>\<build>\claude.exe.
-procedure FindNewestClaudeUnder(Base: String);
-var
-  Candidate: String;
-  Version, Build: TFindRec;
-begin
-  if not FindFirst(Base + '\*', Version) then exit;
-  try
-    repeat
-      if (Version.Name <> '.') and (Version.Name <> '..') and (Version.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
-        if FindFirst(Base + '\' + Version.Name + '\*', Build) then
-        try
-          repeat
-            Candidate := Base + '\' + Version.Name + '\' + Build.Name + '\claude.exe';
-            if (Build.Name <> '.') and (Build.Name <> '..') and FileExists(Candidate) then
-              KeepIfNewest(Candidate, Build.LastWriteTime);
-          until not FindNext(Build);
-        finally
-          FindClose(Build);
-        end;
-    until not FindNext(Version);
-  finally
-    FindClose(Version);
-  end;
-end;
-
-// The editor extension's own copy, which it never puts on PATH:
-// <Extensions>\anthropic.claude-code-<version>-<platform>\resources\native-binary\claude.exe.
-procedure FindNewestExtensionClaude(Extensions: String);
-var
-  Candidate: String;
-  Extension: TFindRec;
-begin
-  if not FindFirst(Extensions + '\anthropic.claude-code-*', Extension) then exit;
-  try
-    repeat
-      Candidate := Extensions + '\' + Extension.Name + '\resources\native-binary\claude.exe';
-      if (Extension.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and FileExists(Candidate) then
-        KeepIfNewest(Candidate, Extension.LastWriteTime);
-    until not FindNext(Extension);
-  finally
-    FindClose(Extension);
-  end;
-end;
-
-// A Claude Code installed outside PATH, or before PATH reached this setup. The native installer's
-// %USERPROFILE%\.local\bin\claude.exe and npm's claude.cmd first, then the newest copy the desktop app
-// carries (the Store app in its package's own folder, the other installer in %APPDATA%\Claude) or an
-// editor extension carries (VS Code and its forks, the folders InstalledApps.EditorFolders names).
-function InstalledClaude(): String;
-var
-  Package: TFindRec;
-  Packages, Profile: String;
-begin
-  Profile := ExpandConstant('{%USERPROFILE}');
-  Result := Profile + '\.local\bin\claude.exe';
-  if FileExists(Result) then exit;
-  Result := ExpandConstant('{userappdata}\npm\claude.cmd');
-  if FileExists(Result) then exit;
-
-  BundledPath := '';
-  FindNewestClaudeUnder(ExpandConstant('{userappdata}\Claude\claude-code'));
-  Packages := ExpandConstant('{localappdata}\Packages');
-  if FindFirst(Packages + '\Claude_*', Package) then
-  try
-    repeat
-      FindNewestClaudeUnder(Packages + '\' + Package.Name + '\LocalCache\Roaming\Claude\claude-code');
-    until not FindNext(Package);
-  finally
-    FindClose(Package);
-  end;
-  if BundledPath = '' then
-  begin
-    FindNewestExtensionClaude(Profile + '\.vscode\extensions');
-    FindNewestExtensionClaude(Profile + '\.vscode-insiders\extensions');
-    FindNewestExtensionClaude(Profile + '\.vscode-oss\extensions');
-    FindNewestExtensionClaude(Profile + '\.cursor\extensions');
-    FindNewestExtensionClaude(Profile + '\.windsurf\extensions');
-  end;
-
-  Result := BundledPath;
-end;
-
-// Runs a `claude` command: the one on PATH (a terminal install), else one installed elsewhere. -1 when none ran.
-function RunClaude(Arguments: String): Integer;
-var
-  Claude: String;
   Code: Integer;
 begin
   Result := -1;
-  if Exec(ExpandConstant('{cmd}'), '/c where claude', '', SW_HIDE, ewWaitUntilTerminated, Code) and (Code = 0) then
-  begin
-    if Exec(ExpandConstant('{cmd}'), '/c claude ' + Arguments, '', SW_HIDE, ewWaitUntilTerminated, Code) then
-      Result := Code;
-    exit;
-  end;
-
-  Claude := InstalledClaude();
-  if Claude = '' then exit;
-  // npm's claude.cmd is a script: cmd runs it, keeping the quotes around its path and arguments.
-  if CompareText(ExtractFileExt(Claude), '.cmd') = 0 then
-  begin
-    if Exec(ExpandConstant('{cmd}'), '/c ""' + Claude + '" ' + Arguments + '"', '', SW_HIDE, ewWaitUntilTerminated, Code) then
-      Result := Code;
-  end
-  else if Exec(Claude, Arguments, '', SW_HIDE, ewWaitUntilTerminated, Code) then
+  if Exec(ExpandConstant('{app}\MiniInfos.exe'), Argument, '', SW_HIDE, ewWaitUntilTerminated, Code) then
     Result := Code;
 end;
 
 procedure RemoveMod();
 begin
-  RunClaude('plugin uninstall ' + PluginId + ' --scope user');
-  RunClaude('plugin marketplace remove ' + MarketplaceName);
+  RunApp('--remove-mod');
 end;
 
-// The mod goes in the user's Claude Code settings, which every install of Claude Code on this account reads.
+// The mod goes in the user's Claude Code settings, which every install of Claude Code on this account reads. The app
+// looks for one on PATH, then through every file of every local drive, and registers it with the first that takes it.
 procedure InstallMod();
 begin
-  RemoveMod();
-  IsModMissing :=
-    (RunClaude('plugin marketplace add "' + ExpandConstant('{app}\claude-plugin') + '"') <> 0)
-    or (RunClaude('plugin install ' + PluginId + ' --scope user') <> 0);
+  WizardForm.StatusLabel.Caption := CustomMessage('SearchingClaude');
+  IsModMissing := RunApp('--install-mod') <> 0;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

@@ -95,15 +95,16 @@ try {
     $english = @($messages | Where-Object { $_.Groups[1].Value -eq 'en' } | ForEach-Object { $_.Groups[2].Value } | Sort-Object)
     $portuguese = @($messages | Where-Object { $_.Groups[1].Value -eq 'ptbr' } | ForEach-Object { $_.Groups[2].Value } | Sort-Object)
     if ($english.Count -eq 0 -or ($english -join ',') -ne ($portuguese -join ',')) { throw 'Installer custom messages must exist in both languages.' }
-    # The installer registers the mod with any Claude Code it finds: every editor the app recognizes the extension in,
-    # the native installer's copy and npm's, besides PATH and the desktop app's.
-    $installed = Get-Content -LiteralPath (Join-Path $repository 'widget/Infrastructure/Desktop/InstalledApps.cs') -Raw
-    $editors = @([regex]::Matches([regex]::Match($installed, 'EditorFolders = \[(.*?)\]').Groups[1].Value, '"([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
-    $missing = @($editors | Where-Object { $setup -notmatch [regex]::Escape("'\$_\extensions'") })
-    if ($editors.Count -eq 0 -or $missing.Count -gt 0 -or $setup -notmatch [regex]::Escape('\resources\native-binary\claude.exe') -or $setup -notmatch [regex]::Escape('\.local\bin\claude.exe') -or $setup -notmatch [regex]::Escape('\npm\claude.cmd')) {
-        throw "The installer must look for Claude Code where the app does: editors missing ($($missing -join ', ')), or the native, npm or extension copy."
+    # The search for Claude Code lives in the app alone (ClaudeCode.Find scans every drive): the installer asks the app
+    # to register and to remove the mod, and runs no claude of its own.
+    $app = Get-Content -LiteralPath (Join-Path $repository 'widget/App.xaml.cs') -Raw
+    foreach ($argument in '--install-mod', '--remove-mod') {
+        if ($setup -notmatch [regex]::Escape("RunApp('$argument')") -or $app -notmatch [regex]::Escape("`"$argument`"")) {
+            throw "The installer must hand $argument to the app, which must answer it."
+        }
     }
-    Write-Host 'Empacotamento: app/mod isolados, pacotes fora do ZIP, instalador em dois idiomas e o Claude Code procurado em todas as instalações.'
+    if ($setup -match '(?i)claude\.(exe|cmd)|where claude') { throw 'The installer must not look for Claude Code itself: the app does, on every drive.' }
+    Write-Host 'Empacotamento: app/mod isolados, pacotes fora do ZIP, instalador em dois idiomas e a busca pelo Claude Code delegada ao app.'
 }
 finally {
     $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)

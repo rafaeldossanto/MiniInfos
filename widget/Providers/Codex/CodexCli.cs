@@ -26,10 +26,7 @@ public static class CodexCli
             .Select(bundle => Path.Combine(bundle, "Contents", "Resources", "codex")).FirstOrDefault(CommandPath.IsExecutable);
         if (codex is null) return null;
 
-        // A batch file runs through cmd.exe: a process can't start one by itself.
-        var start = Path.GetExtension(codex).Equals(".cmd", StringComparison.OrdinalIgnoreCase)
-            ? new ProcessStartInfo(Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe", $"/d /s /c \"\"{codex}\" {AppServerArguments}\"")
-            : new ProcessStartInfo(codex, AppServerArguments);
+        var start = CommandRunner.StartInfo(codex, AppServerArguments);
         start.Environment["CODEX_HOME"] = CodexPaths.Root;
         start.Environment["PATH"] = CommandPath.Current();
         return start;
