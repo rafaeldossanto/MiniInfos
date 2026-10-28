@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { localizedPath, socialImage } from '../src/localization/model.ts';
+import { sitePages } from '../src/routing.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const english = JSON.parse(readFileSync(join(root, 'src/localization/en.json'), 'utf8'));
@@ -56,13 +57,11 @@ export function englishHtml(source) {
 
 export function generateEnglishPages() {
   mkdirSync(join(root, 'en'), { recursive: true });
-  for (const [source, output] of [
-    ['index.html', 'index.html'],
-    ['privacidade.html', 'privacy.html'],
-    ['termos.html', 'terms.html'],
-    ['404.html', '404.html'],
-  ])
-    writeFileSync(join(root, 'en', output), englishHtml(readFileSync(join(root, source), 'utf8')));
+  for (const page of sitePages)
+    writeFileSync(
+      join(root, page.en.file),
+      englishHtml(readFileSync(join(root, page.pt.file), 'utf8')),
+    );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) generateEnglishPages();

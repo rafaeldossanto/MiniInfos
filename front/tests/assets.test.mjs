@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { siteRoute } from '../src/routing.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sources = [
@@ -23,8 +24,10 @@ test('every local page, font and illustration reference exists in the production
     ];
     for (const reference of references) {
       const relative = (reference[1] ?? reference[2]).split('#')[0].slice(1);
-      const target =
-        relative.startsWith('src/') || relative.endsWith('.html')
+      const page = siteRoute('/' + relative);
+      const target = page
+        ? join(root, page.file)
+        : relative.startsWith('src/')
           ? join(root, relative)
           : join(root, 'public', relative);
       assert.ok(existsSync(target), name + ' references a missing asset: ' + relative);

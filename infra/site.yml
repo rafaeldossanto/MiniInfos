@@ -113,27 +113,55 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
-  # www.<domain> answers with a permanent redirect to the apex. The target is fixed here, never taken
-  # from the request's Host, so the function cannot be used as an open redirect.
+  # Public paths map to HTML objects in the private bucket. Old file URLs redirect permanently.
+  # Keep this table aligned with front/src/routing.ts; the front's tests execute this function.
+  # www also redirects to the fixed apex, never to a host supplied by the request.
   WwwRedirect:
     Type: AWS::CloudFront::Function
     Properties:
       Name: !Sub ${AWS::StackName}-www-redirect
       AutoPublish: true
       FunctionConfig:
-        Comment: Redirects www to the apex domain
+        Comment: Clean page URLs, legacy redirects and www to apex
         Runtime: cloudfront-js-2.0
       FunctionCode: !Sub |
         function handler(event) {
           var request = event.request;
           var host = request.headers.host ? request.headers.host.value : '';
-          if (host === 'www.${DomainName}') {
+          var pages = {
+            '/': '/index.html',
+            '/en/': '/en/index.html',
+            '/politica-de-privacidade': '/privacidade.html',
+            '/en/privacy-policy': '/en/privacy.html',
+            '/termos-de-uso': '/termos.html',
+            '/en/terms-of-use': '/en/terms.html',
+            '/pagina-nao-encontrada': '/404.html',
+            '/en/page-not-found': '/en/404.html',
+          };
+          var canonical;
+          for (var path in pages) {
+            if (request.uri === path || request.uri === path.replace(/\/$/, '') ||
+                request.uri === path + '/' || request.uri === pages[path] ||
+                request.uri === pages[path].replace(/\.html$/, '')) {
+              canonical = path;
+              break;
+            }
+          }
+          if (host === 'www.${DomainName}' || (canonical && canonical !== request.uri)) {
+            var query = [];
+            var parameters = request.querystring || {};
+            for (var key in parameters) {
+              var values = parameters[key].multiValue || [parameters[key]];
+              for (var i = 0; i < values.length; i++) query.push(key + '=' + values[i].value);
+            }
             return {
               statusCode: 301,
               statusDescription: 'Moved Permanently',
-              headers: { location: { value: 'https://${DomainName}' + request.uri } },
+              headers: { location: { value: 'https://${DomainName}' + (canonical || request.uri) +
+                (query.length ? '?' + query.join('&') : '') } },
             };
           }
+          if (canonical) request.uri = pages[canonical];
           return request;
         }
 

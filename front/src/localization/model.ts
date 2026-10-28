@@ -1,3 +1,5 @@
+import { sitePages, siteRoute } from '../routing.ts';
+
 export type Language = 'pt' | 'en';
 export type LanguageChoice = Language | 'auto';
 export const LANGUAGE_STORAGE_KEY = 'miniinfos.site.language';
@@ -24,13 +26,7 @@ export function resolveLanguage(choice: LanguageChoice, languages: readonly stri
   }
   return 'en';
 }
-const pages = [
-  { pt: '/', en: '/en/index.html' },
-  { pt: '/privacidade.html', en: '/en/privacy.html' },
-  { pt: '/termos.html', en: '/en/terms.html' },
-  { pt: '/404.html', en: '/en/404.html' },
-] as const;
 export function localizedPath(path: string, language: Language): string {
-  if (path === '/index.html' || path === '/en/') return language === 'en' ? '/en/index.html' : '/';
-  return pages.find((page) => page.pt === path || page.en === path)?.[language] ?? path;
+  const route = siteRoute(path);
+  return sitePages.find((page) => page.pt === route || page.en === route)?.[language].path ?? path;
 }
