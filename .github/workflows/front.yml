@@ -3,9 +3,9 @@ name: Front
 on:
   push:
     branches: [dev, main]
-    paths: ['front/**', '.github/workflows/front.yml']
+    paths: ['front/**', 'infra/**', '.github/workflows/front.yml']
   pull_request:
-    paths: ['front/**', '.github/workflows/front.yml']
+    paths: ['front/**', 'infra/**', '.github/workflows/front.yml']
 
 permissions:
   contents: read

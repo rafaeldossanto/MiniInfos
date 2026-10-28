@@ -36,9 +36,12 @@ test('a saved explicit language overrides detection and invalid or blocked stora
   );
 });
 test('locale links stay in the selected language and do not change assets or unknown paths', () => {
-  assert.equal(localizedPath('/', 'en'), '/en/index.html');
-  assert.equal(localizedPath('/en/privacy.html', 'pt'), '/privacidade.html');
-  assert.equal(localizedPath('/termos.html', 'en'), '/en/terms.html');
+  assert.equal(localizedPath('/', 'en'), '/en/');
+  assert.equal(localizedPath('/en/privacy.html', 'pt'), '/politica-de-privacidade');
+  assert.equal(localizedPath('/termos.html', 'en'), '/en/terms-of-use');
+  assert.equal(localizedPath('/en/privacy-policy', 'pt'), '/politica-de-privacidade');
+  assert.equal(localizedPath('/termos-de-uso/', 'en'), '/en/terms-of-use');
+  assert.equal(localizedPath('/en', 'en'), '/en/');
   assert.equal(localizedPath('/art/athena-dark.webp', 'en'), '/art/athena-dark.webp');
   assert.equal(localizedPath('/missing', 'pt'), '/missing');
 });
@@ -58,11 +61,11 @@ for (const file of ['index.html', 'privacidade.html', 'termos.html', '404.html']
     assert.ok(translated.includes('value="pt"') && translated.includes('value="en"'));
     if (file === 'index.html') {
       assert.ok(/>Your AI usage,</.test(translated));
-      assert.ok(translated.includes('href="/en/privacy.html"'));
+      assert.ok(translated.includes('href="/en/privacy-policy"'));
       assert.ok(translated.includes('https://miniinfos.com/art/social-preview-en.webp'));
       assert.ok(existsSync(join(root, 'public/art/social-preview-en.webp')));
       assert.ok(translated.includes('hreflang="pt-BR" href="https://miniinfos.com/"'));
-      assert.ok(translated.includes('rel="canonical" href="https://miniinfos.com/en/index.html"'));
+      assert.ok(translated.includes('rel="canonical" href="https://miniinfos.com/en/"'));
     }
   });
 }

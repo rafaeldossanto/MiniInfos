@@ -19,6 +19,7 @@ card-carousel:focus-visible {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 100%;
+  align-items: start;
   transform: translate3d(calc(var(--card-index) * -100% + var(--card-drag, 0px)), 0, 0);
   transition: transform 700ms var(--ease);
 }
@@ -31,17 +32,9 @@ card-carousel:focus-visible {
 .card-carousel-slide {
   min-width: 0;
 }
-.card-carousel-slide usage-widget,
-.card-carousel-slide .usage-widget {
-  height: 100%;
-}
-.card-carousel-slide .usage-widget {
-  display: flex;
-  flex-direction: column;
-}
-.card-carousel-slide .widget-columns {
-  flex: 1;
-  align-content: start;
+/* Keep adjacent cards painted for the slide, without letting them stretch the active card. */
+.card-carousel-slide[inert] {
+  height: 0;
 }
 .card-carousel-navigation {
   display: flex;
