@@ -1,4 +1,4 @@
-namespace MiniInfos.Infrastructure.Windows;
+namespace MiniInfos.Infrastructure.Desktop;
 
 /// <summary>Where <see cref="InstalledApps"/> looks: this PC, or folders and answers a test sets up.</summary>
 /// <param name="Path">A PATH value: folders separated by ';'.</param>

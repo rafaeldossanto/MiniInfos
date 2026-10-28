@@ -91,7 +91,14 @@ public static partial class PackageValidation
         var path = PackageFiles.Resolve(folder, relative);
         if (!File.Exists(path)) throw new PackageException(L.Format("Imagem não encontrada: {0}", relative));
         var dimensions = PackageImages.Dimensions(path);
-        if (decode) PackageImages.Load(path);
+        if (decode)
+        {
+#if AVALONIA
+            using var decoded = PackageImages.Load(path);
+#else
+            PackageImages.Load(path);
+#endif
+        }
         return dimensions;
     }
 }

@@ -1,4 +1,4 @@
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 using MiniInfos.Tests.Support;
 
 namespace MiniInfos.Tests.Infrastructure.Windows;

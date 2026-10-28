@@ -1,4 +1,4 @@
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Codex;
 
@@ -12,6 +12,7 @@ public static class CodexInstall
     public static AppFootprint Footprint { get; } = new()
     {
         StorePackages = ["OpenAI.Codex_2p2nqsd0c76g0"],
+        Bundles = HostPaths.AppBundles("Codex"),
         Commands = ["codex"],
         EditorExtensions = ["openai.chatgpt"],
         Processes = ["codex"],

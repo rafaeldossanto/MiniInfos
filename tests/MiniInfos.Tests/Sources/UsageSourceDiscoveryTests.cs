@@ -112,7 +112,7 @@ public sealed class UsageSourceDiscoveryTests : IDisposable
 
         var found = UsageSourceDiscovery.Find(Context() with { CodexHomes = [root, root.ToUpperInvariant()] });
 
-        Assert.Single(found.CodexRoots, path => path.Equals(root, StringComparison.OrdinalIgnoreCase));
+        Assert.Single(found.CodexRoots, path => MiniInfos.Infrastructure.Storage.SourceFiles.PathComparer.Equals(path, root));
         Assert.DoesNotContain(Path.GetDirectoryName(unrelated)!, found.CodexRoots);
         Assert.DoesNotContain(Path.GetDirectoryName(dependency)!, found.CodexRoots);
     }

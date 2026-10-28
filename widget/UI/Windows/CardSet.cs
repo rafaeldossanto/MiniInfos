@@ -25,6 +25,7 @@ public sealed class CardSet
     private readonly DesktopPet _pet;
     private readonly CatalogBrowser? _catalog;
     private readonly DispatcherTimer _installWatch = new() { Interval = CheckInstallsEvery };
+    private ConversationsWindow? _conversations;
 
     /// <param name="providers">Every provider: each card pages through those whose app is installed.</param>
     public CardSet(IReadOnlyList<IUsageProvider> providers, Preferences preferences, CatalogBrowser? catalog = null)
@@ -55,27 +56,53 @@ public sealed class CardSet
 
     public PetWindow? Pet => _pet.Window;
 
-    public bool IsVisible => All.Any(card => card.IsVisible);
+    /// <summary>The conversations card, made the first time it is asked for.</summary>
+    public ConversationsWindow Conversations => _conversations ??= CreateConversations();
+
+    public bool IsVisible => All.Any(card => card.IsVisible) || _conversations?.IsVisible == true;
 
     private IEnumerable<MainWindow> All => [Main, .. _extras];
 
-    /// <summary>Shows every card without taking the keyboard from the app that just opened.</summary>
+    private bool ConversationsFirst => _preferences.MainCard == MainCardChoice.Conversations;
+
+    /// <summary>
+    /// Shows the main card without taking the keyboard from the app that just opened: the usage cards, or the
+    /// conversations card when it was chosen as main. The other one waits for its button.
+    /// </summary>
     public void ShowWithAssistant()
     {
+        if (ConversationsFirst)
+        {
+            Conversations.ShowWithAssistant(Main);
+            return;
+        }
+
         foreach (var card in All) card.ShowWithAssistant();
     }
 
-    /// <summary>Brings every card back, the main one last so it ends up in front.</summary>
+    /// <summary>Brings the main card back in front: every usage card, the main one last, or the conversations card.</summary>
     public void BringBack()
+    {
+        if (ConversationsFirst) Conversations.BringBack(Main);
+        else BringBackUsage();
+    }
+
+    /// <summary>The usage cards in front, the main one last: the main card's, or the conversations card's button.</summary>
+    public void BringBackUsage()
     {
         foreach (var card in _extras) card.ShowWithAssistant();
         Main.BringBack();
     }
 
+    /// <summary>Hides every card, the conversations card too: they go together when the last app closes.</summary>
     public void Hide()
     {
         foreach (var card in All) card.HideCard();
+        _conversations?.HideCard();
     }
+
+    /// <summary>The button beside the usage card's gear.</summary>
+    public void OpenConversations() => Conversations.BringBack(Main);
 
     public Task ForceRefreshAsync() => Task.WhenAll(All.Select(card => card.ForceRefreshAsync()));
 
@@ -89,7 +116,7 @@ public sealed class CardSet
     /// Opens the settings for a card, shown first since the window stays above it. One window at a
     /// time: asked again for the same card, it comes to the front; for another, it reopens for that one.
     /// </summary>
-    public void OpenSettings(MainWindow card)
+    public void OpenSettings(ISettingsCard card)
     {
         if (Settings is { } open)
         {
@@ -119,7 +146,22 @@ public sealed class CardSet
         Main.UsageRead -= _pet.Observe;
         _pet.Dispose();
         foreach (var card in All) card.PrepareToQuit();
+        _conversations?.PrepareToQuit();
         Application.Current.Shutdown();
+    }
+
+    private ConversationsWindow CreateConversations()
+    {
+        var window = new ConversationsWindow(() => _providers.Shown, _preferences);
+        window.SettingsRequested += () => OpenSettings(window);
+        window.QuitRequested += Quit;
+        window.UsageRequested += BringBackUsage;
+        window.RefreshRequested += async () =>
+        {
+            await CheckInstallsAsync();
+            await ForceRefreshAsync();
+        };
+        return window;
     }
 
     private void OpenPetSettings()
@@ -133,6 +175,7 @@ public sealed class CardSet
         card.NewWindowRequested += OpenNew;
         card.QuitRequested += Quit;
         card.SettingsRequested += OpenSettings;
+        card.ConversationsRequested += OpenConversations;
         card.RefreshForced += () => _ = CheckInstallsAsync();
         card.PagesChanged += LightOpenPages;
         card.IsVisibleChanged += (_, _) => LightOpenPages();
@@ -155,6 +198,7 @@ public sealed class CardSet
     private void ShowInstalledProviders()
     {
         foreach (var card in All) card.ShowProviders(_providers.Shown);
+        _conversations?.ShowProviders();
         LightOpenPages();
     }
 

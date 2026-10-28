@@ -54,7 +54,7 @@ internal static partial class Program
                 "the two font choices are saved independently");
             Check(Math.Abs(card.Width - originalWidth) < 1, "changing fonts preserves the card's scale");
             var smallCaps = combination.Text == FontChoice.Cinzel;
-            Check(Find<TextBlock>(card, "AppTitle").Text == (smallCaps ? "Miniinfos" : "MiniInfos")
+            Check(Find<TextBlock>(Find<CardHeader>(card, "Header"), "AppTitle").Text == (smallCaps ? "Miniinfos" : "MiniInfos")
                 && Find<TextBlock>(Columns(extra)[0], "PageTitle").Text == (smallCaps ? "Codex (Gpt)" : "Codex (GPT)"),
                 smallCaps ? "with Cinzel only the capitals that open a word stay (Miniinfos, Codex (Gpt))" : "other text fonts keep the names as written");
             Render(card, System.IO.Path.Combine(pictures, $"font-{combination.Name}.png"));
@@ -74,7 +74,7 @@ internal static partial class Program
         preferences.Theme = originalTheme;
         var (_, _, single, _) = OpenPageMenu(Find<StackPanel>(card, "PageIcons"), 0);
         Choose(single);
-        Find<Button>(extra, "DismissButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Find<Button>(Find<CardHeader>(extra, "Header"), "DismissButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         ChooseFont("TextFontChoices", FontChoice.Manrope);
         ChooseFont("NumberFontChoices", FontChoice.Manrope);
         Pump(TimeSpan.FromMilliseconds(500));

@@ -5,6 +5,9 @@ namespace MiniInfos.Infrastructure.Storage;
 /// <summary>Small, defensive filesystem operations shared by source discovery and log readers.</summary>
 public static class SourceFiles
 {
+    public static StringComparer PathComparer => OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+    /// <summary>A recorded working directory can come from another OS (copied histories or remote sessions).</summary>
+    public static string LeafName(string path) => path.Replace('\\', '/').TrimEnd('/').Split('/').LastOrDefault() ?? "";
     public static string? Normalize(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return null;
@@ -22,7 +25,7 @@ public static class SourceFiles
     }
 
     public static IReadOnlyList<string> Distinct(IEnumerable<string?> paths) => paths.Select(Normalize)
-        .OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        .OfType<string>().Distinct(PathComparer).ToArray();
 
     public static string[] Directories(string root, string pattern = "*")
     {

@@ -8,7 +8,7 @@ namespace MiniInfos.Settings;
 
 /// <summary>What every card shares, as settings.json keeps it.</summary>
 /// <param name="IsTopmost">The cards stay in front of other windows.</param>
-/// <param name="FollowsApps">The cards show when Claude or Codex opens and hide after the last one closes.</param>
+/// <param name="FollowsApps">The cards show when an AI app opens (Claude, Codex, Kimi) and hide after the last one closes.</param>
 public sealed record AppSettings(
     bool IsTopmost = true,
     bool FollowsApps = true,
@@ -20,7 +20,8 @@ public sealed record AppSettings(
     string? CommunityThemeId = null,
     string? PetId = null,
     IReadOnlyList<string>? RecentThemes = null,
-    LanguageChoice Language = LanguageChoice.Automatic);
+    LanguageChoice Language = LanguageChoice.Automatic,
+    MainCardChoice MainCard = MainCardChoice.Usage);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -43,6 +44,12 @@ public sealed class Preferences : INotifyPropertyChanged
     {
         get => Enum.IsDefined(_settings.Language) ? _settings.Language : LanguageChoice.Automatic;
         set => Change(_settings with { Language = Enum.IsDefined(value) ? value : LanguageChoice.Automatic });
+    }
+
+    public MainCardChoice MainCard
+    {
+        get => Enum.IsDefined(_settings.MainCard) ? _settings.MainCard : MainCardChoice.Usage;
+        set => Change(_settings with { MainCard = Enum.IsDefined(value) ? value : MainCardChoice.Usage });
     }
 
     /// <summary>The app's own settings, in its data folder.</summary>

@@ -17,6 +17,24 @@ public sealed class PreferencesTests
     }
 
     [Fact]
+    public void TheUsageCardIsMainUntilConversationsIsChosenAndAnOlderFileKeepsIt()
+    {
+        using var folder = new TempFolder();
+        var path = folder.File("settings.json");
+        File.WriteAllText(path, """{"Theme":"Classic","IsTopmost":false}""");
+
+        var preferences = new Preferences(path);
+        Assert.Equal(MainCardChoice.Usage, preferences.MainCard);
+
+        preferences.MainCard = MainCardChoice.Conversations;
+        var saved = new Preferences(path);
+        Assert.Equal((MainCardChoice.Conversations, ThemeChoice.Classic, false), (saved.MainCard, saved.Theme, saved.IsTopmost));
+
+        File.WriteAllText(path, """{"MainCard":7}""");
+        Assert.Equal(MainCardChoice.Usage, new Preferences(path).MainCard);
+    }
+
+    [Fact]
     public void AChangeIsSavedAndToldOnce()
     {
         using var folder = new TempFolder();

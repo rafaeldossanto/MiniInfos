@@ -26,7 +26,7 @@ public partial class SettingsWindow : Window
 
     /// <param name="card">The card whose gear opened it: it stays above it, and closes with it.</param>
     /// <param name="quit">Quits the app, every card saved.</param>
-    public SettingsWindow(Preferences preferences, StartupShortcut startup, MainWindow card, Action quit, CatalogBrowser? catalog = null)
+    public SettingsWindow(Preferences preferences, StartupShortcut startup, ISettingsCard card, Action quit, CatalogBrowser? catalog = null)
     {
         _preferences = preferences;
         _startup = startup;
@@ -35,7 +35,7 @@ public partial class SettingsWindow : Window
         Card = card;
         InitializeComponent();
         DataContext = preferences;
-        Owner = card;
+        Owner = card.Window;
         VersionText.Text = L.Format("Versão {0}", AppInfo.Version);
 
         StartupToggle.IsChecked = startup.IsOn;
@@ -47,6 +47,7 @@ public partial class SettingsWindow : Window
         ShowPetSize();
         ShowNumbers();
         ShowLanguage();
+        ShowMainCard();
         L.Current.Changed += OnLanguageChanged;
         preferences.PropertyChanged += OnPreferenceChanged;
         card.ViewChanged += ShowNumbers;
@@ -57,15 +58,15 @@ public partial class SettingsWindow : Window
             card.ViewChanged -= ShowNumbers;
         };
 
-        PlaceOver(card);
+        PlaceOver(card.Window);
     }
 
-    public MainWindow Card { get; }
+    public ISettingsCard Card { get; }
 
     public void ShowPetPage() => Pages.SelectedItem = PetPage;
 
     /// <summary>Centered on the card, kept on screen.</summary>
-    private void PlaceOver(MainWindow card)
+    private void PlaceOver(Window card)
     {
         var right = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
         var bottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;

@@ -10,8 +10,8 @@
     </title>
     <meta
       name="description"
-      content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows. Personalize temas, fontes e mascotes."
-      data-i18n-content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows. Personalize temas, fontes e mascotes."
+      content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows, macOS e Linux. Personalize temas, fontes e mascotes."
+      data-i18n-content="Acompanhe tokens e limites do Claude Code e do Codex em um pequeno widget para Windows, macOS e Linux. Personalize temas, fontes e mascotes."
     />
     <meta property="og:type" content="website" />
     <meta
@@ -65,12 +65,9 @@
           ><a href="#aparencia" data-i18n="Aparência">Aparência</a
           ><a href="#comunidade" data-i18n="Comunidade">Comunidade</a>
         </div>
-        <a
-          class="button button-small nav-download"
-          data-download
-          href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
-          ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg
-          ><span data-i18n="Baixar para Windows">Baixar para Windows</span></a
+        <a class="button button-small nav-download" data-download href="#downloads"
+          ><svg aria-hidden="true"><use href="/icons.svg#file" /></svg
+          ><span data-i18n="Baixar MiniInfos">Baixar MiniInfos</span></a
         >
         <button
           class="menu-toggle"
@@ -149,12 +146,9 @@
         ><a href="#comunidade" data-i18n="Comunidade">Comunidade</a
         ><a href="#duvidas" data-i18n="Dúvidas">Dúvidas</a>
       </nav>
-      <a
-        class="button"
-        data-download
-        href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
-        ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg
-        ><span data-i18n="Baixar para Windows">Baixar para Windows</span></a
+      <a class="button" data-download href="#downloads"
+        ><svg aria-hidden="true"><use href="/icons.svg#file" /></svg
+        ><span data-i18n="Baixar MiniInfos">Baixar MiniInfos</span></a
       >
       <label class="language-picker"
         ><svg aria-hidden="true" viewBox="0 0 24 24">
@@ -205,7 +199,7 @@
         <div class="container hero-inner">
           <div class="hero-copy">
             <p class="eyebrow" data-reveal>
-              Claude Code <span>·</span> Codex <span>·</span> Windows<i></i>
+              Claude Code <span>·</span> Codex <span>·</span> Desktop<i></i>
             </p>
             <h1 id="hero-title" data-reveal>
               <span data-i18n="Seu uso de IA,">Seu uso de IA,</span><br /><span
@@ -216,20 +210,45 @@
             <p
               class="hero-description"
               data-reveal
-              data-i18n="Acompanhe tokens e limites do Claude e do Codex direto na sua área de trabalho."
+              data-i18n="Acompanhe tokens e limites do Claude e do Codex, e os tokens do Gemini e do Kimi, direto na sua área de trabalho."
             >
-              Acompanhe tokens e limites do Claude e do Codex direto na sua área de trabalho.
+              Acompanhe tokens e limites do Claude e do Codex, e os tokens do Gemini e do Kimi,
+              direto na sua área de trabalho.
             </p>
             <div class="hero-action" data-reveal>
-              <a
-                class="button button-primary"
-                data-download
-                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
-                ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg
-                ><span data-i18n="Baixar para Windows">Baixar para Windows</span
+              <a class="button button-primary" data-download href="#downloads"
+                ><svg aria-hidden="true"><use href="/icons.svg#file" /></svg
+                ><span data-i18n="Baixar MiniInfos">Baixar MiniInfos</span
                 ><svg class="button-arrow" aria-hidden="true">
                   <use href="/icons.svg#arrow-up-right" /></svg
               ></a>
+              <nav
+                class="download-shortcuts"
+                aria-label="Escolher sistema operacional"
+                data-i18n-aria-label="Escolher sistema operacional"
+              >
+                <a
+                  href="#download-windows"
+                  data-platform-shortcut="windows"
+                  aria-label="Baixar para Windows"
+                  data-i18n-aria-label="Baixar para Windows"
+                  >Windows</a
+                >
+                <a
+                  href="#download-macos"
+                  data-platform-shortcut="macos"
+                  aria-label="Baixar para macOS"
+                  data-i18n-aria-label="Baixar para macOS"
+                  >macOS</a
+                >
+                <a
+                  href="#download-linux"
+                  data-platform-shortcut="linux"
+                  aria-label="Baixar para Linux"
+                  data-i18n-aria-label="Baixar para Linux"
+                  >Linux</a
+                >
+              </nav>
               <p class="micro-note">
                 <svg aria-hidden="true"><use href="/icons.svg#shield" /></svg
                 ><span data-i18n="Leitura de registros locais. Sem consumir tokens."
@@ -434,18 +453,82 @@
                 Claro
               </button>
             </div>
-            <p class="micro-note" data-i18n="Experimente os temas no cartão ao lado.">
-              Experimente os temas no cartão ao lado.
+            <p class="micro-note" data-i18n="Experimente os temas e deslize entre os cartões.">
+              Experimente os temas e deslize entre os cartões.
             </p>
           </div>
           <div class="personalization-stage" data-reveal>
-            <span class="stage-label" data-i18n="O seu MiniInfos">O seu MiniInfos</span
-            ><usage-widget
-              appearance="classic-dark"
-              compact
-              aria-label="Prévia interativa dos temas do cartão"
-              data-i18n-aria-label="Prévia interativa dos temas do cartão"
-            ></usage-widget>
+            <span class="stage-label" data-i18n="O seu MiniInfos">O seu MiniInfos</span>
+            <card-carousel
+              role="region"
+              aria-label="Cartões de demonstração"
+              data-i18n-aria-label="Cartões de demonstração"
+              tabindex="0"
+            >
+              <div class="card-carousel-viewport">
+                <div class="card-carousel-track">
+                  <div
+                    class="card-carousel-slide"
+                    role="group"
+                    aria-label="Uso"
+                    data-i18n-aria-label="Uso"
+                  >
+                    <usage-widget
+                      appearance="classic-dark"
+                      compact
+                      aria-label="Prévia do cartão de Uso"
+                      data-i18n-aria-label="Prévia do cartão de Uso"
+                    ></usage-widget>
+                  </div>
+                  <div
+                    class="card-carousel-slide"
+                    role="group"
+                    aria-label="Conversas"
+                    data-i18n-aria-label="Conversas"
+                    inert
+                    aria-hidden="true"
+                  >
+                    <usage-widget
+                      card="conversations"
+                      appearance="classic-dark"
+                      compact
+                      aria-label="Prévia do cartão de Conversas"
+                      data-i18n-aria-label="Prévia do cartão de Conversas"
+                    ></usage-widget>
+                  </div>
+                </div>
+              </div>
+              <div class="card-carousel-navigation">
+                <button
+                  type="button"
+                  data-carousel-previous
+                  aria-label="Cartão anterior"
+                  data-i18n-aria-label="Cartão anterior"
+                  disabled
+                >
+                  <span aria-hidden="true">‹</span>
+                </button>
+                <span
+                  data-carousel-label
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  data-i18n="Uso"
+                  >Uso</span
+                >
+                <button
+                  type="button"
+                  data-carousel-next
+                  aria-label="Próximo cartão"
+                  data-i18n-aria-label="Próximo cartão"
+                >
+                  <span aria-hidden="true">›</span>
+                </button>
+              </div>
+              <p class="card-carousel-hint" data-i18n="Arraste para o lado para trocar">
+                Arraste para o lado para trocar
+              </p>
+            </card-carousel>
             <div
               class="pet-sprite"
               role="img"
@@ -517,7 +600,7 @@
           <ol class="steps">
             <li data-reveal>
               <span>01</span>
-              <h3 data-i18n="Instale no Windows.">Instale no Windows.</h3>
+              <h3 data-i18n="Instale no seu computador.">Instale no seu computador.</h3>
               <p
                 data-i18n="Baixe o instalador oficial do MiniInfos pela última versão publicada no GitHub."
               >
@@ -562,10 +645,10 @@
               </svg>
             </summary>
             <p
-              data-i18n="O aplicativo é feito para Windows. O botão de download abre o instalador da última versão publicada no repositório do projeto."
+              data-i18n="Windows, macOS e Linux. Escolha seu sistema e a arquitetura do processador na área de downloads. Os pacotes aparecem quando são publicados no GitHub."
             >
-              O aplicativo é feito para Windows. O botão de download abre o instalador da última
-              versão publicada no repositório do projeto.
+              Windows, macOS e Linux. Escolha seu sistema e a arquitetura do processador na área de
+              downloads. Os pacotes aparecem quando são publicados no GitHub.
             </p>
           </details>
           <details>
@@ -647,7 +730,7 @@
           </details>
         </div>
       </section>
-      <section class="final-section" aria-labelledby="download-title">
+      <section id="downloads" class="final-section" aria-labelledby="download-title">
         <div class="container final-inner" data-reveal>
           <svg class="final-owl" aria-hidden="true"><use href="/icons.svg#owl" /></svg>
           <p class="eyebrow" data-i18n="Uma ferramenta pequena. Um pouco mais de clareza.">
@@ -659,15 +742,73 @@
               >Seus tokens à vista.</span
             >
           </h2>
-          <a
-            class="button button-primary"
-            data-download
-            href="https://github.com/rafaeldossanto/MiniInfos/releases/latest/download/MiniInfos-Setup.exe"
-            ><svg aria-hidden="true"><use href="/icons.svg#windows" /></svg
-            ><span data-i18n="Baixar para Windows">Baixar para Windows</span
-            ><svg class="button-arrow" aria-hidden="true">
-              <use href="/icons.svg#arrow-up-right" /></svg
-          ></a>
+          <div class="download-grid">
+            <article
+              class="download-platform"
+              id="download-windows"
+              data-platform="windows"
+              tabindex="-1"
+            >
+              <h3>Windows</h3>
+              <p data-i18n="Instalador para Windows 10 e 11.">Instalador para Windows 10 e 11.</p>
+              <a
+                data-package="MiniInfos-Setup.exe"
+                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"
+                ><span>Windows · x64</span
+                ><span data-download-state data-i18n="Ver releases">Ver releases</span></a
+              >
+            </article>
+            <article
+              class="download-platform"
+              id="download-macos"
+              data-platform="macos"
+              tabindex="-1"
+            >
+              <h3>macOS</h3>
+              <p data-i18n="Para Mac com chip Apple ou Intel.">Para Mac com chip Apple ou Intel.</p>
+              <a
+                data-package="MiniInfos-macos-arm64.dmg"
+                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"
+                ><span>Apple Silicon</span
+                ><span data-download-state data-i18n="Ver releases">Ver releases</span></a
+              >
+              <a
+                data-package="MiniInfos-macos-x64.dmg"
+                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"
+                ><span>Intel</span
+                ><span data-download-state data-i18n="Ver releases">Ver releases</span></a
+              >
+            </article>
+            <article
+              class="download-platform"
+              id="download-linux"
+              data-platform="linux"
+              tabindex="-1"
+            >
+              <h3>Linux</h3>
+              <p data-i18n="Pacote portátil. X11 ou XWayland.">Pacote portátil. X11 ou XWayland.</p>
+              <a
+                data-package="MiniInfos-linux-x64.tar.gz"
+                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"
+                ><span>x64</span
+                ><span data-download-state data-i18n="Ver releases">Ver releases</span></a
+              >
+              <a
+                data-package="MiniInfos-linux-arm64.tar.gz"
+                href="https://github.com/rafaeldossanto/MiniInfos/releases/latest"
+                ><span>ARM64</span
+                ><span data-download-state data-i18n="Ver releases">Ver releases</span></a
+              >
+            </article>
+          </div>
+          <p
+            class="micro-note"
+            data-download-status
+            role="status"
+            data-i18n="Os downloads são ativados conforme os pacotes são publicados no GitHub."
+          >
+            Os downloads são ativados conforme os pacotes são publicados no GitHub.
+          </p>
           <p class="micro-note" data-i18n="Download direto pelo GitHub. Sem cadastro neste site.">
             Download direto pelo GitHub. Sem cadastro neste site.
           </p>
@@ -693,11 +834,11 @@
       <div class="footer-bottom">
         <p
           class="brand-notice"
-          data-i18n="MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic ou da OpenAI. Claude, Codex e ChatGPT são marcas de seus respectivos titulares e aparecem apenas para identificar compatibilidade."
+          data-i18n="MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic, da OpenAI, do Google ou da Moonshot AI. Claude, Codex, ChatGPT, Gemini e Kimi são marcas de seus respectivos titulares e aparecem apenas para identificar compatibilidade."
         >
-          MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic ou
-          da OpenAI. Claude, Codex e ChatGPT são marcas de seus respectivos titulares e aparecem
-          apenas para identificar compatibilidade.
+          MiniInfos é um projeto independente, sem afiliação, patrocínio ou endosso da Anthropic, da
+          OpenAI, do Google ou da Moonshot AI. Claude, Codex, ChatGPT, Gemini e Kimi são marcas de
+          seus respectivos titulares e aparecem apenas para identificar compatibilidade.
         </p>
         <nav
           class="footer-contact"

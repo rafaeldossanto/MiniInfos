@@ -1,5 +1,5 @@
 using System.IO;
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Claude;
 
@@ -12,12 +12,13 @@ public static class ClaudeInstall
     public static AppFootprint Footprint { get; } = new()
     {
         StorePackages = ["Claude_pzs8sxrjxfjjc"],
+        Bundles = HostPaths.AppBundles("Claude"),
         Commands = ["claude"],
         EditorExtensions = ["anthropic.claude-code"],
         Files =
         [
             // The native installer's copy, on PATH only in terminals opened after it.
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "bin", "claude.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "bin", OperatingSystem.IsWindows() ? "claude.exe" : "claude"),
             // The desktop app as installed before the Store package.
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AnthropicClaude", "claude.exe"),
         ],

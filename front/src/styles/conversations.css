@@ -1,0 +1,108 @@
+.conversation-body {
+  flex: 1;
+  padding: 12px 16px;
+}
+.conversation-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  color: var(--widget-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.conversation-list {
+  min-height: 256px;
+}
+.conversation-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  min-height: 64px;
+  padding: 12px 0;
+  border-top: 1px solid var(--widget-line);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 700ms var(--ease) var(--row-delay),
+    transform 700ms var(--ease) var(--row-delay);
+}
+.widget-ready .conversation-row {
+  opacity: 1;
+  transform: none;
+}
+.conversation-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.conversation-name {
+  min-width: 0;
+}
+.conversation-name strong,
+.conversation-amount strong {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.conversation-name strong,
+.conversation-name > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversation-name > span,
+.conversation-amount > span {
+  display: block;
+  color: var(--widget-muted);
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+.conversation-amount {
+  text-align: right;
+}
+.conversation-amount strong,
+.conversation-amount b {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 400;
+}
+.conversation-summary {
+  color: var(--widget-muted);
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 12px;
+}
+.widget-number-formats {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 4px;
+}
+.widget-number-formats button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 32px;
+  padding: 0;
+  border-radius: 4px;
+  color: var(--widget-muted);
+  background: transparent;
+  font-size: 20px;
+  line-height: 28px;
+  transition:
+    color 700ms var(--ease),
+    background-color 700ms var(--ease);
+}
+.widget-number-formats button[aria-pressed='true'] {
+  color: var(--widget-text);
+}
+.widget-number-formats button:hover {
+  background: var(--widget-line);
+}
+@media (max-width: 600px) {
+  .conversation-body {
+    padding-inline: 12px;
+  }
+}

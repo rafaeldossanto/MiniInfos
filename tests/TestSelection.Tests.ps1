@@ -14,9 +14,15 @@ Assert-Selection ((Get-TestSelection -Paths @('tests/MiniInfos.UiCheck/Support/C
 Assert-Selection (((Get-TestSelection -Paths @('tests/MiniInfos.UiCheck/Providers/Checks.cs')).Suites -join ',') -eq 'Providers') 'Integração visual não selecionou seu próprio cenário'
 
 $theme = Get-TestSelection -Paths @('widget/UI/Themes/Classic.xaml')
+$conversation = Get-TestSelection -Paths @('widget/UI/Windows/ConversationsWindow.xaml', 'widget/UI/Controls/ConversationView.xaml.cs')
+Assert-Selection (($conversation.Domains -join ',') -eq 'Conversations' -and -not $conversation.All) 'Linhas de conversas selecionaram domínios sem vínculo'
+$cardHeader = Get-TestSelection -Paths @('widget/UI/Controls/CardHeader.xaml')
+Assert-Selection (($cardHeader.Domains -join ',') -eq 'Cards,Community,Conversations,Fonts,Themes' -and -not $cardHeader.All) 'Cabeçalho compartilhado perdeu consumidores'
+$cardResize = Get-TestSelection -Paths @('widget/UI/Controls/CardResize.cs')
+Assert-Selection (($cardResize.Domains -join ',') -eq 'Cards,Conversations' -and -not $cardResize.All) 'Redimensionamento perdeu um dos cartões'
 $language = Get-TestSelection -Paths @('widget/Localization/en.json', 'widget/Settings/LanguageChoice.cs')
 Assert-Selection (($language.Domains -join ',') -eq 'Localization' -and ($language.Suites -join ',') -eq 'Localization') 'Idioma selecionou cenários não relacionados'
-Assert-Selection (($theme.Suites -join ',') -eq 'Themes') 'Tema selecionou cenários não relacionados'
+Assert-Selection (($theme.Suites -join ',') -eq 'Conversations,Themes') 'Tema perdeu um dos cartões que o consomem'
 $banners = Get-TestSelection -Paths @('widget/Assets/athena-banner-dark.png', 'widget/Assets/athena-banner-light.png')
 Assert-Selection (($banners.Domains -join ',') -eq 'Themes' -and -not $banners.All) 'Artes de Atena selecionaram outros domínios'
 $community = Get-TestSelection -Paths @('widget/Community/PackageLibrary.cs')
@@ -32,7 +38,9 @@ $packagesOnly = Get-TestSelection -Paths @('marketplace/packages/autor.pet/manif
 Assert-Selection (($packagesOnly.Domains -join ',') -eq 'CatalogTool' -and $packagesOnly.Suites.Count -eq 0) 'Pacotes acionaram os testes do app'
 
 $tail = Get-TestSelection -Paths @('widget/Infrastructure/Storage/JsonlTail.cs')
-Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Storage') 'Leitura compartilhada não incluiu os dois provedores'
+Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Gemini,Kimi,Storage') 'Leitura compartilhada não incluiu todos os provedores'
+$newProviders = Get-TestSelection -Paths @('widget/Providers/Kimi/KimiUsage.cs', 'widget/Providers/Gemini/GeminiResponses.cs')
+Assert-Selection (($newProviders.Domains -join ',') -eq 'Gemini,Kimi' -and -not $newProviders.All) 'Kimi e Gemini selecionaram outros provedores'
 
 $prefs = Get-TestSelection -Paths @('widget/Settings/Preferences.cs')
 Assert-Selection ($prefs.Domains -contains 'Mascot' -and $prefs.Domains -contains 'Themes') 'Preferências não incluíram seus consumidores'
@@ -56,6 +64,10 @@ Assert-Selection ($mixedFront.Filter -eq $pet.Filter -and ($mixedFront.Suites -j
 Assert-Selection ((Get-TestSelection -All).Checks.Count -eq 0) 'Regressão do app acionou o front sem mudanças'
 
 $unknown = Get-TestSelection -Paths @('widget/NewFeature/NewFile.cs')
+$native = Get-TestSelection -Paths @('desktop/UI/CardWindow.cs')
+Assert-Selection (($native.Domains -join ',') -eq 'Desktop' -and -not $native.All -and -not $native.Filter -and $native.Checks.Count -eq 1) 'Interface nativa selecionou testes WPF'
+$nativePackage = Get-TestSelection -Paths @('desktop/packaging/package.py')
+Assert-Selection (($nativePackage.Domains -join ',') -eq 'DesktopPackaging' -and -not $nativePackage.All) 'Empacotamento nativo selecionou domínios sem vínculo'
 Assert-Selection ($unknown.All) 'Código sem regra foi ignorado'
 Assert-Selection ((Get-TestSelection -Paths @('widget/MiniInfos.csproj')).All) 'Projeto não selecionou regressão completa'
 Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponível'
@@ -63,4 +75,4 @@ Assert-Selection ((Get-TestSelection -All).All) 'Execução completa indisponív
 $failed = $false
 try { Get-TestSelection -Domains @('Typo') | Out-Null } catch { $failed = $true }
 Assert-Selection $failed 'Nome de domínio inválido foi ignorado'
-Write-Host 'Seleção de testes: 27 cenários passaram.'
+Write-Host 'Seleção de testes: cenários passaram.'

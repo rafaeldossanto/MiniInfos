@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
 using System.IO;
+#if AVALONIA
+using BitmapSource = Avalonia.Media.Imaging.Bitmap;
+#else
 using System.Windows.Media.Imaging;
+#endif
 using MiniInfos.Mascot;
 
 namespace MiniInfos.Community;

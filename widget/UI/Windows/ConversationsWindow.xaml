@@ -1,0 +1,106 @@
+<Window x:Class="MiniInfos.UI.Windows.ConversationsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:MiniInfos.Localization"
+        xmlns:local="clr-namespace:MiniInfos.UI.Controls"
+        Title="MiniInfos"
+        Width="296"
+        SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        FontFamily="{DynamicResource CardFont}"
+        FontSize="14"
+        Foreground="{DynamicResource PrimaryText}">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="8" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/MiniInfos;component/UI/Styles/CardStyles.xaml" />
+                <ResourceDictionary Source="/MiniInfos;component/UI/Styles/SettingsStyles.xaml" />
+                <ResourceDictionary Source="/MiniInfos;component/UI/Icons/ProviderIcons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Viewbox Stretch="Uniform">
+    <Border x:Name="Card"
+            Width="296"
+            CornerRadius="16"
+            Background="{DynamicResource CardBackground}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1"
+            RenderOptions.ClearTypeHint="Enabled"
+            MouseLeftButtonDown="OnCardPressed">
+        <Border.ContextMenu>
+            <local:CardContextMenu>
+                <MenuItem Header="{loc:Text 'Atualizar agora'}" Click="OnRefresh" />
+                <Separator />
+                <MenuItem x:Name="TopmostItem" Header="{loc:Text 'Sempre por cima'}" IsCheckable="True" />
+                <MenuItem Header="{loc:Text 'Voltar pro canto'}" Click="OnBackToCorner" />
+                <MenuItem Header="{loc:Text 'Tamanho padrão'}" Click="OnDefaultSize" />
+                <MenuItem Header="{loc:Text 'Configurações'}" Click="OnSettings" />
+                <Separator />
+                <MenuItem Header="{loc:Text 'Esconder'}" Click="OnDismiss" />
+                <MenuItem Header="{loc:Text 'Sair do MiniInfos'}" Click="OnQuit" />
+            </local:CardContextMenu>
+        </Border.ContextMenu>
+        <StackPanel>
+            <local:CardHeader x:Name="Header" RefreshRequested="OnRefresh" DismissRequested="OnDismiss" />
+
+            <StackPanel Margin="16,10,16,12">
+                <Grid Margin="0,0,0,7">
+                    <TextBlock Text="{loc:Text 'Respondeu por último primeiro'}" Style="{StaticResource Caption}" FontSize="11" />
+                    <TextBlock Text="Tokens" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Right" />
+                </Grid>
+                <Border Height="1" Background="{DynamicResource Divider}" />
+
+                <!-- The one that answered last on top, as the theme row keeps the last chosen first. -->
+                <ScrollViewer x:Name="ListScroll" Style="{StaticResource SettingsScroll}" MaxHeight="336"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="List" />
+                </ScrollViewer>
+                <TextBlock x:Name="Empty" Text="{loc:Text 'Nenhuma conversa com tokens ainda'}" Style="{StaticResource Caption}"
+                           Margin="0,12,0,4" Visibility="Collapsed" />
+                <TextBlock x:Name="Summary" Style="{StaticResource Caption}" FontSize="11" Margin="0,8,0,0" />
+
+                <Grid Margin="0,12,0,0">
+                    <!-- The gear in its place; beside it, the usage card. -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button x:Name="SettingsButton" Style="{StaticResource HeaderButton}" FontSize="12" Click="OnSettings" ToolTip="{loc:Text 'Configurações'}">
+                            <TextBlock Text="&#xE713;" />
+                        </Button>
+                        <Button x:Name="UsageButton" Style="{StaticResource HeaderButton}" FontSize="12" Margin="2,0,0,0"
+                                Click="OnUsage" ToolTip="{loc:Text 'Uso: os limites e os tokens de cada IA'}">
+                            <TextBlock Text="&#xEC4A;" />
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Each provider's mark filters the list to it; pressed again, every provider shows. -->
+                    <StackPanel x:Name="Filters" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <RadioButton x:Name="DetailedView" Style="{StaticResource ViewSwitch}" Checked="OnViewChanged"
+                                     ToolTip="{loc:Text 'Detalhado: números inteiros, subindo enquanto os tokens são gastos'}">
+                            <Path Data="M0,1 H12 M0,5.5 H12 M0,10 H12" StrokeThickness="1.4"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                        </RadioButton>
+                        <RadioButton x:Name="CompactView" Style="{StaticResource ViewSwitch}" Checked="OnViewChanged"
+                                     Margin="2,0,0,0" ToolTip="{loc:Text 'Resumido: 1,4B, 109M'}">
+                            <Rectangle Width="11" Height="11" RadiusX="2" RadiusY="2" StrokeThickness="1.4"
+                                       Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                        </RadioButton>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+    </Viewbox>
+</Window>

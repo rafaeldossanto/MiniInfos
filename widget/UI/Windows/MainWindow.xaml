@@ -29,54 +29,6 @@
             <ResourceDictionary Source="/MiniInfos;component/UI/Styles/CardStyles.xaml" />
             <ResourceDictionary Source="/MiniInfos;component/UI/Icons/ProviderIcons.xaml" />
         </ResourceDictionary.MergedDictionaries>
-
-        <!-- The two view buttons, as in Explorer's corner: the chosen one stays lit. -->
-        <Style x:Key="ViewSwitch" TargetType="RadioButton">
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="GroupName" Value="View" />
-            <Setter Property="Foreground" Value="{DynamicResource DimText}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Face" Width="22" Height="18" CornerRadius="4" Background="Transparent"
-                                BorderThickness="1" BorderBrush="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource Hover}" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource Selected}" />
-                                <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource SelectedBorder}" />
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PageArrow" TargetType="Button">
-            <Setter Property="Width" Value="18" />
-            <Setter Property="Height" Value="18" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{DynamicResource DimText}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -108,129 +60,24 @@
             </Border.ContextMenu>
 
             <StackPanel>
-                <Grid x:Name="HeaderRegion" Height="{DynamicResource HeaderHeight}">
-                    <!-- Only the artwork is clipped to the card's rounded top: text under a clip loses ClearType
-                         and turns grainy at small sizes, so nothing written sits inside this one. -->
-                    <Grid x:Name="HeaderArt" IsHitTestVisible="False"
-                          Tag="{DynamicResource HeaderArtworkInset}">
-                    <Grid.Style>
-                        <Style TargetType="Grid">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
-                                    <Setter Property="Margin" Value="12,44,12,12" />
-                                    <Setter Property="Background" Value="#181818" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Grid.Style>
-                    <!-- A quiet extension fills wide cards while the complete portrait remains centered. -->
-                    <Rectangle IsHitTestVisible="False" Visibility="{DynamicResource HeaderArtworkVisibility}">
-                        <Rectangle.Fill>
-                            <ImageBrush ImageSource="{DynamicResource HeaderArtwork}" Stretch="UniformToFill" />
-                        </Rectangle.Fill>
-                        <Rectangle.Style>
-                            <Style TargetType="Rectangle">
-                                <Setter Property="Opacity" Value="0" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tag, ElementName=HeaderArt}" Value="True">
-                                        <Setter Property="Opacity" Value="0.18" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Rectangle.Style>
-                    </Rectangle>
-                    <!-- One centered illustration for the whole card, including split view. -->
-                    <Image x:Name="AthenaArtwork" Source="{DynamicResource HeaderArtwork}"
-                           Visibility="{DynamicResource HeaderArtworkVisibility}"
-                           Stretch="Uniform"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                        <Image.Style>
-                            <Style TargetType="Image">
-                                <Setter Property="Width" Value="360" />
-                                <Setter Property="Height" Value="120" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tag, ElementName=HeaderArt}" Value="True">
-                                        <Setter Property="Width" Value="Auto" />
-                                        <Setter Property="Height" Value="Auto" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Image.Style>
-                        <Image.OpacityMask>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Offset="0" Color="#00FFFFFF" />
-                                <GradientStop Offset="0.12" Color="White" />
-                                <GradientStop Offset="0.88" Color="White" />
-                                <GradientStop Offset="1" Color="#00FFFFFF" />
-                            </LinearGradientBrush>
-                        </Image.OpacityMask>
-                    </Image>
-                    <Border BorderBrush="{DynamicResource Divider}" BorderThickness="1" CornerRadius="8">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tag, ElementName=HeaderArt}" Value="True">
-                                        <Setter Property="Visibility" Value="{DynamicResource HeaderArtworkVisibility}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
-                    <!-- Existing community overlays keep a feathered scrim behind their controls. -->
-                    <Ellipse Width="120" Height="80" HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-12,-12,0" IsHitTestVisible="False">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Setter Property="Visibility" Value="{DynamicResource HeaderArtworkVisibility}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tag, ElementName=HeaderArt}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                        <Ellipse.Fill>
-                            <RadialGradientBrush>
-                                <GradientStop Offset="0" Color="#D91F1F1F" />
-                                <GradientStop Offset="0.45" Color="#801F1F1F" />
-                                <GradientStop Offset="1" Color="#001F1F1F" />
-                            </RadialGradientBrush>
-                        </Ellipse.Fill>
-                    </Ellipse>
-                    </Grid>
-                    <!-- How fresh the limits are sits beside each page's title, one page or two. -->
-                    <Grid Margin="16,12" VerticalAlignment="Top">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="AppTitle" FontWeight="SemiBold" FontSize="{DynamicResource HeaderTitleSize}" VerticalAlignment="Center" />
-                    <Button x:Name="RefreshButton" Grid.Column="1" Style="{StaticResource HeaderButton}" Click="OnRefresh">
-                        <TextBlock Text="&#xE72C;" RenderTransformOrigin="0.5,0.5">
-                            <TextBlock.RenderTransform>
-                                <RotateTransform x:Name="RefreshSpin" />
-                            </TextBlock.RenderTransform>
-                        </TextBlock>
-                    </Button>
-                    <Button x:Name="DismissButton" Grid.Column="2" Style="{StaticResource HeaderButton}" Click="OnDismiss">
-                        <TextBlock Text="&#xE711;" />
-                    </Button>
-                    </Grid>
-                    <Border Height="1" Background="{DynamicResource Divider}" VerticalAlignment="Bottom" />
-                </Grid>
+                <local:CardHeader x:Name="Header" RefreshRequested="OnRefresh" DismissRequested="OnDismiss" />
 
                 <StackPanel Margin="16,12,16,12">
                     <!-- One PageView per page on screen: one, or two side by side with a line between. -->
                     <StackPanel x:Name="Columns" Orientation="Horizontal" />
 
                     <Grid Margin="0,12,0,0">
-                        <!-- The gear, under the name: the settings window. -->
-                        <Button x:Name="SettingsButton" Style="{StaticResource HeaderButton}" FontSize="12"
-                                HorizontalAlignment="Left" Click="OnSettings" ToolTip="{loc:Text 'Configurações'}">
-                            <TextBlock Text="&#xE713;" />
-                        </Button>
+                        <!-- The gear, under the name: the settings window; beside it, the conversations card. -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button x:Name="SettingsButton" Style="{StaticResource HeaderButton}" FontSize="12"
+                                    Click="OnSettings" ToolTip="{loc:Text 'Configurações'}">
+                                <TextBlock Text="&#xE713;" />
+                            </Button>
+                            <Button x:Name="ConversationsButton" Style="{StaticResource HeaderButton}" FontSize="12" Margin="2,0,0,0"
+                                    Click="OnConversations" ToolTip="{loc:Text 'Conversas: os tokens de cada chat'}">
+                                <TextBlock Text="&#xE8F2;" />
+                            </Button>
+                        </StackPanel>
 
                         <!-- Monochrome provider marks, centered in the card; the selected page's is lit. -->
                         <StackPanel x:Name="Pager" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">

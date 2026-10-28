@@ -1,11 +1,11 @@
-name: Publicar instalador
+name: Preparar release do aplicativo
 on:
   push:
     tags: ['v*']
 permissions:
   contents: write
 jobs:
-  release:
+  windows:
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -33,15 +33,104 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Não foi possível instalar o Inno Setup.' }
           }
           ./installer/build.ps1 -InnoCompiler $compiler
-      # A draft is invisible to the update banner: it is reviewed, then published with
-      # gh release edit <tag> --draft=false --latest
-      - name: Criar a release como rascunho, somente com o instalador
+      - name: Checksum
         shell: pwsh
+        run: |
+          $file = 'installer/dist/MiniInfos-Setup.exe'
+          ((Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant() + '  MiniInfos-Setup.exe') | Set-Content "$file.sha256" -Encoding ascii
+      - uses: actions/upload-artifact@v7
+        with:
+          name: app-windows
+          path: installer/dist/*
+          if-no-files-found: error
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, runtime: linux-x64 }
+          - { os: ubuntu-24.04-arm, runtime: linux-arm64 }
+          - { os: macos-15-intel, runtime: osx-x64 }
+          - { os: macos-15, runtime: osx-arm64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/marketplace/packages/
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y libx11-6 libice6 libsm6 libfontconfig1 xvfb
+      - name: Verify version and packaging
+        shell: bash
+        run: |
+          python -c 'import os,xml.etree.ElementTree as E; assert os.environ["GITHUB_REF_NAME"] == "v" + E.parse("widget/MiniInfos.csproj").findtext("PropertyGroup/Version")'
+          python -m unittest discover -s desktop/packaging/tests -v
+          dotnet test tests/MiniInfos.Desktop.Tests -c Release --logger 'console;verbosity=minimal'
+      - name: Configure Apple signing (when credentials exist)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: python desktop/packaging/apple_credentials.py
+      - name: Build native package
+        run: python desktop/packaging/package.py --runtime ${{ matrix.runtime }}
+      - name: Run the packaged executable
+        shell: bash
+        run: |
+          export MINIINFOS_DATA_DIR="$RUNNER_TEMP/miniinfos-package-smoke"
+          if [ "$RUNNER_OS" = Linux ]; then
+            mkdir "$RUNNER_TEMP/unpacked"
+            tar -xzf desktop/dist/MiniInfos-*.tar.gz -C "$RUNNER_TEMP/unpacked"
+            "$RUNNER_TEMP/unpacked/MiniInfos/miniinfos" --diagnostics
+            xvfb-run -a "$RUNNER_TEMP/unpacked/MiniInfos/miniinfos" --smoke-ui
+          else
+            hdiutil attach desktop/dist/MiniInfos-*.dmg -mountpoint "$RUNNER_TEMP/miniinfos-dmg"
+            "$RUNNER_TEMP/miniinfos-dmg/MiniInfos.app/Contents/MacOS/MiniInfos.Desktop" --diagnostics
+            "$RUNNER_TEMP/miniinfos-dmg/MiniInfos.app/Contents/MacOS/MiniInfos.Desktop" --smoke-ui
+            hdiutil detach "$RUNNER_TEMP/miniinfos-dmg"
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: app-${{ matrix.runtime }}
+          path: |
+            desktop/dist/*.tar.gz
+            desktop/dist/*.dmg
+            desktop/dist/*.sha256
+          if-no-files-found: error
+      - name: Remove temporary signing keychain
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/miniinfos-signing.keychain-db" ]; then security delete-keychain "$RUNNER_TEMP/miniinfos-signing.keychain-db"; fi
+  release:
+    needs: [windows, native]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: app-*
+          path: release-assets
+          merge-multiple: true
+      # Still a draft; neither the updater nor the site offers unpublished packages.
+      - name: Validate all assets and create the draft
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create $env:GITHUB_REF_NAME installer/dist/MiniInfos-Setup.exe --draft --title "MiniInfos $env:GITHUB_REF_NAME" --generate-notes
-          if ($LASTEXITCODE -ne 0) { throw 'Não foi possível criar o rascunho da release.' }
-          $assets = @(gh release view $env:GITHUB_REF_NAME --json assets --jq '.assets[].name')
-          if ($LASTEXITCODE -ne 0 -or $assets.Count -ne 1 -or $assets[0] -ne 'MiniInfos-Setup.exe') { throw 'A release do app precisa conter somente MiniInfos-Setup.exe.' }
+          python desktop/packaging/check_release.py release-assets
+          gh release create "$GITHUB_REF_NAME" release-assets/* --draft --title "MiniInfos $GITHUB_REF_NAME" --generate-notes

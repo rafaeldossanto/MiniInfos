@@ -17,6 +17,12 @@ public interface IUsageProvider
     /// <param name="force">The person asked for fresh numbers (↻): wait for those reads instead of using the last ones.</param>
     Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force);
 
+    /// <summary>
+    /// Its chats or sessions with the tokens of each, as the last <see cref="ReadAsync"/> left its ledger: cheap,
+    /// so the conversations card can ask often. None for a provider that keeps no conversation apart.
+    /// </summary>
+    IReadOnlyList<Conversation> Conversations() => [];
+
     /// <summary>Writes what it keeps before the app quits.</summary>
     void Flush();
 }

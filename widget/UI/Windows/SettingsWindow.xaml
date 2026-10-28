@@ -48,11 +48,22 @@
                                 </StackPanel>
                             </Border>
                         </HeaderedContentControl>
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Cartão principal'}"
+                                                Tag="{loc:Text 'O que abre junto com as IAs, com o Windows e pela bandeja. O outro abre pelo botão ao lado da engrenagem.'}">
+                            <Border Style="{StaticResource SegmentGroup}">
+                                <StackPanel x:Name="MainCardChoices" Orientation="Horizontal">
+                                    <RadioButton Tag="Usage" GroupName="MainCard" Style="{StaticResource Segment}"
+                                                 Content="{loc:Text 'Uso'}" Checked="OnMainCardChosen" />
+                                    <RadioButton Tag="Conversations" GroupName="MainCard" Style="{StaticResource Segment}"
+                                                 Content="{loc:Text 'Conversas'}" Checked="OnMainCardChosen" />
+                                </StackPanel>
+                            </Border>
+                        </HeaderedContentControl>
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Sempre por cima'}"
                                                 Tag="{loc:Text 'O cartão fica na frente das outras janelas.'}">
                             <CheckBox x:Name="TopmostToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsTopmost}" />
                         </HeaderedContentControl>
-                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Acompanhar o Claude e o Codex'}"
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Acompanhar os apps de IA'}"
                                                 Tag="{loc:Text 'Aparece quando um deles abre e some quando o último fecha.'}">
                             <CheckBox x:Name="FollowToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding FollowsApps}" />
                         </HeaderedContentControl>
@@ -129,8 +140,8 @@
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Lugar e tamanho'}"
                                                 Tag="{loc:Text 'Volta pro canto ou pro tamanho original.'}">
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Pro canto'}" Click="OnBackToCorner" />
-                                <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Tamanho padrão'}" Margin="6,0,0,0"
+                                <Button x:Name="CornerButton" Style="{StaticResource SettingsButton}" Content="{loc:Text 'Pro canto'}" Click="OnBackToCorner" />
+                                <Button x:Name="DefaultSizeButton" Style="{StaticResource SettingsButton}" Content="{loc:Text 'Tamanho padrão'}" Margin="6,0,0,0"
                                         Click="OnDefaultSize" />
                             </StackPanel>
                         </HeaderedContentControl>
@@ -251,7 +262,7 @@
                     <StackPanel>
                         <TextBlock Text="MiniInfos" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock x:Name="VersionText" Style="{StaticResource Caption}" Margin="0,2,0,0" />
-                        <TextBlock Text="{loc:Text 'Limites e tokens do Claude e do Codex, num cartão sempre à mão.'}" TextWrapping="Wrap"
+                        <TextBlock Text="{loc:Text 'Limites e tokens das suas IAs, num cartão sempre à mão.'}" TextWrapping="Wrap"
                                    Margin="0,12,0,20" />
                         <Button Style="{StaticResource SettingsButton}" Content="{loc:Text 'Sair do MiniInfos'}" HorizontalAlignment="Left"
                                 Click="OnQuit" />

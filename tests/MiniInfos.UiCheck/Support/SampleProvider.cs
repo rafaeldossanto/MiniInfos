@@ -12,6 +12,17 @@ internal sealed class SampleProvider(string id, string title) : IUsageProvider
     public bool IsInUse() => true;
     public void Flush() { }
 
+    /// <summary>Two chats each, Claude's latest answering first: one now, one yesterday.</summary>
+    public IReadOnlyList<Conversation> Conversations()
+    {
+        var now = DateTimeOffset.Now.ToUnixTimeSeconds() - (id == "claude" ? 0 : 600);
+        return
+        [
+            new(id, id + "-now", "Revisão do cartão", "Projeto de teste", now, new TokenCount(1_200_000, 300_000, 4_000_000, 50_000), 42),
+            new(id, id + "-old", "Conversa de ontem", null, now - 86_400, new TokenCount(900_000, 100_000, 0, 0)),
+        ];
+    }
+
     public Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force)
     {
         var tokens = new TokenCount(1_000_000, 250_000, 500_000, 0);

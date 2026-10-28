@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows.Threading;
 using System.Windows;
 using MiniInfos.Infrastructure.Windows;
 using MiniInfos.Infrastructure;
 using MiniInfos.Providers;
+using MiniInfos.Providers.Claude;
 using MiniInfos.Settings;
 using MiniInfos.UI.Themes;
 using MiniInfos.UI.Windows;
@@ -19,6 +21,10 @@ public partial class App : Application
     /// <summary>Ends the one that runs, as its "Sair" does: what the installer asks before it replaces the files.</summary>
     private const string QuitArgument = "--quit";
 
+    /// <summary>The installer's: registers the Claude Code mod with whichever Claude Code the search finds, or takes it out.</summary>
+    private const string InstallModArgument = "--install-mod";
+    private const string RemoveModArgument = "--remove-mod";
+
     private static readonly TimeSpan WatchAppsEvery = TimeSpan.FromSeconds(3);
 
     private readonly DispatcherTimer _appWatch = new() { Interval = WatchAppsEvery };
@@ -29,9 +35,23 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // The startup shortcut's flag: hidden until Claude or Codex opens.
+        // The startup shortcut's flag: hidden until an AI app opens.
         var startsHiddenWithApps = e.Args.Contains(StartupShortcut.Arguments);
         var quits = e.Args.Contains(QuitArgument);
+
+        // A job for the installer, done without a window while the card itself may be closed: the exit code answers it.
+        if (e.Args.Contains(InstallModArgument))
+        {
+            Shutdown(ClaudeMod.Default.Install(Path.Combine(AppContext.BaseDirectory, "claude-plugin")) ? 0 : 1);
+            return;
+        }
+
+        if (e.Args.Contains(RemoveModArgument))
+        {
+            ClaudeMod.Default.Remove();
+            Shutdown();
+            return;
+        }
 
         _singleInstance = new Mutex(initiallyOwned: true, SingleInstanceName, out var isFirstInstance);
         if (!isFirstInstance || quits)

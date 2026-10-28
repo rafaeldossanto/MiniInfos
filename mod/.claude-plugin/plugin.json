@@ -1,6 +1,6 @@
 {
   "name": "miniinfos",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Publica os limites do plano (5h e semanal), o contexto e o custo de cada chat em ~/.claude/miniinfos para o app MiniInfos mostrar",
   "author": { "name": "MiniInfos" }
 }

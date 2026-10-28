@@ -53,7 +53,7 @@ public static class UsageSourceDiscovery
         foreach (var root in SourceFiles.Distinct(direct)) queue.Enqueue((root, 5));
         queue.Enqueue((context.UserProfile, 4));
         foreach (var root in SourceFiles.Distinct(context.SearchRoots)) queue.Enqueue((root, 3));
-        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var visited = new HashSet<string>(SourceFiles.PathComparer);
         var clock = Stopwatch.StartNew();
         while (queue.Count > 0 && visited.Count < 10_000 && clock.Elapsed < TimeSpan.FromSeconds(4))
         {
@@ -72,6 +72,10 @@ public static class UsageSourceDiscovery
             foreach (var child in SourceFiles.Directories(path))
             {
                 if (Skip.Contains(Path.GetFileName(child))) continue;
+                // Do not provoke macOS privacy prompts by searching protected personal folders.
+                // Custom roots still arrive through environment, the mod registration and remembered sources.
+                if (OperatingSystem.IsMacOS() && path == context.UserProfile
+                    && Path.GetFileName(child) is "Desktop" or "Documents" or "Downloads" or "Pictures" or "Movies" or "Music" or "Library") continue;
                 try { if ((File.GetAttributes(child) & FileAttributes.ReparsePoint) != 0) continue; }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException) { continue; }
                 queue.Enqueue((child, depth - 1));

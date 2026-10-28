@@ -43,10 +43,10 @@ Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [CustomMessages]
-en.AppDescription=Claude and Codex tokens and limits
-ptbr.AppDescription=Limites e tokens do Claude e do Codex
-en.WithApps=Open with Claude or Codex (start hidden with Windows)
-ptbr.WithApps=Abrir junto com Claude ou Codex (inicia com o Windows escondido)
+en.AppDescription=Your AI tokens and limits
+ptbr.AppDescription=Limites e tokens das suas IAs
+en.WithApps=Open with your AI apps (start hidden with Windows)
+ptbr.WithApps=Abrir junto com seus apps de IA (inicia com o Windows escondido)
 en.ClaudeMod=Install the Claude Code chat mod (five-hour and weekly limits, current chat and the /miniinfos command)
 ptbr.ClaudeMod=Instalar o mod nos chats do Claude Code (limites de 5h e semanal, chat atual e o comando /miniinfos)
 en.OpenNow=Open MiniInfos now
@@ -57,6 +57,8 @@ en.ModMissingReason=Claude Code was not found on this computer, or it rejected t
 ptbr.ModMissingReason=Não achei o Claude Code neste computador, ou ele recusou o mod. Os tokens aparecem normalmente; os limites de 5h e semanal e o chat atual só aparecem com o mod.
 en.ModMissingAction=Install Claude Code (the desktop or terminal app) and run this installer again.
 ptbr.ModMissingAction=Instale o Claude Code (o app desktop ou o do terminal) e rode este instalador de novo.
+en.SearchingClaude=Looking for Claude Code on this computer to install the mod...
+ptbr.SearchingClaude=Procurando o Claude Code neste computador para instalar o mod...
 
 [Tasks]
 Name: "withclaude"; Description: "{cm:WithApps}"
@@ -86,10 +88,6 @@ Type: filesandordirs; Name: "{localappdata}\MiniInfos"
 Type: filesandordirs; Name: "{%USERPROFILE}\.claude\miniinfos"
 
 [Code]
-const
-  MarketplaceName = 'miniinfos';
-  PluginId = 'miniinfos@miniinfos';
-
 var
   IsModMissing: Boolean;
 
@@ -114,97 +112,27 @@ begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM MiniInfos.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
 end;
 
+// Runs MiniInfos for one of the installer's jobs (see App.xaml.cs), waiting for its answer. -1 when it did not run.
+function RunApp(Argument: String): Integer;
 var
-  BundledPath: String;
-  BundledHigh, BundledLow: Cardinal;
-
-// Keeps the newest <Base>\<version>\<build>\claude.exe seen so far in BundledPath.
-procedure FindNewestClaudeUnder(Base: String);
-var
-  Candidate: String;
-  Version, Build: TFindRec;
-begin
-  if not FindFirst(Base + '\*', Version) then exit;
-  try
-    repeat
-      if (Version.Name <> '.') and (Version.Name <> '..') and (Version.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) then
-        if FindFirst(Base + '\' + Version.Name + '\*', Build) then
-        try
-          repeat
-            Candidate := Base + '\' + Version.Name + '\' + Build.Name + '\claude.exe';
-            if (Build.Name <> '.') and (Build.Name <> '..') and FileExists(Candidate) then
-              if (BundledPath = '') or (Build.LastWriteTime.dwHighDateTime > BundledHigh)
-                or ((Build.LastWriteTime.dwHighDateTime = BundledHigh) and (Build.LastWriteTime.dwLowDateTime > BundledLow)) then
-              begin
-                BundledPath := Candidate;
-                BundledHigh := Build.LastWriteTime.dwHighDateTime;
-                BundledLow := Build.LastWriteTime.dwLowDateTime;
-              end;
-          until not FindNext(Build);
-        finally
-          FindClose(Build);
-        end;
-    until not FindNext(Version);
-  finally
-    FindClose(Version);
-  end;
-end;
-
-// The Claude Code the desktop app carries, newest first. The Store app keeps it in its package's
-// own folder (Packages\Claude_*\LocalCache\Roaming\Claude), the other installer in %APPDATA%\Claude.
-function BundledClaude(): String;
-var
-  Package: TFindRec;
-  Packages: String;
-begin
-  BundledPath := '';
-  FindNewestClaudeUnder(ExpandConstant('{userappdata}\Claude\claude-code'));
-
-  Packages := ExpandConstant('{localappdata}\Packages');
-  if FindFirst(Packages + '\Claude_*', Package) then
-  try
-    repeat
-      FindNewestClaudeUnder(Packages + '\' + Package.Name + '\LocalCache\Roaming\Claude\claude-code');
-    until not FindNext(Package);
-  finally
-    FindClose(Package);
-  end;
-
-  Result := BundledPath;
-end;
-
-// Runs a `claude` command: the one on PATH (a terminal install), else the desktop app's. -1 when none ran.
-function RunClaude(Arguments: String): Integer;
-var
-  Bundled: String;
   Code: Integer;
 begin
   Result := -1;
-  if Exec(ExpandConstant('{cmd}'), '/c where claude', '', SW_HIDE, ewWaitUntilTerminated, Code) and (Code = 0) then
-  begin
-    if Exec(ExpandConstant('{cmd}'), '/c claude ' + Arguments, '', SW_HIDE, ewWaitUntilTerminated, Code) then
-      Result := Code;
-    exit;
-  end;
-
-  Bundled := BundledClaude();
-  if (Bundled <> '') and Exec(Bundled, Arguments, '', SW_HIDE, ewWaitUntilTerminated, Code) then
+  if Exec(ExpandConstant('{app}\MiniInfos.exe'), Argument, '', SW_HIDE, ewWaitUntilTerminated, Code) then
     Result := Code;
 end;
 
 procedure RemoveMod();
 begin
-  RunClaude('plugin uninstall ' + PluginId + ' --scope user');
-  RunClaude('plugin marketplace remove ' + MarketplaceName);
+  RunApp('--remove-mod');
 end;
 
-// The mod goes in the user's Claude Code settings, which every install of Claude Code on this account reads.
+// The mod goes in the user's Claude Code settings, which every install of Claude Code on this account reads. The app
+// looks for one on PATH, then through every file of every local drive, and registers it with the first that takes it.
 procedure InstallMod();
 begin
-  RemoveMod();
-  IsModMissing :=
-    (RunClaude('plugin marketplace add "' + ExpandConstant('{app}\claude-plugin') + '"') <> 0)
-    or (RunClaude('plugin install ' + PluginId + ' --scope user') <> 0);
+  WizardForm.StatusLabel.Caption := CustomMessage('SearchingClaude');
+  IsModMissing := RunApp('--install-mod') <> 0;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

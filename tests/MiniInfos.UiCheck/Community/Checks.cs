@@ -57,7 +57,7 @@ internal static partial class Program
             // Installed without choosing it, the theme waits in the library rather than in the row.
             UseInLibrary(settings, exportedTheme.Id);
             Pump(TimeSpan.FromMilliseconds(350));
-            Check(Find<Image>(cards.Main, "AthenaArtwork").Visibility == Visibility.Visible && preferences.CommunityThemeId == exportedTheme.Id,
+            Check(Find<Image>(Find<CardHeader>(cards.Main, "Header"), "AthenaArtwork").Visibility == Visibility.Visible && preferences.CommunityThemeId == exportedTheme.Id,
                 "a community theme can supply the illustrated header");
             UseInLibrary(settings, ThemeHistory.Key(ThemeChoice.Simple));
             Check(preferences.CommunityThemeId is null, "a built-in theme cleanly replaces the community selection");

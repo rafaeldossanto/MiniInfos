@@ -1,6 +1,6 @@
 using System.IO;
 using MiniInfos.Infrastructure.Storage;
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Sources;
 
@@ -8,7 +8,7 @@ namespace MiniInfos.Sources;
 public sealed class UsageSources
 {
     public static UsageSources Shared { get; } = new();
-    /// <summary>Install folders rarely move, and a search walks up to thousands of folders: once in a while is enough (↻ searches at once).</summary>
+    /// <summary>Install folders rarely move, and a search walks up to thousands of folders: once in a while is enough (â†» searches at once).</summary>
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromMinutes(10);
     private readonly Lock _gate = new();
     private readonly JsonFile<UsageSourceSnapshot> _cache = new(Path.Combine(AppPaths.Data, "usage-sources.json"));
@@ -67,7 +67,7 @@ public sealed class UsageSources
     private static SourceSearchContext CaptureContext()
     {
         var roots = new List<string>();
-        foreach (var drive in DriveInfo.GetDrives())
+        foreach (var drive in OperatingSystem.IsWindows() ? DriveInfo.GetDrives() : [])
         {
             try { if (drive.IsReady && drive.DriveType is DriveType.Fixed or DriveType.Removable) roots.Add(drive.RootDirectory.FullName); }
             catch (IOException) { }
@@ -78,13 +78,13 @@ public sealed class UsageSources
             .SelectMany(path => Ancestors(Path.GetDirectoryName(path))).ToArray();
         return new(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            HostPaths.Data,
+            HostPaths.Configuration,
             EnvironmentHomes("CLAUDE_CONFIG_DIR"), EnvironmentHomes("CODEX_HOME"), roots, apps);
     }
 
     public static IReadOnlyList<string> EnvironmentHomes(string variable) => SourceFiles.Distinct(
-        new[] { EnvironmentVariableTarget.Process, EnvironmentVariableTarget.User, EnvironmentVariableTarget.Machine }
+        (OperatingSystem.IsWindows() ? new[] { EnvironmentVariableTarget.Process, EnvironmentVariableTarget.User, EnvironmentVariableTarget.Machine } : [EnvironmentVariableTarget.Process])
             .Select(target => Environment.GetEnvironmentVariable(variable, target)));
 
     private static IEnumerable<string> Ancestors(string? path)

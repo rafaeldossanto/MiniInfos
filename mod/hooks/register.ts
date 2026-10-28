@@ -37,7 +37,7 @@ async function locateFeed($: EngineInterface) {
 
 // A chat can use a private CLAUDE_CONFIG_DIR that the widget did not inherit. Publish the location only.
 async function registerSource($: EngineInterface, root: string) {
-  const local = await $.env.get('LOCALAPPDATA')
+  const local = await dataHome($)
   if (local === undefined) return
   let hash = 0xcbf29ce484222325n
   for (const char of root) hash = BigInt.asUintN(64, (hash ^ BigInt(char.codePointAt(0) ?? 0)) * 0x100000001b3n)
@@ -47,6 +47,17 @@ async function registerSource($: EngineInterface, root: string) {
   } catch {
     // A blocked registration folder must not stop the chat or its existing feed.
   }
+}
+
+// GUI and terminal launches do not necessarily inherit the same environment on Unix.
+async function dataHome($: EngineInterface) {
+  const windows = await $.env.get('LOCALAPPDATA')
+  if (windows !== undefined) return windows
+  const home = await $.env.get('HOME')
+  if (home === undefined) return undefined
+  if (await $.fs.exists(`${home}/Library/Application Support`)) return `${home}/Library/Application Support`
+  const xdg = await $.env.get('XDG_DATA_HOME')
+  return xdg?.startsWith('/') ? xdg : `${home}/.local/share`
 }
 
 // A reload starts the module over: the chat's last answer is kept in its own feed file.
@@ -97,15 +108,25 @@ async function answered($: EngineInterface) {
 async function openApp($: EngineInterface) {
   const localAppData = await $.env.get('LOCALAPPDATA')
   const app = localAppData === undefined ? undefined : `${localAppData}/${APP_PATH}`
-  if (app === undefined || !(await $.fs.exists(app))) {
-    return { text: 'O MiniInfos não está instalado em %LOCALAPPDATA%\\Programs\\MiniInfos.' }
+  if (app !== undefined && await $.fs.exists(app)) {
+    await $.process.run(['explorer.exe', app.replaceAll('/', '\\')])
+    return { text: 'MiniInfos aberto.' }
   }
-
-  // Explorer starts it apart from this chat, so it stays open after the command ends;
-  // if it is open already, the app brings that window back instead.
-  await $.process.run(['explorer.exe', app.replaceAll('/', '\\')])
-
-  return { text: 'MiniInfos aberto.' }
+  const home = await $.env.get('HOME')
+  for (const bundle of ['/Applications/MiniInfos.app', `${home}/Applications/MiniInfos.app`]) {
+    if (await $.fs.exists(bundle)) {
+      await $.process.run(['open', bundle])
+      return { text: 'MiniInfos aberto.' }
+    }
+  }
+  const data = await dataHome($)
+  const launcher = data === undefined ? undefined : `${data}/miniinfos-application/miniinfos`
+  if (launcher !== undefined && await $.fs.exists(launcher)) {
+    // The path is an argument, never interpolated into shell code; the app outlives this chat.
+    await $.process.run(['sh', '-c', 'nohup "$1" >/dev/null 2>&1 < /dev/null &', 'miniinfos', launcher])
+    return { text: 'MiniInfos aberto.' }
+  }
+  return { text: 'Instale o MiniInfos para seu sistema e abra o aplicativo pelo menu de aplicativos.' }
 }
 
 export const register: Register = on => {

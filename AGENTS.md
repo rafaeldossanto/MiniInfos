@@ -8,13 +8,15 @@ Siga também as instruções do diretório pai: DRY, Clean Code, SOLID e código
 - Na raiz de `widget`, mantenha apenas o projeto e o ponto de entrada WPF (`App.xaml` e seu code-behind). Coloque cada implementação na pasta da sua responsabilidade.
 - Use namespaces que acompanhem as pastas, começando por `MiniInfos`. Os testes seguem `MiniInfos.Tests` e espelham os grupos do aplicativo.
 - Mantenha cada XAML junto do seu code-behind. Recursos visuais compartilhados ficam em `UI/Styles`, `UI/Themes`, `UI/Icons` ou `Assets`.
-- Contratos e modelos usados por Claude e Codex ficam em `Providers`; implementações específicas ficam em `Providers/Claude` e `Providers/Codex`.
+- Contratos e modelos usados por mais de um provedor (Claude, Codex, Gemini, Kimi) ficam em `Providers`; implementações específicas ficam em `Providers/<Provedor>`. Um provedor que registra uma linha por resposta usa o `ResponseLedger` e só fornece a leitura da linha.
 - Compartilhe leitura incremental, persistência e acesso ao Windows por meio dos componentes de infraestrutura existentes. Evite duplicá-los em cada funcionalidade ou criar uma pasta genérica de utilitários sem responsabilidade definida.
 - Separe contratos e persistência dos controles visuais. Extraia responsabilidades quando necessário, sem introduzir camadas ou interfaces que não resolvam um problema concreto.
 - Ao mover arquivos, atualize namespaces, referências XAML, URIs de recursos, documentação e caminhos usados pelo instalador.
 - O formato de temas e mascotes da comunidade fica em `Community/` e é documentado em `marketplace/`. Preserve a compatibilidade do `schemaVersion`; novos recursos precisam acompanhar validação, JSON Schema e testes. Pacotes são dados declarativos locais: não carregue código, XAML ou recursos remotos fornecidos por um pacote.
 - O `index.json` segue a mesma regra de compatibilidade de `schemaVersion` dos pacotes. O marketplace pertence ao mesmo monorepo, em `marketplace/`; o ID numérico do repositório é compartilhado com o atualizador. Releases do app nascem como rascunho no CI, ao enviar a tag `vX.Y.Z`, e são publicadas depois de revisadas, com `--draft=false --latest`; a tag `catalog` usa `--prerelease --latest=false`, nunca latest.
 - A landing page fica em `front/`, separada do app: não entra no instalador nem no zip de código e não roda os testes do widget. Siga as regras de `front/README.md`, inclusive a de marcas.
+- Linux e macOS usam `desktop/` (Avalonia). Os domínios portáveis são compilados das mesmas fontes de `widget/`, sem duplicar leitores, ledgers, descoberta, preferências ou validação de pacotes. Processos, comandos e pastas por sistema ficam em `Infrastructure/Desktop`; mantenha em `Infrastructure/Windows` apenas integrações específicas do Windows. As diferenças de renderização ficam na interface de cada plataforma.
+- Pacotes nativos são gerados por `desktop/packaging/package.py`: não incluam marketplace, front ou ferramentas. A release do aplicativo deve conter o instalador Windows e os quatro pacotes nativos, com SHA-256, e continuar nascendo como draft. Nunca ofereça no site um arquivo que não foi publicado. Assinatura/notarização Apple exige os secrets documentados; compilação cruzada não comprova execução em um Mac.
 
 ## Validação
 

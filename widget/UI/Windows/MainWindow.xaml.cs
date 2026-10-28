@@ -1,11 +1,9 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media.Animation;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -24,7 +22,7 @@ namespace MiniInfos.UI.Windows;
 /// <summary>Which card a window is: the main one, or one opened with "Nova janela".</summary>
 public enum CardKind
 {
-    /// <summary>Follows Claude and Codex, holds the tray's numbers; ✕ hides it.</summary>
+    /// <summary>Follows the AI apps, holds the tray's numbers; ✕ hides it.</summary>
     Main,
 
     /// <summary>Opened beside the main one; ✕ closes it for good.</summary>
@@ -36,14 +34,12 @@ public enum CardKind
 /// each drawn by a <see cref="PageView"/> from its provider's <see cref="UsagePage"/>. It knows no
 /// provider by name.
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : Window, ISettingsCard
 {
     private const double ScreenMargin = 16;
     private const double CascadeOffset = 28;
-    private const double MinScale = 0.75;
-    private const double MaxScale = 3;
-    private const int WmSizing = 0x0214;
-    private const int WmExitSizeMove = 0x0232;
+    private const double MinScale = CardResize.MinScale;
+    private const double MaxScale = CardResize.MaxScale;
     private const int WmMouseHorizontalWheel = 0x020E;
     private const int WheelNotch = 120;
 
@@ -55,11 +51,7 @@ public partial class MainWindow : Window
     private const double ColumnWidth = 262;
     private const double ColumnGap = 25;
 
-    /// <summary>The card's corner radius (16) less its border, for what is drawn inside it.</summary>
-    private const double ArtCornerRadius = 15;
-
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(3);
-    private static readonly TimeSpan SpinTurn = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan MinSpin = TimeSpan.FromMilliseconds(600);
 
     /// <summary>How long a card waits for its first read before showing anyway, its page saying it is reading.</summary>
@@ -108,6 +100,9 @@ public partial class MainWindow : Window
     /// <summary>The gear, or "Configurações" in the card's menu: whoever holds the cards opens the settings window for this one.</summary>
     public event Action<MainWindow>? SettingsRequested;
 
+    /// <summary>The button beside the gear: whoever holds the cards opens the conversations card.</summary>
+    public event Action? ConversationsRequested;
+
     /// <summary>The card switched between Resumido and Detalhado.</summary>
     public event Action? ViewChanged;
 
@@ -120,6 +115,8 @@ public partial class MainWindow : Window
         get => _isDetailed;
         set => (value ? DetailedView : CompactView).IsChecked = true;
     }
+
+    Window ISettingsCard.Window => this;
 
     /// <summary>The pages this card has on screen, by their place in the provider list.</summary>
     public IReadOnlyList<int> ShownPages => _selection.Shown;
@@ -163,13 +160,7 @@ public partial class MainWindow : Window
         _store = store ?? CardStore.Main;
         _kind = kind;
         InitializeComponent();
-        // The artwork's rounded top, inside the card's 1-pixel border: the clip runs past the bottom so only the top corners round.
-        HeaderArt.SizeChanged += (_, e) =>
-        {
-            var inset = HeaderArt.Tag is true;
-            var radius = inset ? 8 : ArtCornerRadius;
-            HeaderArt.Clip = new RectangleGeometry(new Rect(0, 0, e.NewSize.Width, e.NewSize.Height + (inset ? 0 : radius)), radius, radius);
-        };
+        _ = new CardResize(this, () => new Size(_designWidth, _designHeight), SaveSettings);
         ShowTitle();
         ThemeManager.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;
@@ -187,7 +178,7 @@ public partial class MainWindow : Window
         _selection = PageSelection.Restore(IndexOf(settings?.Page), IndexOf(settings?.BesidePage), providers.Count);
         BuildPageIcons();
         LayOutColumns();
-        DismissButton.ToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
+        Header.DismissToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
         DismissItem.Header = _kind == CardKind.Main ? L.Text("Esconder") : L.Text("Fechar esta janela");
         (settings?.IsDetailed == true ? DetailedView : CompactView).IsChecked = true;
 
@@ -306,11 +297,11 @@ public partial class MainWindow : Window
     /// </summary>
     public async Task ForceRefreshAsync()
     {
-        if (!RefreshButton.IsEnabled) return;
+        if (!Header.RefreshButton.IsEnabled) return;
 
         RefreshForced?.Invoke();
-        RefreshButton.IsEnabled = false;
-        RefreshSpin.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, SpinTurn) { RepeatBehavior = RepeatBehavior.Forever });
+        Header.RefreshButton.IsEnabled = false;
+        Header.SetRefreshing(true);
         var startedAt = Stopwatch.GetTimestamp();
 
         try
@@ -323,8 +314,8 @@ public partial class MainWindow : Window
         }
         finally
         {
-            RefreshSpin.BeginAnimation(RotateTransform.AngleProperty, null);
-            RefreshButton.IsEnabled = true;
+            Header.SetRefreshing(false);
+            Header.RefreshButton.IsEnabled = true;
         }
     }
 
@@ -378,7 +369,7 @@ public partial class MainWindow : Window
         }
 
         var first = pages[_selection.Shown[0]];
-        RefreshButton.ToolTip = _selection.IsSplit ? L.Text("Atualizar agora as páginas na tela.") : first.RefreshHint;
+        Header.RefreshToolTip = _selection.IsSplit ? L.Text("Atualizar agora as páginas na tela.") : first.RefreshHint;
         SummaryChanged?.Invoke(L.Format("MiniInfos · {0}\n{1}\nHoje {2} tokens", first.Title, _columns[0].LimitsLine, Format.Count(first.Today.Total)));
 
         if (_isMeasureDue) FitColumns();
@@ -479,7 +470,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>The app's name, in the capitals the text font wants.</summary>
-    private void ShowTitle() => NumericText.Show(AppTitle, "MiniInfos");
+    private void ShowTitle() => Header.Title = "MiniInfos";
 
     private void OnAppearanceChanged()
     {
@@ -498,7 +489,7 @@ public partial class MainWindow : Window
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
-        DismissButton.ToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
+        Header.DismissToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
         DismissItem.Header = _kind == CardKind.Main ? L.Text("Esconder") : L.Text("Fechar esta janela");
         BuildPageIcons();
         OnAppearanceChanged();
@@ -646,29 +637,11 @@ public partial class MainWindow : Window
     {
         switch (message)
         {
-            case WmExitSizeMove:
-                // Moving or resizing ended: keep where and how big it was left.
-                SaveSettings();
-                return IntPtr.Zero;
-
             case WmMouseHorizontalWheel:
                 // The step rides in the high word of wParam; positive leans right, to the next page.
                 Swipe(unchecked((short)((long)wParam >> 16)));
                 handled = true;
                 return IntPtr.Zero;
-
-            case WmSizing when _designHeight > 0:
-                var dpi = VisualTreeHelper.GetDpi(this).DpiScaleX;
-                var dragged = Marshal.PtrToStructure<PixelRect>(lParam);
-                var fitted = AspectSizing.Fit(
-                    dragged,
-                    wParam.ToInt32(),
-                    _designWidth / _designHeight,
-                    (int)Math.Round(_designWidth * MinScale * dpi),
-                    (int)Math.Round(_designWidth * MaxScale * dpi));
-                Marshal.StructureToPtr(fitted, lParam, fDeleteOld: false);
-                handled = true;
-                return 1;
 
             default:
                 return IntPtr.Zero;
@@ -716,6 +689,8 @@ public partial class MainWindow : Window
     private void OnDefaultSize(object sender, RoutedEventArgs e) => ResetSize();
 
     private void OnSettings(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke(this);
+
+    private void OnConversations(object sender, RoutedEventArgs e) => ConversationsRequested?.Invoke();
 
     private async void OnRefresh(object sender, RoutedEventArgs e) => await ForceRefreshAsync();
 

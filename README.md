@@ -1,10 +1,10 @@
 # MiniInfos
 
-**Para usar, baixe o `MiniInfos-Setup.exe` da última versão.** O catálogo de mascotes e temas é separado do instalador, mesmo estando no mesmo repositório.
+**Para usar, escolha o pacote do seu sistema na última release publicada.** Windows usa `MiniInfos-Setup.exe`; macOS tem DMG para Apple Silicon e Intel; Linux tem `.tar.gz` para x64 e ARM64, com instalador por usuário. Os downloads do site são ativados quando cada arquivo é publicado. O catálogo de mascotes e temas é separado dos pacotes do app, mesmo estando no mesmo repositório. O código de Linux/macOS e os detalhes de distribuição estão em [desktop/README.md](desktop/README.md).
 
-Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para Claude e outra para Codex (GPT). Pra trocar de página: as setinhas ou os ícones das IAs no rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. Os ícones são monocromáticos, com o selecionado branco e os demais cinza. A página escolhida fica salva.
+Um quadradinho flutuante, sempre por cima das outras janelas, com uma página para cada IA: Claude, Codex (GPT), Gemini e Kimi. Pra trocar de página: as setinhas ou os ícones das IAs no rodapé, as teclas ←/→, um deslize de dois dedos pro lado no touchpad, ou Shift + roda do mouse. Os ícones são monocromáticos, com o selecionado branco e os demais cinza. A página escolhida fica salva.
 
-Cada página só aparece com o app dela instalado no PC: o app da Microsoft Store, o comando no terminal (`claude`, `codex`), a extensão no VS Code (ou Cursor, Windsurf) ou o app aberto. Desinstalado, o ícone some em até um minuto, ou na hora com ↻, e volta do mesmo jeito quando o app é instalado de novo. A pasta de dados não conta, porque ela fica no PC depois de desinstalar. Com um app só, o ícone dele continua no rodapé; se nenhum for encontrado, aparecem as duas páginas. Os ícones ficam sempre no centro do cartão, quantos forem.
+Cada página só aparece com o app dela instalado no PC: o app da Microsoft Store, o comando no terminal (`claude`, `codex`, `gemini`, `kimi`), a extensão no VS Code (ou Cursor, Windsurf), o app desktop do Kimi ou o app aberto. Desinstalado, o ícone some em até um minuto, ou na hora com ↻, e volta do mesmo jeito quando o app é instalado de novo. A pasta de dados não conta, porque ela fica no PC depois de desinstalar. Com um app só, o ícone dele continua no rodapé; se nenhum for encontrado, aparecem todas as páginas. Os ícones ficam sempre no centro do cartão, quantos forem.
 
 Botão direito num ícone, **Abrir em**, como no app do Claude:
 
@@ -19,6 +19,11 @@ Na página do Claude:
 
 Na página do Codex, o mesmo desenho mostra os percentuais e horários de reinício da conta, os tokens das sessões locais nas duas janelas, os tokens de hoje e do total e a sessão local mais recente. Os totais de tokens vêm dos registros locais do Codex. Passe o mouse para ver o detalhamento. O app não transforma os percentuais do plano em custo em dinheiro.
 
+As páginas do **Gemini** e do **Kimi** mostram só tokens: nenhum dos dois guarda no computador a leitura dos limites da conta, e o MiniInfos não usa credenciais para consultá-los. As duas janelas contam os tokens das últimas 5 horas e dos últimos 7 dias, sem %, e o cabeçalho diz quando chegou a última resposta.
+
+- **Gemini:** as conversas do Gemini CLI (`gemini` no terminal). O site gemini.google.com não deixa registros no PC. A linha de baixo mostra o modelo que respondeu por último.
+- **Kimi:** as sessões do Kimi Code (`kimi` no terminal) e o modo agente do app desktop do Kimi, que roda o Kimi Code por dentro. O chat comum do app não deixa registros no PC. A linha de baixo mostra o projeto ou "App Kimi", com o contexto da conversa do agente.
+
 Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 - **Resumido** (quadradinho): 1,4B, 109M.
@@ -26,7 +31,20 @@ Dois modos de ver, nos botões do canto inferior direito (como no Explorer):
 
 O modo escolhido fica salvo.
 
-O aplicativo abre em português quando o idioma de exibição do Windows é português; nos demais idiomas, abre em inglês. Em **Configurações → Geral → Idioma**, escolha **Automático**, **Português** ou **English**. A escolha manual fica salva e atualiza janelas abertas, menus e números sem reiniciar. Ela não muda o tema selecionado. A landing page também detecta o idioma do navegador e oferece a escolha manual.
+## Cartão de conversas
+
+O botão ao lado da engrenagem abre um segundo cartão, **Conversas**, com cada chat ou sessão e os tokens que gastou. A conversa que respondeu por último fica no topo, como na fila de temas: o ícone dela fica aceso e, enquanto responde, aparece um ponto azul ao lado de "agora". Cada linha mostra o nome, a pasta e há quanto tempo respondeu, os tokens da conversa (passe o mouse para ver entrada, cache e saída) e o contexto usado, quando a IA informa. Embaixo, o número de conversas e a soma delas. Os ícones das IAs no rodapé filtram a lista; clicar de novo mostra todas. Os botões Resumido e Detalhado funcionam como no cartão de uso. A lista mostra as 50 mais recentes.
+
+- **Claude:** cada chat do Claude Code, com o nome dado no app e o contexto publicado pelo mod.
+- **Codex:** cada sessão, com o nome que o app do Codex dá à conversa e o contexto.
+- **Kimi:** cada conversa do modo agente do app (com a sessão que só gera o título somada a ela) ou do Kimi Code, nomeada pelo primeiro pedido.
+- **Gemini:** cada conversa do Gemini CLI, pela pasta do projeto.
+
+Em **Configurações → Geral → Cartão principal**, escolha **Uso** ou **Conversas**. O principal é o que abre junto com as IAs, com o Windows, pelo clique na bandeja e ao abrir o MiniInfos de novo; o outro abre pelo botão ao lado da engrenagem. Os dois somem juntos quando a última IA fecha. Com Conversas como principal, a faixa de atualização aparece quando o cartão de uso é aberto.
+
+Os tokens por conversa contam a partir das respostas que ainda estão nos históricos: na primeira abertura desta versão, o MiniInfos relê os históricos uma vez para descobrir a conversa de cada resposta, sem contar nenhuma duas vezes. Respostas de históricos já apagados continuam nos totais do cartão de uso, mas não aparecem em nenhuma conversa. No Linux e no macOS, o cartão de conversas ainda não existe; os dados por conversa já são os mesmos.
+
+O aplicativo abre em português quando o idioma de exibição do sistema é português; nos demais idiomas, abre em inglês. Em **Configurações → Geral → Idioma**, escolha **Automático**, **Português** ou **English**. A escolha manual fica salva e atualiza janelas abertas, menus e números sem reiniciar. Ela não muda o tema selecionado. A landing page também detecta o idioma do navegador e oferece a escolha manual.
 
 O instalador também inclui os dois idiomas e usa o idioma de exibição do Windows, com inglês como alternativa. A detecção usa a opção [`LanguageDetectionMethod=uilanguage` do Inno Setup](https://jrsoftware.org/ishelp/topic_setup_languagedetectionmethod.htm); a escolha manual dentro do app continua independente.
 
@@ -84,9 +102,9 @@ Quando sai uma versão nova, aparece uma linha logo acima do cartão, numa janel
 
 `GitHubReleases` lê a última versão publicada (pelo número do repositório, então nenhum nome de conta vai no app), `Updater` baixa, confere e chama o instalador com `/RELAUNCH=1`, que reabre o app no fim, e `UpdateBanner` é a linha acima do cartão. As atualizações valem a partir da versão que traz o `Updater`: as anteriores precisam do instalador baixado à mão uma última vez.
 
-## Junto com Claude ou Codex
+## Junto com seus apps de IA
 
-O MiniInfos inicia com o Windows, escondido (atalho em `shell:startup` com o argumento legado `--with-claude`). Ele aparece quando a janela do app Claude ou do app Codex abre, e some quando o último fecha. O app do Codex da Microsoft Store roda como `ChatGPT.exe`: só conta o que vem do pacote do Codex, então abrir o ChatGPT comum não mostra o quadrado. Também conta como Claude aberto qualquer chat do Claude Code rodando no terminal ou num editor: o mod avisa "estou vivo" a cada 30 s e "terminei" ao fechar. Um chat que morre sem avisar conta como fechado depois de 90 s. Chats do Codex CLI sem janela própria não acionam a abertura automática; você ainda pode abrir o MiniInfos pelo Menu Iniciar ou pela bandeja.
+O MiniInfos inicia com o Windows, escondido (atalho em `shell:startup` com o argumento legado `--with-claude`). Ele aparece quando a janela do app Claude, do app Codex ou do app Kimi abre, e some quando o último fecha. O app do Codex da Microsoft Store roda como `ChatGPT.exe`: só conta o que vem do pacote do Codex, então abrir o ChatGPT comum não mostra o quadrado. Também conta como Claude aberto qualquer chat do Claude Code rodando no terminal ou num editor: o mod avisa "estou vivo" a cada 30 s e "terminei" ao fechar. Um chat que morre sem avisar conta como fechado depois de 90 s. Chats do Codex CLI, do Gemini CLI e do Kimi Code sem janela própria não acionam a abertura automática; você ainda pode abrir o MiniInfos pelo Menu Iniciar ou pela bandeja.
 
 Os chats normais do claude.ai (aba Chat) já entram nos % de 5h e semanal, porque o limite é um só pra conta. Mas o % só se atualiza quando chega uma resposta do Claude Code, e os tokens desses chats não entram: o claude.ai não guarda nem mostra a contagem.
 
@@ -115,7 +133,8 @@ São duas partes:
 | Parte | O que faz |
 | --- | --- |
 | `mod/` (plugin `miniinfos`) | Roda dentro de cada chat do Claude Code. A cada resposta do modelo, grava na pasta de configuração desse Claude os limites do plano (5h e semanal), o contexto e o custo daquele chat, e informa automaticamente sua localização ao widget. |
-| `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude e do Codex, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
+| `widget/` (app WPF, .NET 10) | Descobre as pastas de dados do Claude, do Codex, do Gemini e do Kimi, lê os históricos e os arquivos do mod e consulta os limites da conta pelo `codex app-server`. |
+| `desktop/` (Linux/macOS, Avalonia e .NET 10) | Interface nativa, integração por sistema e pacotes. Compila os mesmos leitores, ledgers, preferências e regras de `widget/`. |
 | `tests/` | `MiniInfos.Tests` (xUnit, a lógica) e `MiniInfos.UiCheck` (abre o quadrado de verdade e confere a janela). |
 | `tools/MiniInfos.Catalog/` | Ferramenta separada para validar e gerar o catálogo da comunidade; não entra no instalador. |
 | `front/` | Landing page do MiniInfos; fora do instalador, do zip de código das releases e dos testes do app (`front/README.md`). |
@@ -127,9 +146,11 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 
 | Pasta em `widget/` | Responsabilidade |
 | --- | --- |
-| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders`, escolha das páginas instaladas `InstalledProviders` e modelos de tokens, limites e páginas compartilhados. |
+| `Providers/` | Contrato `IUsageProvider`, catálogo `UsageProviders`, escolha das páginas instaladas `InstalledProviders`, o livro-caixa por resposta `ResponseLedger`, a lista `ConversationList` e modelos de tokens, limites, conversas e páginas compartilhados. |
 | `Providers/Claude/` | Históricos, feeds, títulos, caminhos e detecção do Claude. |
 | `Providers/Codex/` | Históricos, conta, app-server, caminhos e detecção do Codex. |
+| `Providers/Gemini/` | Conversas, caminhos e detecção do Gemini CLI. |
+| `Providers/Kimi/` | Sessões do Kimi Code e do agente do app, contexto, caminhos e detecção do Kimi. |
 | `Sources/` | Descoberta e catálogo das pastas de registros, com os modelos de entrada e resultado da busca. |
 | `Community/` | Contrato de pacotes, validação, biblioteca, importação, exportação e modelos para autores. |
 | `Community/Catalog/` | Índice, consulta à publicação `catalog`, cache, prévias sob demanda e instalação verificada. |
@@ -138,21 +159,22 @@ Na raiz de `widget`, ficam `MiniInfos.csproj` e o ponto de entrada `App.xaml`/`A
 | `Localization/` | Detecção e troca de idioma, catálogo inglês e bindings de tradução para o XAML. |
 | `Updates/` | Contrato da fonte de versões, consulta ao GitHub, download e instalação. |
 | `Infrastructure/Network/` | Identidade do repositório e cliente de releases e assets compartilhado pelo atualizador e pelo catálogo. |
-| `UI/Windows/` | Janelas, coordenação dos cartões e seleção de páginas. Cada XAML fica junto de seu code-behind. |
+| `UI/Windows/` | Janelas, coordenação dos cartões (o de uso, os extras e o de conversas, pelo cartão principal escolhido) e seleção de páginas. Cada XAML fica junto de seu code-behind. |
 | `UI/Controls/` | Controles compartilhados, menus e apresentação animada dos números. |
 | `UI/Formatting/` | Formatação dos números, horários, custos e legendas. |
 | `UI/Themes/` | Dicionários de temas, `ThemeManager` e tipografia compartilhada. |
 | `UI/Styles/` e `UI/Icons/` | Estilos e símbolos vetoriais compartilhados. |
 | `Infrastructure/Storage/` | Caminhos do aplicativo, arquivos JSON, livros-caixa, leitura incremental e acesso defensivo aos arquivos. |
-| `Infrastructure/Windows/` | Processos, comandos no PATH, apps instalados, atalhos, bandeja e geometria de janelas do Windows. |
+| `Infrastructure/Desktop/` | Processos, comandos no PATH, instalações e pastas nativas, compartilhados entre os sistemas. |
+| `Infrastructure/Windows/` | Atalhos, bandeja, acompanhamento e geometria de janelas específicos do aplicativo WPF. |
 | `Infrastructure/AppInfo.cs` | Versão do aplicativo obtida do assembly. |
 | `Assets/` | Ícone do aplicativo, ilustrações, sprites, fontes e respectivas licenças. |
 
 Os namespaces acompanham as pastas (`MiniInfos.Providers.Claude`, por exemplo). `tests/MiniInfos.Tests` espelha esses grupos, e `Support` contém o suporte compartilhado aos testes. Contratos usados por mais de um provedor ficam fora das implementações específicas; a persistência compartilhada fica em infraestrutura. As convenções para futuras mudanças também estão no `AGENTS.md` do projeto.
 
-Cada provedor (Claude, Codex) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`, e diz onde a instalação dele aparece num `AppFootprint` (pacote da Store, comando, extensão, arquivo, processo), que `InstalledApps` confere; `InstalledProviders` deixa no cartão só os instalados, olhando de novo a cada minuto e no ↻; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os dois livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total).
+Cada provedor (Claude, Codex, Gemini, Kimi) é uma classe que implementa `IUsageProvider` e devolve uma `UsagePage` pronta; cada coluna do quadrado é um `PageView`, que desenha qualquer página do mesmo jeito, e o rodapé gera um botão com o ícone de cada provedor. Quais páginas estão na tela (uma, ou duas lado a lado) é uma regra à parte, `PageSelection`, e os quadrados abertos (o principal e os de "Nova janela", cada um com seu arquivo em `%LOCALAPPDATA%\MiniInfos\windows`) ficam num `CardSet`. Um provedor novo é uma classe nova e uma linha em `UsageProviders.Create()`, e diz onde a instalação dele aparece num `AppFootprint` (pacote da Store, comando, extensão, arquivo, processo), que `InstalledApps` confere; `InstalledProviders` deixa no cartão só os instalados, olhando de novo a cada minuto e no ↻; o símbolo pode ser incluído em `ProviderIcons.xaml`, com um símbolo genérico como alternativa. Os livros-caixa usam as mesmas peças: `JsonlTail` (lê só o que foi acrescentado em cada `.jsonl`), `LedgerStore` (grava o livro-caixa) e `TokenSummary.Of` (hoje, janelas e total). Claude, Gemini e Kimi registram uma linha por resposta e compartilham o `ResponseLedger`: cada provedor só diz como ler uma linha. O Codex registra acumulados por sessão e tem o livro-caixa próprio.
 
-Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0 e OpenAI da 11.15.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
+Os símbolos vetoriais do rodapé vêm de [Simple Icons](https://github.com/simple-icons/simple-icons), distribuídos sob CC0: Claude da versão 16.0.0, OpenAI da 11.15.0 e Google Gemini e Kimi da 16.35.0. Eles ficam embutidos no aplicativo, sem downloads durante o uso.
 
 Os temas ficam em `widget/UI/Themes`, com recursos dinâmicos compartilhados pelo cartão, menus e configurações. Cada tema é um arquivo com os mesmos pincéis (`Simple.xaml`, `Classic.xaml`, `Light.xaml`), e `Design.xaml` guarda a fonte das configurações e o cabeçalho comuns a todos. `ThemeManager` aplica a escolha a todas as janelas. A arte de Atena foi gerada para o MiniInfos.
 
@@ -181,13 +203,15 @@ Os limites são da conta, não de um chat. Cada chat guarda a leitura da última
 
 Os tokens do Claude ficam num livro-caixa próprio em `%LOCALAPPDATA%\MiniInfos\ledger.json`. Assim o total não cai quando o Claude Code apaga históricos antigos. Cada resposta conta uma vez só, pelo id da mensagem, e o total soma entrada, saída, cache lido e cache escrito.
 
+Os tokens do Gemini ficam em `gemini-ledger.json` e os do Kimi em `kimi-ledger.json`, na mesma pasta. O Gemini CLI grava cada conversa em `~/.gemini/tmp/<projeto>/chats/*.jsonl` e acrescenta a resposta de novo, inteira, quando os tokens chegam: cada resposta conta uma vez, pelo id dentro da sessão. A entrada do Gemini já inclui o cache, que o MiniInfos separa; os tokens de raciocínio contam como saída. O Kimi Code grava um `usage.record` por resposta em `sessions/wd_*/<sessão>/agents/<agente>/wire.jsonl`, tanto na pasta dele (`KIMI_CODE_HOME`, senão `~/.kimi-code`) quanto na cópia que o app desktop roda em `%APPDATA%\kimi-desktop\daimon-share\daimon\runtime\kimi-code\home`; cada agente registra só as próprias respostas, então somar os arquivos não conta nada duas vezes.
+
 Os tokens locais do Codex ficam em `%LOCALAPPDATA%\MiniInfos\codex-ledger.json`. Cada evento de uso registra o acumulado da sessão; o MiniInfos acrescenta somente a diferença em relação à maior leitura daquela sessão, identificada pelo ID nos metadados ou pelo UUID do arquivo. Mover, arquivar ou copiar a mesma sessão para outra fonte não soma seus tokens novamente. O histórico das versões anteriores é preservado. O total segue o `total_tokens` do Codex, inclusive nos eventos (como os de compactação) que trazem só o total, sem entrada e saída. O cache já está incluído nos tokens de entrada do Codex, então não é somado duas vezes. Os percentuais são da conta e podem abranger atividade fora desta máquina; por isso os tokens locais nas janelas não são uma conversão direta desses percentuais. Sem autenticação ativa (ou sem o `codex`, quando nenhum app é encontrado e as duas páginas aparecem), a página continua exibindo os tokens locais e deixa os limites indisponíveis.
 
 ## Privacidade
 
 O MiniInfos não pede login e não lê credenciais. O widget acessa somente arquivos locais para os tokens; para os limites da conta Codex, ele inicia o `codex app-server`, que usa a autenticação já configurada no Codex e consulta o serviço da OpenAI:
 
-- **Lê:** os históricos do Claude Code, as sessões ativas e arquivadas do Codex e os arquivos que o mod escreve, nas pastas descobertas automaticamente. Examina nomes e estrutura das pastas locais para localizar essas fontes. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
+- **Lê:** os históricos do Claude Code, as sessões ativas e arquivadas do Codex, as conversas do Gemini CLI, as sessões do Kimi Code (inclusive as do agente do app Kimi, com o medidor de contexto que o app guarda) e os arquivos que o mod escreve, nas pastas descobertas automaticamente. Os arquivos de login do app Kimi e do Gemini CLI nunca são abertos. Examina nomes e estrutura das pastas locais para localizar essas fontes. Extrai somente contagem, horário, contexto e pasta do projeto; não guarda nem exibe o texto das conversas.
 - **Guarda:** `%LOCALAPPDATA%\MiniInfos` (contagens locais, catálogo de fontes, posição, tamanho, preferências, pacotes instalados e caches de prévias e catálogo) e `<pasta do Claude>/miniinfos` (o que cada chat Claude publica: limites, contexto, custo, pasta e nome do chat).
 - **Internet:** além do `codex app-server`, procura versões novas do MiniInfos no GitHub a cada 6 horas e baixa o instalador quando você clica para atualizar. A página Comunidade baixa a lista e as prévias dos cartões visíveis do catálogo no GitHub quando você a abre ou atualiza; um pacote só é baixado ao clicar em Instalar ou Atualizar. Nada seu é enviado. Não há consultas de catálogo em segundo plano nem atualização automática de pacotes.
 - **Desinstalar** apaga os dados do MiniInfos em `%LOCALAPPDATA%\MiniInfos` e os arquivos do mod no caminho padrão `~/.claude/miniinfos`.
@@ -219,11 +243,12 @@ Nenhuma é obrigatória.
 | `MINIINFOS_PUBLISHER` | ao gerar o instalador | Nome que aparece como publicador e como autor do mod. Sem ela, "MiniInfos". |
 | `CLAUDE_CONFIG_DIR` | ao rodar | A do próprio Claude Code: se ela mudar a pasta do Claude, o app e o mod seguem junto. |
 | `CODEX_HOME` | ao rodar | Se definido, indica a pasta dos registros locais do Codex. |
+| `KIMI_CODE_HOME` | ao rodar | A do próprio Kimi Code: se definida, indica a pasta das sessões dele, além da cópia do app desktop. |
 | `MINIINFOS_DATA_DIR` | ao rodar | Opcional para testes isolados: muda onde o MiniInfos guarda o livro-caixa e as preferências da janela. |
 
 ## Instalador
 
-`installer\dist\MiniInfos-Setup.exe` instala tudo com dois cliques: o app (com o .NET embutido, sem nada pra instalar antes), o atalho no menu Iniciar, a opção "Abrir junto com Claude ou Codex" e o mod nos chats do Claude Code. Pros limites da conta Codex, basta o Codex instalado (app ou `codex` de terminal). Não pede administrador. Ele aparece em "Adicionar ou remover programas", e desinstalar remove o app, os atalhos, o mod e os dados do MiniInfos.
+`installer\dist\MiniInfos-Setup.exe` instala tudo com dois cliques: o app (com o .NET embutido, sem nada pra instalar antes), o atalho no menu Iniciar, a opção "Abrir junto com seus apps de IA" e o mod nos chats do Claude Code. Pros limites da conta Codex, basta o Codex instalado (app ou `codex` de terminal). Não pede administrador. Ele aparece em "Adicionar ou remover programas", e desinstalar remove o app, os atalhos, o mod e os dados do MiniInfos.
 
 A versão fica num lugar só, o `<Version>` de `widget/MiniInfos.csproj`: o build do instalador lê dali, e o app informa a mesma ao `codex`. Pra gerar de novo depois de mudar o código (precisa do Inno Setup 6):
 
@@ -247,7 +272,7 @@ Os atalhos ficam em `%APPDATA%\Microsoft\Windows\Start Menu\Programs\MiniInfos.l
 
 ## Instalar o mod em todos os chats
 
-O instalador faz isso: registra o marketplace `miniinfos` apontando pra `%LOCALAPPDATA%\Programs\MiniInfos\claude-plugin` e instala o mod no escopo do usuário, que todo Claude Code dessa conta lê (app desktop, terminal, editores). Depois de mudar o mod, suba a `version` em `mod/.claude-plugin/plugin.json` e gere e rode o instalador de novo, ou, pra testar direto desta pasta, aponte o marketplace pra cá (`claude plugin marketplace remove miniinfos`, depois `claude plugin marketplace add <esta pasta>`) e rode:
+O instalador faz isso pedindo ao próprio app (`MiniInfos.exe --install-mod`; ao desinstalar, `--remove-mod`): registra o marketplace `miniinfos` apontando pra `%LOCALAPPDATA%\Programs\MiniInfos\claude-plugin` e instala o mod no escopo do usuário, que todo Claude Code dessa conta lê (app desktop, terminal, editores). Pra achar um Claude Code, o app olha o PATH e, sem nada lá, varre todos os arquivos da pasta do usuário e depois de todos os discos locais, inclusive pastas ocultas (`ClaudeCode.Find`). Não executa nada pra descobrir o que achou: o `claude.exe` do Claude Code se identifica nas informações de versão (o `claude.exe` do app desktop não), e o `claude.cmd` do npm aponta pro pacote `@anthropic-ai/claude-code`. Cada cópia achada é tentada até uma aceitar o mod, e essa fica lembrada em `%LOCALAPPDATA%\MiniInfos\claude-code.txt` pras próximas atualizações e pra desinstalação. Só quando nenhuma aceita o instalador avisa que o mod ficou de fora. Depois de mudar o mod, suba a `version` em `mod/.claude-plugin/plugin.json` e gere e rode o instalador de novo, ou, pra testar direto desta pasta, aponte o marketplace pra cá (`claude plugin marketplace remove miniinfos`, depois `claude plugin marketplace add <esta pasta>`) e rode:
 
 ```bash
 claude plugin marketplace update miniinfos
@@ -267,7 +292,7 @@ A validação cotidiana seleciona os domínios afetados pelos arquivos alterados
 ./tests/run.ps1
 ```
 
-O mapa fica em `tests/domains.psd1` e é usado tanto localmente quanto no CI. Ele inclui consumidores de componentes compartilhados: uma mudança em `JsonlTail`, por exemplo, seleciona armazenamento, Claude e Codex; uma mudança em `PetInteraction` seleciona somente o mascote. Documentação não seleciona testes. Código sem regra, bootstrap e alterações do projeto selecionam a regressão completa, evitando ignorar uma funcionalidade nova por engano.
+O mapa fica em `tests/domains.psd1` e é usado tanto localmente quanto no CI. Ele inclui consumidores de componentes compartilhados: uma mudança em `JsonlTail`, por exemplo, seleciona armazenamento e todos os provedores; uma mudança em `PetInteraction` seleciona somente o mascote. Documentação não seleciona testes. Código sem regra, bootstrap e alterações do projeto selecionam a regressão completa, evitando ignorar uma funcionalidade nova por engano.
 
 Para conferir a seleção ou informar um escopo conhecido:
 
@@ -318,4 +343,4 @@ claude plugin test mod
 
 ## Marcas e afiliação
 
-O MiniInfos é um projeto independente e de código aberto, sem afiliação, patrocínio ou endosso da Anthropic ou da OpenAI. Claude é marca da Anthropic; ChatGPT, Codex e OpenAI são marcas da OpenAI. Os nomes aparecem só para indicar com quais apps o MiniInfos funciona. Os símbolos dessas marcas mostrados no app pertencem às respectivas empresas e não fazem parte da licença deste repositório.
+O MiniInfos é um projeto independente e de código aberto, sem afiliação, patrocínio ou endosso da Anthropic, da OpenAI, do Google ou da Moonshot AI. Claude é marca da Anthropic; ChatGPT, Codex e OpenAI são marcas da OpenAI; Gemini é marca do Google; Kimi é marca da Moonshot AI. Os nomes aparecem só para indicar com quais apps o MiniInfos funciona. Os símbolos dessas marcas mostrados no app pertencem às respectivas empresas e não fazem parte da licença deste repositório.

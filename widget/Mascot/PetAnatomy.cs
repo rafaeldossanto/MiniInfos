@@ -1,4 +1,8 @@
+#if AVALONIA
+using Avalonia;
+#else
 using System.Windows;
+#endif
 using System.Text.Json.Serialization;
 
 namespace MiniInfos.Mascot;

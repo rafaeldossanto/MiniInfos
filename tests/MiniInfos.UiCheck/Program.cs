@@ -19,7 +19,7 @@ internal static partial class Program
     {
         if (args.Contains("--help"))
         {
-            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization|All] [--quiet]");
+            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization,Conversations|All] [--quiet]");
             return 0;
         }
         CheckOptions options;
@@ -89,7 +89,8 @@ internal static partial class Program
                 CheckTray(tray!, summaries, window);
                 CheckViews(window);
                 CheckRefresh(window, summaries);
-                CheckPages(window, handle, providers.Count, pictures);
+                // Only the installed providers get a page: with live data, this PC decides how many.
+                CheckPages(window, handle, cards.Providers.Count, pictures);
                 CheckSplit(window, handle, pictures);
                 CheckNewWindow(cards, pictures);
                 CheckInstalls(cards, pictures);
@@ -102,9 +103,10 @@ internal static partial class Program
             RunSuite("Mascot", () => WithSettings(settings => CheckPet(cards, preferences, settings, pictures)));
             RunSuite("Community", () => WithSettings(settings => CheckCommunity(cards, preferences, settings, pictures)));
             RunSuite("Updates", () => CheckUpdateBanner(cards, preferences, pictures));
+            RunSuite("Conversations", () => WithSettings(settings => CheckConversations(cards, preferences, settings, pictures)));
             RunSuite("Providers", () =>
             {
-                if (!options.Includes("Cards")) CheckPages(window, handle, providers.Count, pictures);
+                if (!options.Includes("Cards")) CheckPages(window, handle, cards.Providers.Count, pictures);
                 CheckApps();
             });
         }

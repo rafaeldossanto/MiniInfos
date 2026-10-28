@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using MiniInfos.Infrastructure.Storage;
-using MiniInfos.Infrastructure.Windows;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Codex;
 
@@ -20,15 +20,15 @@ public static class CodexCli
         var codex = Find(
             CommandPath.Current(),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            DesktopApps.ExecutablePaths(true, "codex").Where(path => !DesktopApps.HasWindow("codex", window =>
+            DesktopApps.ExecutablePaths(true, "codex").Where(path => !OperatingSystem.IsWindows() || !DesktopApps.HasWindow("codex", window =>
                 string.Equals(path, window, StringComparison.OrdinalIgnoreCase))));
+        if (!OperatingSystem.IsWindows()) codex ??= HostPaths.AppBundles("Codex")
+            .Select(bundle => Path.Combine(bundle, "Contents", "Resources", "codex")).FirstOrDefault(CommandPath.IsExecutable);
         if (codex is null) return null;
 
-        // A batch file runs through cmd.exe: a process can't start one by itself.
-        var start = Path.GetExtension(codex).Equals(".cmd", StringComparison.OrdinalIgnoreCase)
-            ? new ProcessStartInfo(Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe", $"/d /s /c \"\"{codex}\" {AppServerArguments}\"")
-            : new ProcessStartInfo(codex, AppServerArguments);
+        var start = CommandRunner.StartInfo(codex, AppServerArguments);
         start.Environment["CODEX_HOME"] = CodexPaths.Root;
+        start.Environment["PATH"] = CommandPath.Current();
         return start;
     }
 
@@ -37,7 +37,9 @@ public static class CodexCli
     /// <param name="localAppData">The %LOCALAPPDATA% the desktop app keeps its copy under.</param>
     public static string? Find(string? path, string localAppData, IEnumerable<string>? runningExecutables = null) =>
         CommandPath.Find(path, "codex") ?? runningExecutables?.FirstOrDefault(candidate => File.Exists(candidate)
-            && Path.GetFileName(candidate).Equals("codex.exe", StringComparison.OrdinalIgnoreCase)) ?? DesktopCopy(localAppData);
+            && Path.GetFileName(candidate).Equals(OperatingSystem.IsWindows() ? "codex.exe" : "codex", StringComparison.OrdinalIgnoreCase)
+            && (OperatingSystem.IsWindows() || !candidate.Contains(".app/Contents/MacOS/", StringComparison.OrdinalIgnoreCase))
+            && CommandPath.IsExecutable(candidate)) ?? (OperatingSystem.IsWindows() ? DesktopCopy(localAppData) : null);
 
     /// <summary>
     /// The Codex desktop app keeps codex at %LOCALAPPDATA%\OpenAI\Codex\bin\&lt;build&gt;\codex.exe; a

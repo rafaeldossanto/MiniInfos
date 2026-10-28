@@ -40,15 +40,16 @@ internal static partial class Program
         var simpleHeight = card.Height;
         ChooseTheme(settings, ThemeChoice.Classic);
         Pump(TimeSpan.FromMilliseconds(700));
-        var artwork = Find<Image>(card, "AthenaArtwork");
+        var header = Find<CardHeader>(card, "Header");
+        var artwork = Find<Image>(header, "AthenaArtwork");
         Check(preferences.Theme == ThemeChoice.Classic && artwork.Visibility == Visibility.Visible
             && artwork.Source is not null && card.Height > simpleHeight,
             "Clássico adds Athena and measures its header immediately");
         Check(Preferences.Load().Theme == ThemeChoice.Classic, "the classic choice is kept for the next launch");
-        var band = Find<Grid>(card, "HeaderArt");
+        var band = Find<Grid>(header, "HeaderArt");
         Check(artwork.Source is BitmapImage original && original.UriSource.ToString().EndsWith("/Assets/athena-header.png")
             && band.Tag is false && band.Margin == new Thickness(0)
-            && Find<Grid>(card, "HeaderRegion").Height == 96 && Find<TextBlock>(card, "AppTitle").FontSize == 20,
+            && header.Height == 96 && Find<TextBlock>(header, "AppTitle").FontSize == 20,
             "the existing Classic key keeps its original artwork, overlay layout and header dimensions");
         Render(card, System.IO.Path.Combine(pictures, "card-classic.png"));
         Render(settings, System.IO.Path.Combine(pictures, "settings-classic.png"));
@@ -65,7 +66,7 @@ internal static partial class Program
 
         ChooseTheme(settings, ThemeChoice.ClassicDark);
         Pump(TimeSpan.FromMilliseconds(500));
-        var refresh = Find<Button>(card, "RefreshButton");
+        var refresh = Find<Button>(header, "RefreshButton");
         Check(!IsLight(face.Background) && band.Tag is true
             && band.TranslatePoint(new Point(), face).Y >= refresh.TranslatePoint(new Point(0, refresh.ActualHeight), face).Y
             && artwork.Source is BitmapImage dark && dark.UriSource.ToString().EndsWith("/Assets/athena-banner-dark.png")

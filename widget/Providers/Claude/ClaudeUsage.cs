@@ -16,8 +16,11 @@ public sealed class ClaudeUsage : IUsageProvider
     private static readonly TimeSpan FiveHours = TimeSpan.FromHours(5);
     private static readonly TimeSpan Week = TimeSpan.FromDays(7);
 
-    private readonly ClaudeUsageLedger _ledger = ClaudeUsageLedger.Load();
+    private readonly ClaudeUsageLedger _ledger;
+    private readonly TitleCache _titles = new();
     private FeedState? _lastFeed;
+
+    public ClaudeUsage(ClaudeUsageLedger? ledger = null) => _ledger = ledger ?? ClaudeUsageLedger.Load();
 
     public string Id => "claude";
 
@@ -51,6 +54,19 @@ public sealed class ClaudeUsage : IUsageProvider
             L.Text("Chat que respondeu por último"),
             feed.LimitsUpdated is { } updated ? L.Format("atualizado {0}", Format.Ago(updated, now)) : L.Text("sem dados ainda"),
             L.Text("Atualizar agora. Os % mudam quando um chat do Claude Code recebe resposta."));
+    }
+
+    /// <summary>Each chat of its transcripts: its name in the app (else its folder), and its context as the mod last wrote it.</summary>
+    public IReadOnlyList<Conversation> Conversations()
+    {
+        var contexts = (_lastFeed?.Chats ?? []).Where(chat => chat.Context?.Percent is not null)
+            .GroupBy(chat => chat.SessionId).ToDictionary(group => group.Key, group => group.MaxBy(chat => chat.UpdatedAt)!.Context!.Percent);
+        return _ledger.Sessions().Select(chat =>
+        {
+            var title = _titles.Of(chat.Session, () => ChatTitles.Custom(chat.Source.Path, chat.Session)) ?? chat.Source.Project ?? "Claude Code";
+            return new Conversation(Id, chat.Session, title, title == chat.Source.Project ? null : chat.Source.Project,
+                chat.LastAt, chat.Tokens, contexts.GetValueOrDefault(chat.Session));
+        }).ToArray();
     }
 
     public void Flush() => _ledger.Flush();

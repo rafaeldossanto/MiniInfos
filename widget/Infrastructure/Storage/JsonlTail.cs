@@ -66,10 +66,10 @@ public static class JsonlTail
     public static void ReadFolders<TCursor>(IReadOnlyList<string> roots, Dictionary<string, TCursor> cursors, Action<string, long> readFile)
     {
         var files = roots.SelectMany(root => SourceFiles.FileInfos(root, "*.jsonl", recursive: true))
-            .DistinctBy(file => file.FullName, StringComparer.OrdinalIgnoreCase).ToArray();
+            .DistinctBy(file => file.FullName, SourceFiles.PathComparer).ToArray();
         // A full copy supplies historical deltas before a shorter, partially copied session is read.
         foreach (var file in files.OrderByDescending(file => file.Length)) readFile(file.FullName, file.Length);
-        var seen = files.Select(file => file.FullName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var seen = files.Select(file => file.FullName).ToHashSet(SourceFiles.PathComparer);
         foreach (var gone in cursors.Keys.Where(path => !seen.Contains(path)).ToArray()) cursors.Remove(gone);
     }
 }
