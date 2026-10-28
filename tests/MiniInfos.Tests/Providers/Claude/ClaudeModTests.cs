@@ -44,6 +44,33 @@ public sealed class ClaudeModTests : IDisposable
     }
 
     [Fact]
+    public void TheInstalledCopyIsAvailableForDetectionWithoutSearchingOrRunningACommand()
+    {
+        var code = Claude("outside-path");
+        var mod = Mod([code], _ => 0);
+        Assert.True(mod.Install("plugin"));
+        var calls = _ran.Count;
+        var restored = new ClaudeMod(Remembered, () => throw new InvalidOperationException("Detection must not scan the drives."),
+            (_, _) => throw new InvalidOperationException("Detection must not run commands."));
+
+        Assert.Equal(code, restored.InstalledCode);
+        Assert.Equal(calls, _ran.Count);
+        File.Delete(code);
+        Assert.Null(restored.InstalledCode);
+    }
+
+    [Fact]
+    public void AnUnrelatedFileAtTheRememberedPathDoesNotKeepClaudeInstalled()
+    {
+        var code = Claude("replaced");
+        var mod = Mod([code], _ => 0);
+        Assert.True(mod.Install("plugin"));
+        File.WriteAllText(code, "@echo another program");
+
+        Assert.Null(mod.InstalledCode);
+    }
+
+    [Fact]
     public void ARememberedClaudeCodeThatIsGoneLeavesItToTheSearch()
     {
         var gone = Claude("gone");
@@ -59,9 +86,19 @@ public sealed class ClaudeModTests : IDisposable
     }
 
     [Fact]
-    public void WithoutAClaudeCodeThatTakesItTheModIsMissing()
+    public void ARefusedModDoesNotHideAnInstalledClaudeCodeFromTokenTracking()
     {
-        Assert.False(Mod([Claude("refuses")], _ => 1).Install("plugin"));
+        var code = Claude("refuses");
+        var mod = Mod([code], _ => 1);
+
+        Assert.False(mod.Install("plugin"));
+        Assert.Equal(code, mod.InstalledCode);
+        Assert.Equal(code, File.ReadAllText(Remembered));
+    }
+
+    [Fact]
+    public void WithoutAClaudeCodeTheModIsMissing()
+    {
         Assert.False(Mod([], _ => 0).Install("plugin"));
         Assert.False(File.Exists(Remembered));
     }
