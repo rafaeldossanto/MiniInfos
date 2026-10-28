@@ -90,19 +90,7 @@ jobs:
         run: python desktop/packaging/package.py --runtime ${{ matrix.runtime }}
       - name: Run the packaged executable
         shell: bash
-        run: |
-          export MINIINFOS_DATA_DIR="$RUNNER_TEMP/miniinfos-package-smoke"
-          if [ "$RUNNER_OS" = Linux ]; then
-            mkdir "$RUNNER_TEMP/unpacked"
-            tar -xzf desktop/dist/MiniInfos-*.tar.gz -C "$RUNNER_TEMP/unpacked"
-            "$RUNNER_TEMP/unpacked/MiniInfos/miniinfos" --diagnostics
-            xvfb-run -a "$RUNNER_TEMP/unpacked/MiniInfos/miniinfos" --smoke-ui
-          else
-            hdiutil attach desktop/dist/MiniInfos-*.dmg -mountpoint "$RUNNER_TEMP/miniinfos-dmg"
-            "$RUNNER_TEMP/miniinfos-dmg/MiniInfos.app/Contents/MacOS/MiniInfos.Desktop" --diagnostics
-            "$RUNNER_TEMP/miniinfos-dmg/MiniInfos.app/Contents/MacOS/MiniInfos.Desktop" --smoke-ui
-            hdiutil detach "$RUNNER_TEMP/miniinfos-dmg"
-          fi
+        run: desktop/packaging/run_package.sh
       - uses: actions/upload-artifact@v7
         with:
           name: app-${{ matrix.runtime }}

@@ -104,15 +104,14 @@ def zip_bundle(bundle: Path, output: Path) -> None:
 
 
 def sign_mac(bundle: Path, identity: str) -> None:
-    # Sign inner Mach-O code first, then the app host with the JIT entitlement .NET needs.
-    magic = {b"\xcf\xfa\xed\xfe", b"\xce\xfa\xed\xfe", b"\xca\xfe\xba\xbe", b"\xbe\xba\xfe\xca"}
+    # Everything in Contents/MacOS is code to the bundle's seal, the managed .dll files too (codesign keeps
+    # a non-Mach-O file's signature in its extended attributes): sign each, then the app host with the JIT
+    # entitlement .NET needs.
     main = bundle / "Contents/MacOS/MiniInfos.Desktop"
     flags = ["--timestamp", "--options", "runtime"] if identity != "-" else []
     for path in sorted((bundle / "Contents/MacOS").rglob("*")):
         if path.is_file() and path != main:
-            with path.open("rb") as source:
-                if source.read(4) in magic:
-                    run("codesign", "--force", "--sign", identity, *flags, str(path))
+            run("codesign", "--force", "--sign", identity, *flags, str(path))
     run("codesign", "--force", "--sign", identity, *flags, "--entitlements", str(DESKTOP / "packaging/entitlements.plist"), str(bundle))
     run("codesign", "--verify", "--deep", "--strict", str(bundle))
 
