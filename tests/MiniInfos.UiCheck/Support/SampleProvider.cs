@@ -1,7 +1,7 @@
 namespace MiniInfos.UiCheck;
 
 /// <summary>Deterministic data for UI checks: no session logs, CLI process or account request.</summary>
-internal sealed class SampleProvider(string id, string title) : IUsageProvider
+internal sealed class SampleProvider(string id, string title, bool hasLimits = true) : IUsageProvider
 {
     public string Id => id;
 
@@ -33,6 +33,6 @@ internal sealed class SampleProvider(string id, string title) : IUsageProvider
             MiniInfos.Localization.Localizer.Format("atualizado {0}", MiniInfos.Localization.Localizer.Text("agora")), "Atualizar dados de teste"));
 
         WindowLine Line(TimeSpan duration, double used) => new(
-            new PlanWindow(duration, new RateLimit("test", used, now.Add(duration).ToString("O"))), tokens);
+            new PlanWindow(duration, hasLimits ? new RateLimit("test", used, now.Add(duration).ToString("O")) : null), tokens);
     }
 }

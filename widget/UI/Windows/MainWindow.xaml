@@ -63,8 +63,9 @@
                 <local:CardHeader x:Name="Header" RefreshRequested="OnRefresh" DismissRequested="OnDismiss" />
 
                 <StackPanel Margin="16,12,16,12">
-                    <!-- One PageView per page on screen: one, or two side by side with a line between. -->
-                    <StackPanel x:Name="Columns" Orientation="Horizontal" />
+                    <ScrollViewer x:Name="PagesScroll" Style="{StaticResource CardPagesScroll}">
+                        <Grid x:Name="Columns" />
+                    </ScrollViewer>
 
                     <Grid Margin="0,12,0,0">
                         <!-- The gear, under the name: the settings window; beside it, the conversations card. -->

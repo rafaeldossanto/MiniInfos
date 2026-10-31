@@ -57,7 +57,7 @@ public sealed class AntigravityUsage : IUsageProvider
             groups.Length > 0 ? "" : L.Text("Abra o Antigravity para consultar os limites da conta."),
             L.Text("Os tokens incluem todos os modelos usados no Antigravity."),
             snapshot is not null ? L.Format("limites {0}", Format.Ago(snapshot.At, now)) : Format.LastResponse(latest?.At, now),
-            L.Text("Atualizar os tokens locais e consultar os limites pelo Antigravity aberto."), groups);
+            L.Text("Atualizar os tokens locais e consultar os limites pelo Antigravity aberto."), groups, tokens.History);
     }
 
     private static WindowLine Line(AntigravityQuota? quota, PlanWindow fallback, TokenCount tokens)

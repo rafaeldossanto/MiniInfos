@@ -31,8 +31,51 @@ public sealed class PageSelectionTests
         Assert.Equal([1, 0], PageSelection.Single(1, 2).SplitWith(1).Shown);
 
     [Fact]
-    public void ASplitCardTakesAnotherClickedPageInItsSecondPlace() =>
-        Assert.Equal([0, 1], PageSelection.Single(0, 3).SplitWith(2).SplitWith(1).Shown);
+    public void AddingAnotherPageKeepsEveryPageAlreadySelected() =>
+        Assert.Equal([0, 2, 1], PageSelection.Single(0, 3).SplitWith(2).SplitWith(1).Shown);
+
+    [Fact]
+    public void RepeatedAddsDoNotDuplicatePagesAndRemovingDoesNotCloseOtherPages()
+    {
+        var selected = PageSelection.Single(0, 5).SplitWith(2).SplitWith(4).SplitWith(1).SplitWith(3);
+        Assert.Equal([0, 2, 4, 1, 3], selected.Shown);
+        Assert.False(selected.CanTurn);
+        Assert.True(selected.SplitWith(2).SameAs(selected));
+        Assert.Equal([0, 4, 1, 3], selected.Remove(2).Shown);
+        Assert.Equal([2, 4, 1, 3], selected.Remove(0).Shown);
+        Assert.Equal([0], PageSelection.Single(0, 5).Remove(0).Shown);
+    }
+
+    [Fact]
+    public void RestoringAGridFiltersRemovedAndRepeatedProvidersWithoutChangingOrder() =>
+        Assert.Equal([3, 0, 2], PageSelection.Restore([3, -1, 0, 3, 8, 2], 4).Shown);
+
+    [Fact]
+    public void GridSettingsRoundtripAndOlderSplitSettingsStillRestore()
+    {
+        var grid = new CardSettings(10, 20, 1.2, true, "codex", "claude", ["codex", "claude", "gemini", "antigravity"]);
+        var restored = JsonSerializer.Deserialize<CardSettings>(JsonSerializer.Serialize(grid))!;
+        Assert.Equal(grid.SelectedPages, restored.SelectedPages);
+        Assert.Equal("codex", restored.Page);
+        Assert.Equal("claude", restored.BesidePage);
+        var legacy = JsonSerializer.Deserialize<CardSettings>("""{"Left":0,"Top":0,"Page":"codex","BesidePage":"claude"}""")!;
+        Assert.Equal(["codex", "claude"], legacy.SelectedPages);
+    }
+
+    [Theory]
+    [InlineData(1, 1200, 1, 1)]
+    [InlineData(2, 1200, 2, 1)]
+    [InlineData(4, 900, 2, 2)]
+    [InlineData(4, 2400, 2, 2)]
+    [InlineData(5, 900, 3, 2)]
+    [InlineData(12, 600, 2, 6)]
+    [InlineData(3, 200, 1, 3)]
+    public void CardsWrapIntoBalancedRowsInsteadOfLimitingTheSelection(int pages, double available, int columns, int rows)
+    {
+        var layout = CardGridLayout.Fit(pages, available, 296, 287);
+        Assert.Equal(columns, layout.Columns);
+        Assert.Equal(rows, layout.Rows);
+    }
 
     [Fact]
     public void WithOneProviderThereIsNothingToSplitWith() =>

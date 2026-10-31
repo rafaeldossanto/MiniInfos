@@ -53,7 +53,7 @@ public sealed class ClaudeUsage : IUsageProvider
             Activity(feed.Latest),
             L.Text("Chat que respondeu por último"),
             feed.LimitsUpdated is { } updated ? L.Format("atualizado {0}", Format.Ago(updated, now)) : L.Text("sem dados ainda"),
-            L.Text("Atualizar agora. Os % mudam quando um chat do Claude Code recebe resposta."));
+            L.Text("Atualizar agora. Os % mudam quando um chat do Claude Code recebe resposta."), History: tokens.History);
     }
 
     /// <summary>Each chat of its transcripts: its name in the app (else its folder), and its context as the mod last wrote it.</summary>

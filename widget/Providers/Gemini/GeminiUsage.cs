@@ -45,7 +45,7 @@ public sealed class GeminiUsage : IUsageProvider
             latest is null ? L.Text("Nenhuma conversa do Gemini CLI ainda") : latest.Label ?? "Gemini CLI",
             L.Text("Modelo que respondeu por último"),
             Format.LastResponse(latest?.At, now),
-            L.Text("Atualizar agora os dados locais. O Gemini não guarda a cota da conta no computador."));
+            L.Text("Atualizar agora os dados locais. O Gemini não guarda a cota da conta no computador."), History: tokens.History);
     }
 
     /// <summary>Each chat by its project's folder: Gemini CLI keeps no name for its chats.</summary>

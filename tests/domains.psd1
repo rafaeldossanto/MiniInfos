@@ -21,6 +21,7 @@
         Themes = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Settings.'; Suite = 'Themes' }
         Fonts = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.UI.Themes.'; Suite = 'Fonts' }
         Cards = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.UI.Windows.'; Suite = 'Cards' }
+        Charts = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.TokenSummaryTests|FullyQualifiedName~MiniInfos.Tests.UI.Windows.UsageChartLayoutTests|FullyQualifiedName~MiniInfos.Tests.Settings.PreferencesTests'; Suite = 'Charts' }
         Formatting = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.UI.Formatting.'; Suite = '' }
         Updates = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Updates.'; Suite = 'Updates' }
         Storage = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Infrastructure.Storage.'; Suite = '' }
@@ -65,6 +66,7 @@
         @{ Path = 'widget/UI/Windows/DialogWindow.cs'; Domains = @('Themes', 'Community', 'Mascot') }
         @{ Path = 'widget/UI/Windows/ThemeLibraryWindow.*'; Domains = @('Themes', 'Community') }
         @{ Path = 'widget/UI/Windows/SettingsWindow.*'; Domains = @('Settings', 'Themes', 'Fonts', 'Mascot', 'Community') }
+        @{ Path = 'widget/UI/Windows/MainWindow.*'; Domains = @('Cards', 'Charts', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Windows/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Themes/AppFonts.cs'; Domains = @('Fonts', 'Conversations') }
         @{ Path = 'widget/UI/Themes/ThemeOption.cs'; Domains = @('Themes', 'Fonts', 'Community') }
@@ -76,6 +78,8 @@
         @{ Path = 'widget/UI/Controls/NumericText.cs'; Domains = @('Cards', 'Fonts', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Controls/PackageCard.cs'; Domains = @('Community', 'Themes') }
         @{ Path = 'widget/UI/Controls/QuotaGroupsView.cs'; Domains = @('Antigravity', 'Cards') }
+        @{ Path = 'widget/UI/Controls/UsageChart.cs'; Domains = @('Charts') }
+        @{ Path = 'widget/UI/Controls/PageView.*'; Domains = @('Cards', 'Fonts', 'Updates', 'Charts') }
         @{ Path = 'widget/UI/Controls/*'; Domains = @('Cards', 'Fonts', 'Updates') }
         @{ Path = 'widget/UI/Styles/MenuStyles.xaml'; Domains = @('Cards', 'Themes', 'Mascot', 'Conversations') }
         @{ Path = 'widget/UI/Styles/SettingsStyles.xaml'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Community') }
@@ -93,12 +97,19 @@
         @{ Path = 'widget/Providers/Antigravity/*'; Domains = @('Antigravity') }
         @{ Path = 'widget/Providers/Gemini/*'; Domains = @('Gemini') }
         @{ Path = 'widget/Providers/Kimi/*'; Domains = @('Kimi') }
+        @{ Path = 'widget/Providers/Token*.cs'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Charts', 'Mascot', 'Conversations', 'Desktop') }
+        @{ Path = 'widget/Providers/UsagePage.cs'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Charts', 'Mascot', 'Conversations', 'Desktop') }
         @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Mascot', 'Conversations') }
         @{ Path = 'widget/Sources/*'; Domains = @('Sources', 'Claude', 'Codex', 'Kimi') }
+        @{ Path = 'widget/Settings/PageSelection.cs'; Domains = @('Cards', 'Settings', 'Desktop') }
+        @{ Path = 'widget/Settings/CardGridLayout.cs'; Domains = @('Cards', 'Desktop') }
+        @{ Path = 'widget/Settings/UsageChartLayout.cs'; Domains = @('Charts', 'Cards', 'Desktop') }
+        @{ Path = 'widget/Settings/CardSettings.cs'; Domains = @('Cards', 'Settings', 'Desktop') }
         @{ Path = 'widget/Settings/FontChoice.cs'; Domains = @('Fonts', 'Settings') }
         @{ Path = 'widget/Settings/ThemeChoice.cs'; Domains = @('Themes', 'Settings') }
         @{ Path = 'widget/Settings/CardSettings.cs'; Domains = @('Cards') }
         @{ Path = 'widget/Settings/ThemeHistory.cs'; Domains = @('Settings', 'Themes', 'Fonts', 'Community') }
+        @{ Path = 'widget/Settings/Preferences.cs'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations', 'Charts', 'Desktop') }
         @{ Path = 'widget/Settings/*'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/Updates/*'; Domains = @('Updates') }
         @{ Path = 'widget/Infrastructure/Storage/JsonlTail.cs'; Domains = @('Storage', 'Claude', 'Codex', 'Gemini', 'Kimi') }
@@ -133,6 +144,7 @@
         @{ Path = 'tests/MiniInfos.UiCheck/Themes/*'; Domains = @('Themes') }
         @{ Path = 'tests/MiniInfos.UiCheck/Fonts/*'; Domains = @('Fonts') }
         @{ Path = 'tests/MiniInfos.UiCheck/Antigravity/*'; Domains = @('Antigravity') }
+        @{ Path = 'tests/MiniInfos.UiCheck/Cards/UsageChartChecks.cs'; Domains = @('Charts') }
         @{ Path = 'tests/MiniInfos.UiCheck/Cards/*'; Domains = @('Cards') }
         @{ Path = 'tests/MiniInfos.UiCheck/Settings/*'; Domains = @('Settings') }
         @{ Path = 'tests/MiniInfos.UiCheck/Updates/*'; Domains = @('Updates') }

@@ -51,7 +51,7 @@ public sealed class KimiUsage : IUsageProvider
             Activity(latest, context),
             L.Text("Sessão que respondeu por último"),
             Format.LastResponse(latest?.At, now),
-            L.Text("Atualizar agora os dados locais. O Kimi não guarda os limites do plano no computador."));
+            L.Text("Atualizar agora os dados locais. O Kimi não guarda os limites do plano no computador."), History: tokens.History);
     }
 
     /// <summary>

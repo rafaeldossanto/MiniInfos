@@ -1,7 +1,7 @@
-namespace MiniInfos.UI.Windows;
+namespace MiniInfos.Settings;
 
 /// <summary>
-/// Which provider pages a card shows: one, or two side by side ("Visualização dividida"). The rules
+/// Which provider pages a card shows, in reading order. The rules
 /// live here, apart from the window, so they are tested on their own.
 /// </summary>
 /// <param name="Shown">The pages on screen, left to right, by their place in the provider list.</param>
@@ -24,20 +24,28 @@ public sealed record PageSelection(IReadOnlyList<int> Shown, int Count)
         return besidePage >= 0 && besidePage < count ? single.SplitWith(besidePage) : single;
     }
 
+    public static PageSelection Restore(IEnumerable<int> pages, int count)
+    {
+        var kept = pages.Where(page => page >= 0 && page < count).Distinct().ToArray();
+        return kept.Length > 0 ? new(kept, count) : Single(0, count);
+    }
+
     public bool Shows(int page) => Shown.Contains(page);
 
     /// <summary>
-    /// Splits the card: the clicked page goes beside the first one. Splitting from the first page's
-    /// own icon brings the page after it; when split already, the clicked page takes the second place.
+    /// Adds the clicked page without replacing another. From a single selected icon, adds the next page.
     /// </summary>
     public PageSelection SplitWith(int clicked)
     {
         if (Count < 2) return this;
 
-        var first = Shown[0];
-        var beside = clicked == first ? Wrap(first + 1, Count) : Wrap(clicked, Count);
-        return new PageSelection([first, beside], Count);
+        var page = Wrap(clicked, Count);
+        if (Shows(page)) return IsSplit ? this : new([Shown[0], Wrap(page + 1, Count)], Count);
+        return new PageSelection([.. Shown, page], Count);
     }
+
+    public PageSelection Remove(int page) => IsSplit && Shows(page)
+        ? new(Shown.Where(shown => shown != page).ToArray(), Count) : this;
 
     /// <summary>
     /// The arrows, the arrow keys and a swipe: a single page turns to the next one; a split card
@@ -45,6 +53,7 @@ public sealed record PageSelection(IReadOnlyList<int> Shown, int Count)
     /// </summary>
     public PageSelection Turn(int step)
     {
+        if (step == 0 || !CanTurn) return this;
         if (!IsSplit) return Single(Shown[0] + step, Count);
 
         for (var next = Wrap(Shown[^1] + step, Count); next != Shown[^1]; next = Wrap(next + step, Count))

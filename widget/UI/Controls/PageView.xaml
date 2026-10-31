@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:MiniInfos.UI.Controls"
         xmlns:loc="clr-namespace:MiniInfos.Localization"
              Width="262">
-    <!-- One provider's page: the card shows one, or two side by side. -->
+    <!-- One provider's page in the card's selected grid. -->
     <UserControl.Resources>
         <ResourceDictionary Source="/MiniInfos;component/UI/Styles/CardStyles.xaml" />
     </UserControl.Resources>
@@ -12,6 +12,7 @@
     <Grid>
         <!-- Hidden, not collapsed, until the first read: the page keeps the size it will have filled,
              each line holding a dash, while it says it is reading. -->
+        <StackPanel>
         <StackPanel x:Name="Numbers" Visibility="Hidden">
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
@@ -64,6 +65,8 @@
             </Grid>
 
             <TextBlock x:Name="ChatText" Text="—" Style="{StaticResource Caption}" Margin="0,8,0,0" />
+        </StackPanel>
+        <local:UsageChart x:Name="RecentUsage" Visibility="Collapsed" />
         </StackPanel>
         <TextBlock x:Name="Reading" Text="{loc:Text 'Lendo o histórico…'}" Style="{StaticResource Caption}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />

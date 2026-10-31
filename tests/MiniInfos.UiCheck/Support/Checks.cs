@@ -12,7 +12,7 @@ internal static partial class Program
         Pump(TimeSpan.FromMilliseconds(300));
         var openIn = (MenuItem)menu.Items[0];
         var items = openIn.Items.OfType<MenuItem>().ToList();
-        return (openIn, items.Single(item => item.Header as string == "Visualização dividida"),
+        return (openIn, items.Single(item => item.Tag as string == "add-page"),
             items.Single(item => item.Header as string == "Visualização única"),
             items.Single(item => item.Header as string == "Nova janela"));
     }
@@ -27,10 +27,13 @@ internal static partial class Program
         Pump(TimeSpan.FromSeconds(2));
     }
 
-    private static List<PageView> Columns(MainWindow window) => [.. Find<StackPanel>(window, "Columns").Children.OfType<PageView>()];
+    private static List<PageView> Columns(MainWindow window) => [.. Find<Grid>(window, "Columns").Children.OfType<PageView>()];
 
-    private static bool IconIsLit(StackPanel icons, int page) =>
-        ((System.Windows.Shapes.Path)((Button)icons.Children[page]).Content).Fill is SolidColorBrush { Color: { R: 0xED, G: 0xED, B: 0xED } };
+    private static bool IconIsLit(StackPanel icons, int page)
+    {
+        var icon = (System.Windows.Shapes.Path)((Button)icons.Children[page]).Content;
+        return icon.Fill is SolidColorBrush fill && icon.TryFindResource("PrimaryText") is SolidColorBrush primary && fill.Color == primary.Color;
+    }
 
     private static string Data => Environment.GetEnvironmentVariable("MINIINFOS_DATA_DIR")!;
 

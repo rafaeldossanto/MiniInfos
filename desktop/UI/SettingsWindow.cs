@@ -30,7 +30,7 @@ internal sealed class SettingsWindow : Window
     private string? _presentation;
     private void ThemeChanged()
     {
-        var key = $"{Preferences.ThemeKey}:{Preferences.TextFont}:{Preferences.NumberFont}:{L.Culture.Name}:{Preferences.PetEnabled}:{Preferences.PetSize}:{Preferences.PetId}:{Preferences.IsTopmost}:{Preferences.FollowsApps}";
+        var key = $"{Preferences.ThemeKey}:{Preferences.TextFont}:{Preferences.NumberFont}:{L.Culture.Name}:{Preferences.PetEnabled}:{Preferences.PetSize}:{Preferences.PetId}:{Preferences.IsTopmost}:{Preferences.FollowsApps}:{Preferences.AlwaysShowUsageChart}";
         if (_presentation == key) return;
         _presentation = key; Render();
     }
@@ -59,6 +59,9 @@ internal sealed class SettingsWindow : Window
     private StackPanel Appearance()
     {
         var panel = Stack(Text(L.Text("Tema"), P, 15)); panel.Spacing = 14;
+        panel.Children.Add(Check("Sempre mostrar minigráfico", Preferences.AlwaysShowUsageChart, value => Preferences.AlwaysShowUsageChart = value));
+        var chartHint = Text(L.Text("Consumo das últimas 6h em todos os cartões. Desativado, aparece automaticamente quando sobra espaço ao lado de uma página mais alta."), P, 11, true);
+        chartHint.TextWrapping = Avalonia.Media.TextWrapping.Wrap; panel.Children.Add(chartHint);
         foreach (var choice in Enum.GetValues<ThemeChoice>())
         {
             var label = choice switch { ThemeChoice.Simple => "Simples", ThemeChoice.Classic => "Clássico", ThemeChoice.Light => "Claro", ThemeChoice.System => "Sistema", ThemeChoice.ClassicLight => "Clássico claro", _ => "Clássico escuro" };

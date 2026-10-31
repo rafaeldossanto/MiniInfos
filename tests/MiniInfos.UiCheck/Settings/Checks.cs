@@ -58,6 +58,11 @@ internal static partial class Program
         Check(card.Topmost && Find<MenuItem>(card, "TopmostItem").IsChecked, "back on, it stays in front again");
 
         var follow = Find<CheckBox>(settings, "FollowToggle");
+        var chartToggle = Find<CheckBox>(settings, "UsageChartToggle");
+        chartToggle.IsChecked = true; Pump(TimeSpan.FromMilliseconds(200));
+        Check(preferences.AlwaysShowUsageChart && Find<UsageChart>(Columns(card)[0], "RecentUsage").IsVisible && SharedSettings().Contains("\"AlwaysShowUsageChart\":true"), "the appearance toggle immediately shows and saves the usage chart");
+        chartToggle.IsChecked = false; Pump(TimeSpan.FromMilliseconds(200));
+        Check(!Find<UsageChart>(Columns(card)[0], "RecentUsage").IsVisible, "the appearance toggle off returns a single card to automatic mode");
         follow.IsChecked = false;
         Check(!preferences.FollowsApps && SharedSettings().Contains("\"FollowsApps\":false"), "Acompanhar o Claude e o Codex off is kept");
         follow.IsChecked = true;

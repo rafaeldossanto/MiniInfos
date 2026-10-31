@@ -19,7 +19,7 @@ internal static partial class Program
     {
         if (args.Contains("--help"))
         {
-            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Antigravity,Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization,Conversations|All] [--quiet]");
+            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Antigravity,Cards,Charts,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization,Conversations|All] [--quiet]");
             return 0;
         }
         CheckOptions options;
@@ -93,10 +93,12 @@ internal static partial class Program
                 // Only the installed providers get a page: with live data, this PC decides how many.
                 CheckPages(window, handle, cards.Providers.Count, pictures);
                 CheckSplit(window, handle, pictures);
+                CheckMultiPage(preferences, pictures);
                 CheckNewWindow(cards, pictures);
                 CheckInstalls(cards, pictures);
                 CheckDragKeepsProportions(window, handle, "one page");
             });
+            RunSuite("Charts", () => CheckUsageCharts(preferences, pictures));
             RunSuite("Settings", () => CheckSettings(cards, preferences, pictures));
             RunSuite("Themes", () => WithSettings(settings => CheckThemes(cards, preferences, settings, pictures)));
             RunSuite("Localization", () => WithSettings(settings => CheckLocalization(cards, preferences, settings, pictures)));

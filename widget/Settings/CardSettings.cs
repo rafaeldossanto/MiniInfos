@@ -1,4 +1,5 @@
 using MiniInfos.Providers;
+using System.Text.Json.Serialization;
 
 namespace MiniInfos.Settings;
 
@@ -13,4 +14,11 @@ public sealed record CardSettings(
     double Scale = 1,
     bool IsDetailed = false,
     string? Page = null,
-    string? BesidePage = null);
+    string? BesidePage = null,
+    IReadOnlyList<string>? Pages = null)
+{
+    // Keep Page/BesidePage readable by older versions; newer versions restore the complete ordered selection.
+    [JsonIgnore]
+    public IReadOnlyList<string> SelectedPages => (Pages is { Count: > 0 } ? Pages : [Page ?? "", BesidePage ?? ""])
+        .Where(page => !string.IsNullOrWhiteSpace(page)).Distinct(StringComparer.Ordinal).ToArray();
+}

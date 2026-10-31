@@ -20,6 +20,8 @@ Siga também as instruções do diretório pai: DRY, Clean Code, SOLID e código
 
 ## Validação
 
+- Depois de concluir cada mudança e aprovar os testes do escopo afetado, faça o commit local da mudança. Inclua somente o trabalho concluído e validado; preserve alterações ainda em andamento fora do commit. Não faça push nem publique uma release sem solicitação.
+
 - Valide o domínio alterado e seus consumidores reais. Não execute toda a regressão, todos os cenários visuais ou o instalador a cada alteração isolada.
 - Use `./tests/run.ps1` para selecionar os domínios a partir dos arquivos alterados, incluindo arquivos novos e os dois caminhos de arquivos movidos. `./tests/run.ps1 -Plan` mostra a seleção sem executar testes.
 - Para um escopo explicitamente conhecido, use `./tests/run.ps1 -Domain Mascot` ou uma lista, como `-Domain Claude,Codex`. A seleção manual não calcula impacto: em mudanças compartilhadas, prefira a seleção automática.

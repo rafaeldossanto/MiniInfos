@@ -21,7 +21,8 @@ public sealed record AppSettings(
     string? PetId = null,
     IReadOnlyList<string>? RecentThemes = null,
     LanguageChoice Language = LanguageChoice.Automatic,
-    MainCardChoice MainCard = MainCardChoice.Usage);
+    MainCardChoice MainCard = MainCardChoice.Usage,
+    bool AlwaysShowUsageChart = false);
 
 /// <summary>
 /// The settings every card shares, saved the moment they change. The cards and the settings window
@@ -94,6 +95,13 @@ public sealed class Preferences : INotifyPropertyChanged
     {
         get => _settings.PetEnabled;
         set => Change(_settings with { PetEnabled = value });
+    }
+
+    /// <summary>Shows recent usage even without spare space beside a taller page.</summary>
+    public bool AlwaysShowUsageChart
+    {
+        get => _settings.AlwaysShowUsageChart;
+        set => Change(_settings with { AlwaysShowUsageChart = value });
     }
 
     public PetSizeChoice PetSize

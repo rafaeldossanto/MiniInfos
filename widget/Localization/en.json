@@ -346,8 +346,17 @@
   "Os tokens incluem todos os modelos usados no Antigravity.": "Tokens include all models used in Antigravity.",
   "{0} restante": "{0} remaining",
   "Limite indisponível": "Limit unavailable",
+  "Adicionar à visualização": "Add to this view",
+  "Remover desta visualização": "Remove from this view",
   "faltam {0}d {1}h para reiniciar": "{0}d {1}h left until reset",
   "faltam {0}h {1}min para reiniciar": "{0}h {1}min left until reset",
   "faltam {0}min para reiniciar": "{0}min left until reset",
-  "falta {0}min para reiniciar": "{0}min left until reset"
+  "falta {0}min para reiniciar": "{0}min left until reset",
+  "Sempre mostrar minigráfico": "Always show mini chart",
+  "Consumo das últimas 6h em todos os cartões. Desativado, aparece automaticamente quando sobra espaço ao lado de uma página mais alta.": "Usage over the last 6h on all cards. When off, it appears automatically in spare space beside a taller page.",
+  "Consumo recente": "Recent usage",
+  "últimas 6h": "last 6h",
+  "6h atrás": "6h ago",
+  "Sem consumo registrado nas últimas 6h": "No usage recorded in the last 6h",
+  "{0}–{1} · {2} tokens": "{0}–{1} · {2} tokens"
 }
