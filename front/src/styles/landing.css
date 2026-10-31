@@ -765,6 +765,14 @@
     line-height: 40px;
   }
 }
+@media (max-width: 1120px) {
+  .nav-download {
+    display: none;
+  }
+  .nav-island {
+    padding-inline: 24px;
+  }
+}
 @media (max-width: 960px) {
   .desktop-links,
   .nav-download {
