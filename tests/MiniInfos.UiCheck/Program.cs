@@ -19,7 +19,7 @@ internal static partial class Program
     {
         if (args.Contains("--help"))
         {
-            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization,Conversations|All] [--quiet]");
+            Console.WriteLine("MiniInfos.UiCheck [output-folder] [--suite Antigravity,Cards,Settings,Themes,Fonts,Mascot,Updates,Providers,Community,Localization,Conversations|All] [--quiet]");
             return 0;
         }
         CheckOptions options;
@@ -82,6 +82,7 @@ internal static partial class Program
             Check(Math.Abs(window.Height - height) < 2, "loading preserves the card size");
             var handle = new WindowInteropHelper(window).Handle;
 
+            RunSuite("Antigravity", () => CheckAntigravity(preferences, pictures));
             RunSuite("Cards", () =>
             {
                 CheckEdges(handle);

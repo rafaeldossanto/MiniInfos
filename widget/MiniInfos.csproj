@@ -24,6 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
     <!-- Windows Forms is here for the tray icon alone: its names stay out of the WPF code. -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />

@@ -77,6 +77,16 @@ public sealed class ResponseLedger
         }
     }
 
+    /// <summary>Imports counted responses from structured sources, keeping the same deduplication and persistence.</summary>
+    public void Import(string path, IEnumerable<LoggedResponse> responses)
+    {
+        lock (_gate)
+        {
+            foreach (var response in responses) Record(path, response);
+            _store.SaveIfDue(Stored());
+        }
+    }
+
     public TokenSummary Summarize(DateTimeOffset now, DateTimeOffset shortWindowStart, DateTimeOffset longWindowStart)
     {
         lock (_gate) return TokenSummary.Of(_messages.Values, now, shortWindowStart, longWindowStart);
@@ -119,7 +129,12 @@ public sealed class ResponseLedger
     private void Record(string path, ReadOnlySpan<byte> line)
     {
         if (line.IndexOf(_marker) < 0 || _read(path, line) is not { } response) return;
+        Record(path, response);
+    }
 
+    private void Record(string path, LoggedResponse response)
+    {
+        _store.Changed();
         if (_latest is null || response.Entry.At >= _latest.At) _latest = new LatestResponse(path, response.Entry.At, response.Label);
         var entry = response.Session is { } session ? response.Entry with { Session = session } : response.Entry;
         if (response.Session is { } id)

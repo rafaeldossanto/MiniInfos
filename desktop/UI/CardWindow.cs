@@ -21,10 +21,11 @@ internal sealed class CardWindow : Window
     private bool _sizing;
     private ContextMenu? _menu;
     private bool _pendingRender;
+    private double _designHeight;
     private Presentation? _presentation;
     private sealed record Presentation(Palette Palette, string Providers, string Page, string? Beside, bool Detailed, UsagePage? First, UsagePage? Second);
     private double DesignWidth => _state.BesidePage is null ? 300 : 600;
-    private double DesignHeight => Colors.HeaderHeight + 290;
+    private double DesignHeight => _designHeight > 0 ? _designHeight : Colors.HeaderHeight + 290;
     private Palette Colors => _session.Palette;
     private string Selected => _state.Page is { } page && _session.Providers.Any(provider => provider.Id == page) ? page : _session.Providers[0].Id;
     public bool Shows(string providerId) => IsVisible && (Selected == providerId || _state.BesidePage == providerId);
@@ -69,7 +70,6 @@ internal sealed class CardWindow : Window
         if (presentation == _presentation) return;
         _presentation = presentation;
         MinWidth = _state.BesidePage is null ? 260 : 520;
-        MinHeight = DesignHeight * MinWidth / DesignWidth;
         Topmost = _session.Preferences.IsTopmost;
         var content = new StackPanel();
         var header = new Grid { Height = p.HeaderHeight, Margin = new Thickness(0, 0, 0, p.Artwork is null ? 0 : 6) };
@@ -115,6 +115,7 @@ internal sealed class CardWindow : Window
         foreach (var provider in _session.Providers)
         {
             var button = Button(Glyph(provider.Id), () => Select(provider.Id), provider.Id);
+            if (provider.Id == "antigravity") button.Content = new PathIcon { Data = Geometry.Parse(AntigravitySymbol), Width = 14, Height = 14, Foreground = p["PrimaryText"] };
             button.Opacity = provider.Id == Selected || provider.Id == _state.BesidePage ? 1 : 0.38;
             button.Background = Brushes.Transparent; button.BorderThickness = new Thickness(0); button.Padding = new Thickness(4, 1);
             Avalonia.Automation.AutomationProperties.SetName(button, provider.Id);
@@ -136,7 +137,11 @@ internal sealed class CardWindow : Window
         };
         layers.Children.Add(resize);
         var border = new Border { Background = p["CardBackground"], BorderBrush = p["CardBorder"], BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), ClipToBounds = true, Child = layers };
-        border.Width = DesignWidth; border.Height = DesignHeight;
+        border.Width = DesignWidth;
+        border.Measure(new Size(DesignWidth, double.PositiveInfinity));
+        _designHeight = Math.Max(Colors.HeaderHeight + 290, border.DesiredSize.Height);
+        border.Height = DesignHeight;
+        MinHeight = DesignHeight * MinWidth / DesignWidth;
         _menu = Context();
         _menu.Closed += (_, _) => { if (_pendingRender) { _pendingRender = false; Render(); } };
         border.ContextMenu = _menu;
@@ -151,8 +156,16 @@ internal sealed class CardWindow : Window
         var title = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         var label = Text(page.Title, p, 13); label.FontWeight = FontWeight.SemiBold; title.Children.Add(label);
         var note = Text(page.Updated, p, 10, dim: true); Grid.SetColumn(note, 1); title.Children.Add(note); panel.Children.Add(title);
-        panel.Children.Add(WindowLine(page.ShortWindow, page.TokensOrigin));
-        panel.Children.Add(WindowLine(page.LongWindow, page.TokensOrigin));
+        if (page.QuotaGroups is { } groups)
+        {
+            foreach (var group in groups) panel.Children.Add(QuotaGroup(group));
+            if (groups.Count == 0) panel.Children.Add(Text(page.Activity, p, 11, true));
+        }
+        else
+        {
+            panel.Children.Add(WindowLine(page.ShortWindow, page.TokensOrigin));
+            panel.Children.Add(WindowLine(page.LongWindow, page.TokensOrigin));
+        }
         panel.Children.Add(Line(p));
         var counts = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*") };
         var today = Stack(Text(L.Text("Tokens hoje"), p, 11, true), Number(page.Today.Total));
@@ -160,8 +173,40 @@ internal sealed class CardWindow : Window
         ToolTip.SetTip(today, Format.Breakdown(page.Today, Count) + "\n" + page.TokensOrigin);
         ToolTip.SetTip(total, Format.Breakdown(page.Total, Count) + "\n" + page.TokensOrigin);
         Grid.SetColumn(total, 1); counts.Children.Add(today); counts.Children.Add(total); panel.Children.Add(counts);
-        var activity = Text(page.Activity, p, 11, true); ToolTip.SetTip(activity, page.Activity + "\n" + page.ActivityHint); panel.Children.Add(activity);
+        if (page.QuotaGroups is null)
+        {
+            var activity = Text(page.Activity, p, 11, true); ToolTip.SetTip(activity, page.Activity + "\n" + page.ActivityHint); panel.Children.Add(activity);
+        }
         return panel;
+    }
+
+    private StackPanel QuotaGroup(UsageQuotaGroup group)
+    {
+        var p = Colors; var now = DateTimeOffset.Now;
+        var panel = Stack(); panel.Spacing = 3;
+        var separator = Line(p); separator.Margin = new Thickness(0, 1, 0, 3); panel.Children.Add(separator);
+        var title = Text(group.Title, p, 13); title.FontWeight = FontWeight.SemiBold; panel.Children.Add(title);
+        if (!string.IsNullOrEmpty(group.Models)) panel.Children.Add(Text(group.Models, p, 10, true));
+        var meters = new Grid();
+        foreach (var window in group.Windows)
+        {
+            var index = meters.Children.Count;
+            meters.ColumnDefinitions.Add(new ColumnDefinition());
+            var active = window.Limit is { } limit && (limit.ResetsAtTime is not { } at || at > now);
+            var used = active ? Math.Clamp(window.Limit!.PercentUsed, 0, 100) : 0;
+            var heading = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            heading.Children.Add(Text(window.Length == TimeSpan.FromDays(1) ? L.Text("Diário") : Format.WindowLabel(window.Length), p, 11));
+            var percent = Text(active ? Format.Percent(used) : "—", p, 11, number: true); Grid.SetColumn(percent, 1); heading.Children.Add(percent);
+            var bar = new ProgressBar { Minimum = 0, Maximum = 100, Value = used, Height = 3, Background = p["Track"], Foreground = p[used >= 90 ? "Danger" : used >= 70 ? "Warning" : "Accent"] };
+            var detail = active ? L.Format("{0} restante", Format.Percent(100 - used)) : L.Text("Limite indisponível");
+            if (window.Limit?.ResetsAtTime is { } reset) detail += " · " + Format.Reset(reset, now);
+            var meter = Stack(heading, bar); meter.Spacing = 3;
+            if (group.Windows.Count == 1) meter.Children.Add(Text(detail, p, 10, true));
+            ToolTip.SetTip(meter, detail);
+            meter.Margin = new Thickness(index == 0 ? 0 : 6, 0, index < group.Windows.Count - 1 ? 6 : 0, 0);
+            Grid.SetColumn(meter, index); meters.Children.Add(meter);
+        }
+        panel.Children.Add(meters); return panel;
     }
     private StackPanel WindowLine(Providers.WindowLine line, string origin)
     {
@@ -169,7 +214,7 @@ internal sealed class CardWindow : Window
         var active = line.Window.Limit is { } limit && (limit.ResetsAtTime is not { } reset || reset > now);
         var percent = active ? line.Window.Limit!.PercentUsed : 0;
         var heading = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        heading.Children.Add(Text(Format.WindowLabel(line.Window.Length), p));
+        heading.Children.Add(Text(line.Label ?? Format.WindowLabel(line.Window.Length), p));
         var value = Text(active ? Format.Percent(percent) : "—", p, number: true); Grid.SetColumn(value, 1); heading.Children.Add(value);
         var bar = new ProgressBar { Value = Math.Clamp(percent, 0, 100), Minimum = 0, Maximum = 100, Height = 5,
             Background = p["Track"], Foreground = p[percent >= 90 ? "Danger" : percent >= 70 ? "Warning" : "Accent"] };
@@ -184,6 +229,8 @@ internal sealed class CardWindow : Window
         var text = Text(Count(value), Colors, 18, number: true); text.FontWeight = FontWeight.SemiBold;
         return new Viewbox { Child = text, Height = 25, Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly, HorizontalAlignment = HorizontalAlignment.Left };
     }
+    // Official silhouette, matching UI/Icons/ProviderIcons.xaml: https://antigravity.google/favicon.svg
+    private const string AntigravitySymbol = "M89.6992 93.695C94.3659 97.195 101.366 94.8617 94.9492 88.445C75.6992 69.7783 79.7825 18.445 55.8659 18.445C31.9492 18.445 36.0325 69.7783 16.7825 88.445C9.78251 95.445 17.3658 97.195 22.0325 93.695C40.1159 81.445 38.9492 59.8617 55.8659 59.8617C72.7825 59.8617 71.6159 81.445 89.6992 93.695Z";
     private static string Glyph(string id) => id switch { "claude" => "✳", "codex" => "◇", "gemini" => "✦", _ => "◈" };
     private ContextMenu Context()
     {

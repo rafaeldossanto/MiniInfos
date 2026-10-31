@@ -365,7 +365,7 @@ public partial class MainWindow : Window, ISettingsCard
     {
         for (var column = 0; column < _columns.Count; column++)
         {
-            _columns[column].Show(pages[_selection.Shown[column]], now, CountText);
+            _isMeasureDue |= _columns[column].Show(pages[_selection.Shown[column]], now, CountText);
         }
 
         var first = pages[_selection.Shown[0]];

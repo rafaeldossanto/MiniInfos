@@ -11,4 +11,4 @@ public sealed record PlanWindow(TimeSpan Length, RateLimit? Limit)
 }
 
 /// <summary>One window as a page draws it: the plan's reading and the tokens counted inside it.</summary>
-public sealed record WindowLine(PlanWindow Window, TokenCount Tokens);
+public sealed record WindowLine(PlanWindow Window, TokenCount Tokens, string? Label = null);
