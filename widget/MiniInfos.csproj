@@ -11,7 +11,7 @@
     <AssemblyName>MiniInfos</AssemblyName>
     <ApplicationIcon>Assets\MiniInfos.ico</ApplicationIcon>
     <!-- The one version: build.ps1 hands it to the installer, and the app tells it to codex. -->
-    <Version>1.16.1</Version>
+    <Version>1.17.0</Version>
     <!-- The source-generated P/Invoke in DesktopApps. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
