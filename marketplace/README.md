@@ -19,6 +19,8 @@ O catálogo público fica neste mesmo repositório, em `marketplace/packages/`. 
 
 ## Publicar no catálogo
 
+Você também pode usar **Comunidade → Enviar criação** no site do MiniInfos para preparar e testar o pacote sem editar JSON. Quando o serviço de envio estiver habilitado, o formulário recebe os arquivos e abre a revisão automaticamente; não é necessário fazer um fork ou abrir o PR manualmente. O validador do aplicativo e a aprovação do mantenedor continuam obrigatórios antes da publicação. A prévia e a exportação local funcionam mesmo com o envio indisponível. O processo manual abaixo continua disponível.
+
 1. Crie e teste seu pacote seguindo o [guia do formato abaixo](#criar-seu-primeiro-pacote). Use arte própria ou que você tenha permissão para redistribuir; mantenha os créditos e cumpra a licença das fontes usadas.
 2. Faça um fork deste repositório e adicione `marketplace/packages/<id>/`, com `manifest.json`, PNGs e, se necessário, créditos em `README.md` ou um arquivo de licença. O nome da pasta precisa ser igual ao ID do manifesto.
 3. Preencha autor, versão e uma licença real. `UNLICENSED` é apenas o marcador do modelo. Um pacote tem até 8 MB compactado; IDs são únicos entre temas e mascotes.

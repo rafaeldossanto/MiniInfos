@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#181818" />
+    <title data-i18n="Comunidade — Temas e mascotes para o MiniInfos">
+      Comunidade — Temas e mascotes para o MiniInfos
+    </title>
+    <meta
+      name="description"
+      content="Explore temas e mascotes do MiniInfos. Veja as prévias, baixe os pacotes publicados e aprenda a compartilhar suas criações."
+      data-i18n-content="Explore temas e mascotes do MiniInfos. Veja as prévias, baixe os pacotes publicados e aprenda a compartilhar suas criações."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Comunidade — Temas e mascotes para o MiniInfos"
+      data-i18n-content="Comunidade — Temas e mascotes para o MiniInfos"
+    />
+    <meta
+      property="og:description"
+      content="Um MiniInfos. Do seu jeito."
+      data-i18n-content="Um MiniInfos. Do seu jeito."
+    />
+    <meta property="og:url" content="https://miniinfos.com/comunidade" />
+    <meta property="og:image" content="https://miniinfos.com/art/social-preview.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://miniinfos.com/comunidade" />
+    <link rel="alternate" hreflang="pt-BR" href="https://miniinfos.com/comunidade" />
+    <link rel="alternate" hreflang="en" href="https://miniinfos.com/en/community" />
+    <link rel="alternate" hreflang="x-default" href="https://miniinfos.com/comunidade" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/Manrope-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/Manrope-SemiBold.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/landing.css" />
+    <link rel="stylesheet" href="/src/styles/language.css" />
+    <link rel="stylesheet" href="/src/styles/widget.css" />
+    <link rel="stylesheet" href="/src/styles/community.css" />
+    <link rel="stylesheet" href="/src/styles/creation.css" />
+    <script>
+      try {
+        if (localStorage.getItem('miniinfos.site.theme') === 'light')
+          document.documentElement.dataset.theme = 'light';
+      } catch {}
+    </script>
+    <script type="module" src="/src/community.ts"></script>
+  </head>
+  <body class="community-page">
+    <a class="skip-link" href="#conteudo" data-i18n="Pular para o conteúdo"
+      >Pular para o conteúdo</a
+    >
+    <!-- site:header -->
+    <main id="conteudo" class="container community-main">
+      <nav
+        class="community-breadcrumb"
+        aria-label="Você está aqui"
+        data-i18n-aria-label="Você está aqui"
+      >
+        <a href="/" data-i18n="Início">Início</a><span aria-hidden="true">/</span
+        ><span data-i18n="Comunidade">Comunidade</span>
+      </nav>
+      <section class="community-intro" aria-labelledby="community-heading">
+        <div>
+          <h1 id="community-heading">
+            <span data-i18n="Um MiniInfos.">Um MiniInfos.</span><br /><span
+              data-i18n="Do seu jeito."
+              >Do seu jeito.</span
+            >
+          </h1>
+          <p data-i18n="Descubra temas e mascotes para deixar seu canto com a sua cara.">
+            Descubra temas e mascotes para deixar seu canto com a sua cara.
+          </p>
+        </div>
+        <a class="community-button" href="#enviar" data-open-creator
+          ><svg aria-hidden="true"><use href="/icons.svg#plus" /></svg
+          ><span data-i18n="Enviar criação">Enviar criação</span></a
+        >
+      </section>
+      <section
+        class="community-catalog"
+        aria-label="Catálogo de temas e mascotes"
+        data-i18n-aria-label="Catálogo de temas e mascotes"
+      >
+        <div class="catalog-toolbar">
+          <div
+            class="catalog-filters"
+            role="group"
+            aria-label="Tipo de pacote"
+            data-i18n-aria-label="Tipo de pacote"
+          >
+            <button type="button" data-catalog-filter="all" aria-pressed="true" data-i18n="Todos">
+              Todos
+            </button>
+            <button
+              type="button"
+              data-catalog-filter="theme"
+              aria-pressed="false"
+              data-i18n="Temas"
+            >
+              Temas
+            </button>
+            <button
+              type="button"
+              data-catalog-filter="mascot"
+              aria-pressed="false"
+              data-i18n="Mascotes"
+            >
+              Mascotes
+            </button>
+          </div>
+          <label class="catalog-search">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <span class="sr-only" data-i18n="Buscar temas e mascotes">Buscar temas e mascotes</span>
+            <input
+              type="search"
+              data-catalog-search
+              maxlength="100"
+              placeholder="Buscar temas e mascotes"
+              data-i18n-placeholder="Buscar temas e mascotes"
+            />
+          </label>
+          <label class="catalog-sort"
+            ><span class="sr-only" data-i18n="Ordenar pacotes">Ordenar pacotes</span>
+            <select
+              data-catalog-sort
+              aria-label="Ordenar pacotes"
+              data-i18n-aria-label="Ordenar pacotes"
+            >
+              <option value="featured" data-i18n="Destaques">Destaques</option>
+              <option value="recent" data-i18n="Mais recentes">Mais recentes</option>
+              <option value="name" data-i18n="Nome de A a Z">Nome de A a Z</option>
+            </select>
+          </label>
+        </div>
+        <div class="catalog-notice">
+          <p
+            data-catalog-status
+            role="status"
+            aria-live="polite"
+            data-i18n="Carregando pacotes da comunidade…"
+          >
+            Carregando pacotes da comunidade…
+          </p>
+          <button
+            class="catalog-retry"
+            type="button"
+            data-catalog-retry
+            hidden
+            data-i18n="Tentar novamente"
+          >
+            Tentar novamente
+          </button>
+        </div>
+        <div data-catalog-results></div>
+        <div class="catalog-empty" data-catalog-empty hidden>
+          <svg aria-hidden="true"><use href="/icons.svg#eye" /></svg>
+          <h2 data-i18n="Nenhum pacote encontrado">Nenhum pacote encontrado</h2>
+          <p data-i18n="Tente outro nome, autor ou tipo de pacote.">
+            Tente outro nome, autor ou tipo de pacote.
+          </p>
+          <button
+            type="button"
+            class="community-button"
+            data-catalog-clear
+            data-i18n="Limpar busca e filtros"
+          >
+            Limpar busca e filtros
+          </button>
+        </div>
+        <noscript
+          ><p class="catalog-no-script">
+            <span data-i18n="Ative o JavaScript para explorar as prévias."
+              >Ative o JavaScript para explorar as prévias.</span
+            >
+            <a
+              href="https://github.com/rafaeldossanto/MiniInfos/releases/tag/catalog"
+              data-i18n="Veja os pacotes publicados no GitHub."
+              >Veja os pacotes publicados no GitHub.</a
+            >
+          </p></noscript
+        >
+      </section>
+      <aside class="community-how">
+        <svg aria-hidden="true"><use href="/icons.svg#file" /></svg>
+        <div>
+          <h2 data-i18n="Baixou um pacote?">Baixou um pacote?</h2>
+          <p
+            data-i18n="No MiniInfos, abra Configurações e escolha Adicionar tema ou Adicionar mascote. Depois, selecione o arquivo .miniinfos que você baixou."
+          >
+            No MiniInfos, abra Configurações e escolha Adicionar tema ou Adicionar mascote. Depois,
+            selecione o arquivo .miniinfos que você baixou.
+          </p>
+        </div>
+        <a
+          href="https://github.com/rafaeldossanto/MiniInfos/tree/main/marketplace#usar-e-compartilhar"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-i18n="Ver o guia"
+          >Ver o guia</a
+        >
+      </aside>
+    </main>
+    <!-- site:footer -->
+    <dialog class="package-dialog" data-package-dialog aria-labelledby="package-dialog-title">
+      <div class="package-dialog-top">
+        <span data-dialog-kind></span
+        ><button
+          class="icon-button"
+          type="button"
+          data-dialog-close
+          aria-label="Fechar detalhes"
+          data-i18n-aria-label="Fechar detalhes"
+        >
+          <svg aria-hidden="true"><use href="/icons.svg#close" /></svg>
+        </button>
+      </div>
+      <div data-dialog-preview class="package-dialog-preview"></div>
+      <h2 id="package-dialog-title"></h2>
+      <p data-dialog-author></p>
+      <p data-dialog-description></p>
+      <dl data-dialog-metadata></dl>
+      <p class="package-dialog-help" data-dialog-help></p>
+      <div class="package-dialog-actions" data-dialog-actions></div>
+    </dialog>
+    <p class="sr-only" role="status" aria-live="polite" id="theme-status"></p>
+  </body>
+</html>

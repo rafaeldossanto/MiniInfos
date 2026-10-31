@@ -330,5 +330,20 @@
   "{0} conversas · {1} tokens": "{0} conversations · {1} tokens",
   "Cartão principal": "Main card",
   "O que abre junto com as IAs, com o Windows e pela bandeja. O outro abre pelo botão ao lado da engrenagem.": "What opens with your AI apps, with Windows and from the tray. The other opens from the button beside the gear.",
-  "Uso": "Usage"
+  "Uso": "Usage",
+  "Dos registros locais do Antigravity encontrados automaticamente.": "From automatically discovered local Antigravity records.",
+  "Nenhuma resposta do Antigravity ainda": "No Antigravity responses yet",
+  "Conversas do Antigravity": "Antigravity conversations",
+  "Tokens das respostas registradas pelo agente": "Tokens from responses recorded by the agent",
+  "Atualizar agora os dados locais do Antigravity. As janelas contam tokens, não a cota da conta.": "Refresh local Antigravity data now. Windows count tokens, not the account quota.",
+  "Cada barra mostra o grupo com maior consumo naquela janela. Os tokens somam todos os grupos.": "Each bar shows the group with the highest usage in that window. Tokens include all groups.",
+  "Limites por grupo de modelos": "Limits by model group",
+  "Abra o Antigravity para consultar os limites da conta.": "Open Antigravity to check account limits.",
+  "limites {0}": "limits {0}",
+  "Atualizar os tokens locais e consultar os limites pelo Antigravity aberto.": "Refresh local tokens and check limits through the running Antigravity app.",
+  "Diário": "Daily",
+  "Claude e GPT": "Claude and GPT",
+  "Os tokens incluem todos os modelos usados no Antigravity.": "Tokens include all models used in Antigravity.",
+  "{0} restante": "{0} remaining",
+  "Limite indisponível": "Limit unavailable"
 }

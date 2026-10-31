@@ -1,3 +1,24 @@
+.download-recommendation {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.download-recommended {
+  display: inline-flex;
+  padding: 4px 8px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+.download-recommendation[hidden],
+.download-recommended[hidden] {
+  display: none;
+}
 .download-shortcuts {
   display: flex;
   flex-wrap: wrap;
@@ -13,7 +34,11 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 600;
-  transition: background-color 700ms var(--ease), color 700ms var(--ease), border-color 700ms var(--ease), transform 700ms var(--ease);
+  transition:
+    background-color 700ms var(--ease),
+    color 700ms var(--ease),
+    border-color 700ms var(--ease),
+    transform 700ms var(--ease);
 }
 .download-shortcuts a[data-detected='true'] {
   color: var(--text);
@@ -23,11 +48,21 @@
   background: var(--surface-raised);
   color: var(--text);
 }
-.download-platform a:hover { background: var(--accent); color: var(--accent-text); }
-.download-platform a:hover [data-download-state] { color: inherit; }
+.download-platform a:hover {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.download-platform a:hover [data-download-state] {
+  color: inherit;
+}
 .download-shortcuts a:active,
-.download-platform a:active { transform: translateY(1px); }
-.download-shortcuts a:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.download-platform a:active {
+  transform: translateY(1px);
+}
+.download-shortcuts a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
 .download-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -42,10 +77,25 @@
   border-radius: 16px;
   background: var(--surface);
 }
-.download-platform[data-detected='true'], .download-platform:target { border-color: var(--text); }
-.download-platform:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
-.download-platform h3 { font-size: 20px; line-height: 28px; margin-bottom: 8px; }
-.download-platform p { font-size: 14px; line-height: 20px; color: var(--muted); margin-bottom: 24px; }
+.download-platform[data-detected='true'],
+.download-platform:target {
+  border-color: var(--text);
+}
+.download-platform:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.download-platform h3 {
+  font-size: 20px;
+  line-height: 28px;
+  margin-bottom: 8px;
+}
+.download-platform p {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
 .download-platform a {
   display: flex;
   justify-content: space-between;
@@ -58,10 +108,30 @@
   margin-top: 8px;
   font-size: 14px;
   line-height: 20px;
-  transition: background-color 700ms var(--ease), color 700ms var(--ease), transform 700ms var(--ease);
+  transition:
+    background-color 700ms var(--ease),
+    color 700ms var(--ease),
+    transform 700ms var(--ease);
 }
-.download-platform [data-download-state] { color: var(--muted); font-size: 12px; line-height: 16px; }
-.download-platform a[data-available='true'] [data-download-state] { color: var(--text); }
-.download-platform a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 4px; }
-#downloads, .download-platform { scroll-margin-top: 96px; }
-@media (max-width: 760px) { .download-grid { grid-template-columns: 1fr; } }
+.download-platform [data-download-state] {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.download-platform a[data-available='true'] [data-download-state] {
+  color: var(--text);
+}
+.download-platform a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+#downloads,
+.download-platform {
+  scroll-margin-top: 96px;
+}
+@media (max-width: 760px) {
+  .download-grid {
+    grid-template-columns: 1fr;
+  }
+}

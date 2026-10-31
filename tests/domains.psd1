@@ -11,6 +11,7 @@
         Mascot = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Mascot.'; Suite = 'Mascot' }
         Claude = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Claude.'; Suite = '' }
         Codex = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Codex.'; Suite = '' }
+        Antigravity = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Antigravity.'; Suite = 'Antigravity' }
         Gemini = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Gemini.'; Suite = '' }
         Kimi = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.Kimi.'; Suite = '' }
         Providers = @{ Filter = 'FullyQualifiedName~MiniInfos.Tests.Providers.PlanWindowTests|FullyQualifiedName~MiniInfos.Tests.Providers.TokenSummaryTests|FullyQualifiedName~MiniInfos.Tests.Providers.InstalledProvidersTests'; Suite = '' }
@@ -74,12 +75,13 @@
         @{ Path = 'widget/UI/Controls/ConversationView.*'; Domains = @('Conversations') }
         @{ Path = 'widget/UI/Controls/NumericText.cs'; Domains = @('Cards', 'Fonts', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Controls/PackageCard.cs'; Domains = @('Community', 'Themes') }
+        @{ Path = 'widget/UI/Controls/QuotaGroupsView.cs'; Domains = @('Antigravity', 'Cards') }
         @{ Path = 'widget/UI/Controls/*'; Domains = @('Cards', 'Fonts', 'Updates') }
         @{ Path = 'widget/UI/Styles/MenuStyles.xaml'; Domains = @('Cards', 'Themes', 'Mascot', 'Conversations') }
         @{ Path = 'widget/UI/Styles/SettingsStyles.xaml'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Community') }
         @{ Path = 'widget/UI/Styles/*'; Domains = @('Cards', 'Settings', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/UI/Icons/*'; Domains = @('Cards', 'Conversations') }
-        @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Updates') }
+        @{ Path = 'widget/UI/Formatting/*'; Domains = @('Formatting', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Updates') }
         @{ Path = 'widget/Assets/Fonts/*'; Domains = @('Fonts') }
         @{ Path = 'widget/Assets/athena-owl-*'; Domains = @('Mascot') }
         @{ Path = 'widget/Assets/athena-header.png'; Domains = @('Themes') }
@@ -88,9 +90,10 @@
         @{ Path = 'widget/Mascot/*'; Domains = @('Mascot') }
         @{ Path = 'widget/Providers/Claude/*'; Domains = @('Claude') }
         @{ Path = 'widget/Providers/Codex/*'; Domains = @('Codex') }
+        @{ Path = 'widget/Providers/Antigravity/*'; Domains = @('Antigravity') }
         @{ Path = 'widget/Providers/Gemini/*'; Domains = @('Gemini') }
         @{ Path = 'widget/Providers/Kimi/*'; Domains = @('Kimi') }
-        @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Mascot', 'Conversations') }
+        @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Mascot', 'Conversations') }
         @{ Path = 'widget/Sources/*'; Domains = @('Sources', 'Claude', 'Codex', 'Kimi') }
         @{ Path = 'widget/Settings/FontChoice.cs'; Domains = @('Fonts', 'Settings') }
         @{ Path = 'widget/Settings/ThemeChoice.cs'; Domains = @('Themes', 'Settings') }
@@ -99,18 +102,20 @@
         @{ Path = 'widget/Settings/*'; Domains = @('Settings', 'Cards', 'Themes', 'Fonts', 'Mascot', 'Updates', 'Conversations') }
         @{ Path = 'widget/Updates/*'; Domains = @('Updates') }
         @{ Path = 'widget/Infrastructure/Storage/JsonlTail.cs'; Domains = @('Storage', 'Claude', 'Codex', 'Gemini', 'Kimi') }
-        @{ Path = 'widget/Infrastructure/Storage/SourceFiles.cs'; Domains = @('Storage', 'Sources', 'Claude', 'Codex', 'Kimi') }
+        @{ Path = 'widget/Infrastructure/Storage/SourceFiles.cs'; Domains = @('Storage', 'Sources', 'Claude', 'Codex', 'Kimi', 'Antigravity') }
         @{ Path = 'widget/Infrastructure/Storage/CardStore.cs'; Domains = @('Cards', 'Storage') }
         @{ Path = 'widget/Infrastructure/Storage/*'; All = $true }
         @{ Path = 'widget/Infrastructure/Windows/AspectSizing.cs'; Domains = @('Windows', 'Cards') }
         @{ Path = 'widget/Infrastructure/Windows/StartupShortcut.cs'; Domains = @('Windows', 'Settings') }
         @{ Path = 'widget/Infrastructure/Network/*'; Domains = @('Community', 'Updates') }
-        @{ Path = 'widget/Infrastructure/Desktop/*'; Domains = @('Windows', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards', 'Desktop') }
-        @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Gemini', 'Kimi', 'Cards') }
+        @{ Path = 'widget/Infrastructure/Desktop/AntigravityServerDiscovery.cs'; Domains = @('Antigravity', 'Desktop') }
+        @{ Path = 'widget/Infrastructure/Desktop/*'; Domains = @('Windows', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Desktop') }
+        @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Claude/*'; Domains = @('Claude') }
         @{ Path = 'tests/MiniInfos.Tests/Community/CatalogToolTests.cs'; Domains = @('CatalogTool') }
         @{ Path = 'tests/MiniInfos.Tests/Community/*'; Domains = @('Community') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Codex/*'; Domains = @('Codex') }
+        @{ Path = 'tests/MiniInfos.Tests/Providers/Antigravity/*'; Domains = @('Antigravity') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Gemini/*'; Domains = @('Gemini') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/Kimi/*'; Domains = @('Kimi') }
         @{ Path = 'tests/MiniInfos.Tests/Providers/*'; Domains = @('Providers') }
@@ -127,6 +132,7 @@
         @{ Path = 'tests/MiniInfos.UiCheck/Community/*'; Domains = @('Community') }
         @{ Path = 'tests/MiniInfos.UiCheck/Themes/*'; Domains = @('Themes') }
         @{ Path = 'tests/MiniInfos.UiCheck/Fonts/*'; Domains = @('Fonts') }
+        @{ Path = 'tests/MiniInfos.UiCheck/Antigravity/*'; Domains = @('Antigravity') }
         @{ Path = 'tests/MiniInfos.UiCheck/Cards/*'; Domains = @('Cards') }
         @{ Path = 'tests/MiniInfos.UiCheck/Settings/*'; Domains = @('Settings') }
         @{ Path = 'tests/MiniInfos.UiCheck/Updates/*'; Domains = @('Updates') }

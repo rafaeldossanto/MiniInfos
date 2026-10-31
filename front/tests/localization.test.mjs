@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { savedLanguage, resolveLanguage, localizedPath } from '../src/localization/model.ts';
 import { setActiveLanguage, compactNumber, t } from '../src/localization/messages.ts';
 import { englishHtml } from '../scripts/localized-pages.mjs';
+import { communityPage } from '../scripts/community-page.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 test('translation templates preserve all named values', () => {
@@ -53,9 +54,20 @@ test('English and Portuguese numbers and demo templates use the same chosen lang
   assert.equal(compactNumber(69_100_000), '69,1M');
   assert.equal(t('Janela 5h'), 'Janela 5h');
 });
-for (const file of ['index.html', 'privacidade.html', 'termos.html', '404.html']) {
+for (const file of [
+  'index.html',
+  'privacidade.html',
+  'termos.html',
+  '404.html',
+  'pages/community.html',
+]) {
   test(file + ' has complete translations and produces a readable static English page', () => {
-    const translated = englishHtml(readFileSync(join(root, file), 'utf8'));
+    const source = readFileSync(join(root, file), 'utf8');
+    const translated = englishHtml(
+      file === 'pages/community.html'
+        ? communityPage(source, readFileSync(join(root, 'index.html'), 'utf8'))
+        : source,
+    );
     assert.ok(translated.includes('<html lang="en"'));
     assert.ok(!/<title[^>]*>(?:Privacidade|Termos de uso|Página não encontrada)/.test(translated));
     assert.ok(translated.includes('value="pt"') && translated.includes('value="en"'));

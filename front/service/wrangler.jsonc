@@ -1,0 +1,20 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "miniinfos-community",
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": false },
+  "vars": {
+    "SITE_ORIGIN": "https://miniinfos.com",
+    "TURNSTILE_SITE_KEY": "",
+    "GITHUB_APP_ID": "",
+    "GITHUB_INSTALLATION_ID": "",
+  },
+  "r2_buckets": [{ "binding": "RECEIPTS", "bucket_name": "miniinfos-community-receipts" }],
+  "ratelimits": [
+    { "name": "SEND_LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } },
+    { "name": "READ_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
+  ],
+}

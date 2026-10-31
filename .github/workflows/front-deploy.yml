@@ -8,6 +8,10 @@ on:
     branches: [main]
     paths: ['front/**', '.github/workflows/front-deploy.yml']
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Publicar catálogo']
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -22,12 +26,13 @@ jobs:
     name: Publicar a landing page
     # Forks and other branches never get here, and the role's trust policy would refuse them anyway.
     # Until the stack exists and its outputs are set in the repository, the job is skipped, not failed.
-    if: github.repository == 'rafaeldossanto/MiniInfos' && github.ref == 'refs/heads/main' && vars.SITE_BUCKET != ''
+    if: github.repository == 'rafaeldossanto/MiniInfos' && github.ref == 'refs/heads/main' && vars.SITE_BUCKET != '' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       BUCKET: ${{ vars.SITE_BUCKET }}
       DISTRIBUTION: ${{ vars.SITE_DISTRIBUTION_ID }}
+      VITE_COMMUNITY_API: ${{ vars.COMMUNITY_API_URL }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

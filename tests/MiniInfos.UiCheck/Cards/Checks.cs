@@ -204,12 +204,12 @@ internal static partial class Program
         }
 
         // Each provider of the app has an icon of its own, never the fallback grid.
-        window.ShowProviders([.. ((string[])["claude", "codex", "gemini", "kimi"]).Select(id => new SampleProvider(id, id))]);
+        window.ShowProviders([.. ((string[])["claude", "codex", "gemini", "kimi", "antigravity"]).Select(id => new SampleProvider(id, id))]);
         Pump(TimeSpan.FromMilliseconds(300));
         var marks = icons.Children.OfType<Button>().Select(button => ((System.Windows.Shapes.Path)button.Content).Data).ToArray();
         var fallback = (Geometry)window.FindResource("ProviderIcon.default");
-        Check(marks.Length == 4 && marks.Distinct().Count() == 4 && !marks.Contains(fallback), "Claude, Codex, Gemini and Kimi each show an icon of their own");
-        Render(window, System.IO.Path.Combine(pictures, "four-providers.png"));
+        Check(marks.Length == 5 && marks.Distinct().Count() == 5 && !marks.Contains(fallback), "Claude, Codex, Gemini, Kimi and Antigravity each show an icon of their own");
+        Render(window, System.IO.Path.Combine(pictures, "five-providers.png"));
 
         window.ShowProviders(installed);
         Pump(TimeSpan.FromMilliseconds(300));

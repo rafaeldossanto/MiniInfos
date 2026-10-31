@@ -1,0 +1,4 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["*.ts", "../src/community/creation/package.ts", "../src/config.ts"]
+}

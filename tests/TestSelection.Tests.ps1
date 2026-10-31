@@ -42,6 +42,11 @@ Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Gemini,Kimi,Storag
 $newProviders = Get-TestSelection -Paths @('widget/Providers/Kimi/KimiUsage.cs', 'widget/Providers/Gemini/GeminiResponses.cs')
 Assert-Selection (($newProviders.Domains -join ',') -eq 'Gemini,Kimi' -and -not $newProviders.All) 'Kimi e Gemini selecionaram outros provedores'
 
+$antigravity = Get-TestSelection -Paths @('widget/Providers/Antigravity/AntigravityUsage.cs', 'tests/MiniInfos.Tests/Providers/Antigravity/AntigravityUsageTests.cs')
+Assert-Selection (($antigravity.Domains -join ',') -eq 'Antigravity' -and -not $antigravity.All) 'Antigravity selecionou domínios sem vínculo'
+$ledger = Get-TestSelection -Paths @('widget/Providers/ResponseLedger.cs')
+Assert-Selection ($ledger.Domains -contains 'Antigravity') 'Livro-caixa compartilhado perdeu Antigravity'
+
 $prefs = Get-TestSelection -Paths @('widget/Settings/Preferences.cs')
 Assert-Selection ($prefs.Domains -contains 'Mascot' -and $prefs.Domains -contains 'Themes') 'Preferências não incluíram seus consumidores'
 

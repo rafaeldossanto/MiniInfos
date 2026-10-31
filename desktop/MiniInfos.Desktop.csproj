@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
     <AvaloniaResource Include="../widget/Assets/*.png;../widget/Assets/*.ico" Link="Assets/%(Filename)%(Extension)" />
     <AvaloniaResource Include="../widget/Assets/Fonts/*.ttf" Link="Assets/Fonts/%(Filename)%(Extension)" />
     <Content Include="../widget/Assets/Fonts/OFL*.txt" LinkBase="Licenses" CopyToOutputDirectory="PreserveNewest" />

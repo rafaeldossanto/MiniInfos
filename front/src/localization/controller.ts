@@ -25,7 +25,7 @@ export function initLanguage() {
     document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((element) => {
       element.textContent = t(element.dataset.i18n!);
     });
-    for (const attribute of ['aria-label', 'alt', 'title', 'content']) {
+    for (const attribute of ['aria-label', 'alt', 'title', 'content', 'placeholder']) {
       document.querySelectorAll<HTMLElement>('[data-i18n-' + attribute + ']').forEach((element) => {
         element.setAttribute(attribute, t(element.getAttribute('data-i18n-' + attribute)!));
       });

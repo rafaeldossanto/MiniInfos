@@ -19,4 +19,8 @@ public sealed record UsagePage(
     string Activity,
     string ActivityHint,
     string Updated,
-    string RefreshHint);
+    string RefreshHint,
+    IReadOnlyList<UsageQuotaGroup>? QuotaGroups = null);
+
+/// <summary>Models sharing account limits. Null on a page keeps the standard two-window presentation.</summary>
+public sealed record UsageQuotaGroup(string Title, string? Models, IReadOnlyList<PlanWindow> Windows);

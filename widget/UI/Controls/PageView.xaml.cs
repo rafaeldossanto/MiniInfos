@@ -12,6 +12,7 @@ public partial class PageView : UserControl
     private readonly RollingCount _longTokens;
     private readonly RollingCount _todayTokens;
     private readonly RollingCount _totalTokens;
+    private bool _grouped;
 
     public PageView()
     {
@@ -23,10 +24,10 @@ public partial class PageView : UserControl
     }
 
     /// <summary>The page's limits in one line, as the tray icon reads them: "Janela 5h 42% · Semanal 92%".</summary>
-    public string LimitsLine => $"{ShortLabel.Text} {ShortPercent.Text} · {LongLabel.Text} {LongPercent.Text}";
+    public string LimitsLine => _grouped ? GroupedWindows.LimitsLine : $"{ShortLabel.Text} {ShortPercent.Text} · {LongLabel.Text} {LongPercent.Text}";
 
     /// <param name="countText">How the chosen view writes a count: 1,4B, or every digit.</param>
-    public void Show(UsagePage page, DateTimeOffset now, Func<long, string> countText)
+    public bool Show(UsagePage page, DateTimeOffset now, Func<long, string> countText)
     {
         Numbers.Visibility = Visibility.Visible;
         Reading.Visibility = Visibility.Collapsed;
@@ -34,8 +35,19 @@ public partial class PageView : UserControl
         // Beside the title, how fresh the limits are: each provider is read apart.
         NumericText.Show(PageTitle, page.Title);
         NumericText.Show(Note, page.Updated);
-        ShowWindow(page.ShortWindow, page.TokensOrigin, now, countText, ShortLabel, ShortPercent, ShortBar, ShortDetail, _shortTokens);
-        ShowWindow(page.LongWindow, page.TokensOrigin, now, countText, LongLabel, LongPercent, LongBar, LongDetail, _longTokens);
+        var grouped = page.QuotaGroups is not null;
+        var changed = grouped != _grouped;
+        _grouped = grouped;
+        StandardWindows.Visibility = grouped ? Visibility.Collapsed : Visibility.Visible;
+        GroupedWindows.Visibility = grouped ? Visibility.Visible : Visibility.Collapsed;
+        QuotaStatus.Visibility = page.QuotaGroups is { Count: 0 } ? Visibility.Visible : Visibility.Collapsed;
+        QuotaStatus.Text = page.Activity;
+        if (page.QuotaGroups is { } groups) changed |= GroupedWindows.Show(groups, now);
+        else
+        {
+            ShowWindow(page.ShortWindow, page.TokensOrigin, now, countText, ShortLabel, ShortPercent, ShortBar, ShortDetail, _shortTokens);
+            ShowWindow(page.LongWindow, page.TokensOrigin, now, countText, LongLabel, LongPercent, LongBar, LongDetail, _longTokens);
+        }
 
         _todayTokens.Show(page.Today.Total, countText);
         _totalTokens.Show(page.Total.Total, countText);
@@ -44,6 +56,8 @@ public partial class PageView : UserControl
 
         NumericText.Show(ChatText, page.Activity);
         ChatText.ToolTip = $"{page.Activity}\n{page.ActivityHint}";
+        ChatText.Visibility = grouped ? Visibility.Collapsed : Visibility.Visible;
+        return changed;
     }
 
     /// <summary>Another provider moved into this column: its counts start over instead of rolling from the last one's.</summary>
@@ -64,7 +78,8 @@ public partial class PageView : UserControl
         RollingCount used)
     {
         var length = line.Window.Length;
-        NumericText.Show(label, Format.WindowLabel(length));
+        NumericText.Show(label, line.Label ?? Format.WindowLabel(length));
+        label.ToolTip = line.Label ?? Format.WindowLabel(length);
         detail.ToolTip = $"{Format.Breakdown(line.Tokens, countText)}\n{tokensOrigin}";
 
         if (line.Window.Limit is not { } limit)

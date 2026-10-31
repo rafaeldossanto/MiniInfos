@@ -1,5 +1,7 @@
 marketplace/packages/ export-ignore
 marketplace/packages/** export-ignore
+marketplace/artwork/ export-ignore
+marketplace/artwork/** export-ignore
 front/ export-ignore
 front/** export-ignore
 desktop/packaging/linux/* text eol=lf

@@ -2,6 +2,10 @@
 export const sitePages = [
   { pt: { path: '/', file: 'index.html' }, en: { path: '/en/', file: 'en/index.html' } },
   {
+    pt: { path: '/comunidade', file: 'comunidade.html' },
+    en: { path: '/en/community', file: 'en/community.html' },
+  },
+  {
     pt: { path: '/politica-de-privacidade', file: 'privacidade.html' },
     en: { path: '/en/privacy-policy', file: 'en/privacy.html' },
   },
