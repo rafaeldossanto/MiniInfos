@@ -4,28 +4,54 @@
   "id": "community.buster-beaver",
   "name": "Buster Beaver",
   "author": "MiniInfos Community",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "Fan art não oficial, uso não comercial; o personagem pertence aos donos de The Boys",
   "description": "Fan art não oficial do Buster Beaver, mascote da pizzaria da série The Boys, com as poses de repouso, atividade, alerta, sono e interações. Sem afiliação com os donos da série; sai do catálogo se houver pedido.",
   "mascot": {
     "spriteSheet": "sprites.png",
-    "columns": 8,
+    "columns": 16,
     "rows": 10,
     "states": {
       "idle": {
         "row": 0,
         "frameDurationMs": 160,
         "durationsMs": [
-          3500,
-          260,
-          240,
-          95,
-          55,
-          95,
-          360,
-          395
+          2200,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
         ],
-        "blendMs": 160
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
       },
       "active": {
         "row": 1,
@@ -40,22 +66,58 @@
           110,
           150
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "alert": {
         "row": 2,
         "frameDurationMs": 160,
         "durationsMs": [
-          260,
-          260,
-          260,
-          260,
-          260,
-          260,
-          260,
-          260
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110,
+          110
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
       },
       "sleep": {
         "row": 3,
@@ -70,7 +132,17 @@
           450,
           450
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "protectEyes": {
         "row": 4,
@@ -85,7 +157,17 @@
           180,
           290
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "heldHead": {
         "row": 5,
@@ -100,7 +182,17 @@
           260,
           260
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "heldLeftWing": {
         "row": 6,
@@ -115,7 +207,17 @@
           260,
           260
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "heldRightWing": {
         "row": 7,
@@ -130,7 +232,17 @@
           260,
           260
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "heldFeet": {
         "row": 8,
@@ -145,7 +257,17 @@
           260,
           260
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       },
       "heldBody": {
         "row": 9,
@@ -160,7 +282,17 @@
           260,
           260
         ],
-        "blendMs": 0
+        "blendMs": 0,
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
       }
     },
     "anatomy": {
