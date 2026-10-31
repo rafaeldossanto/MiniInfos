@@ -345,5 +345,9 @@
   "Claude e GPT": "Claude and GPT",
   "Os tokens incluem todos os modelos usados no Antigravity.": "Tokens include all models used in Antigravity.",
   "{0} restante": "{0} remaining",
-  "Limite indisponível": "Limit unavailable"
+  "Limite indisponível": "Limit unavailable",
+  "faltam {0}d {1}h para reiniciar": "{0}d {1}h left until reset",
+  "faltam {0}h {1}min para reiniciar": "{0}h {1}min left until reset",
+  "faltam {0}min para reiniciar": "{0}min left until reset",
+  "falta {0}min para reiniciar": "{0}min left until reset"
 }

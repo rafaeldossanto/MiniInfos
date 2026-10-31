@@ -34,4 +34,16 @@ public sealed class FormatTests
         Assert.Equal("reinicia em 3d 4h", Format.Reset(Now.AddDays(3).AddHours(4), Now));
         Assert.Equal("reiniciou", Format.Reset(Now.AddMinutes(-1), Now));
     }
+
+    [Fact]
+    public void GroupedQuotaCountdownDecreasesTowardZeroAndDoesNotCountDaysElapsed()
+    {
+        var deadline = Now.AddDays(5).AddHours(12);
+        Assert.Equal("faltam 5d 12h para reiniciar", Format.Reset(deadline, Now, remaining: true));
+        Assert.Equal("faltam 5d 11h para reiniciar", Format.Reset(deadline, Now.AddHours(1), remaining: true));
+        Assert.Equal("faltam 2h 13min para reiniciar", Format.Reset(deadline, deadline.AddMinutes(-133), remaining: true));
+        Assert.Equal("falta 1min para reiniciar", Format.Reset(deadline, deadline.AddSeconds(-30), remaining: true));
+        Assert.Equal("reiniciou", Format.Reset(deadline, deadline, remaining: true));
+        Assert.Equal(Format.Reset(deadline, Now, remaining: true), Format.Reset(deadline.ToOffset(TimeSpan.Zero), Now, remaining: true));
+    }
 }

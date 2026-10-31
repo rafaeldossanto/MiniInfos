@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Net.Http;
 using MiniInfos.Providers.Antigravity;
 using MiniInfos.Tests.Support;
+using MiniInfos.UI.Formatting;
 
 namespace MiniInfos.Tests.Providers.Antigravity;
 
@@ -51,6 +52,19 @@ public sealed class AntigravityQuotaTests
         Assert.Equal(1, calls);
         await quotas.ReadAsync(Now.AddSeconds(31), true, true);
         Assert.Equal(2, calls);
+    }
+
+    [Fact]
+    public async Task RefreshingQuotasKeepsTheServersDeadlineInsteadOfRestartingASevenDayTimer()
+    {
+        var summary = Summary(Now);
+        var quotas = new AntigravityQuotas(_ => Task.FromResult<string?>(summary));
+        var first = await quotas.ReadAsync(Now, true, true);
+        var later = await quotas.ReadAsync(Now.AddHours(2), true, true);
+        var firstArgon = Assert.Single(first!.Buckets, bucket => bucket.Group == "Gemini 4 Argon");
+        var laterArgon = Assert.Single(later!.Buckets, bucket => bucket.Group == "Gemini 4 Argon");
+        Assert.Equal(firstArgon.Limit.ResetsAtTime, laterArgon.Limit.ResetsAtTime);
+        Assert.Equal("faltam 6d 22h para reiniciar", Format.Reset(laterArgon.Limit.ResetsAtTime!.Value, Now.AddHours(2), remaining: true));
     }
 
     [Fact]

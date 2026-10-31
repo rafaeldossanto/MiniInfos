@@ -199,7 +199,7 @@ internal sealed class CardWindow : Window
             var percent = Text(active ? Format.Percent(used) : "—", p, 11, number: true); Grid.SetColumn(percent, 1); heading.Children.Add(percent);
             var bar = new ProgressBar { Minimum = 0, Maximum = 100, Value = used, Height = 3, Background = p["Track"], Foreground = p[used >= 90 ? "Danger" : used >= 70 ? "Warning" : "Accent"] };
             var detail = active ? L.Format("{0} restante", Format.Percent(100 - used)) : L.Text("Limite indisponível");
-            if (window.Limit?.ResetsAtTime is { } reset) detail += " · " + Format.Reset(reset, now);
+            if (window.Limit?.ResetsAtTime is { } reset) detail += " · " + Format.Reset(reset, now, remaining: true);
             var meter = Stack(heading, bar); meter.Spacing = 3;
             if (group.Windows.Count == 1) meter.Children.Add(Text(detail, p, 10, true));
             ToolTip.SetTip(meter, detail);
