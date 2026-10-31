@@ -32,9 +32,12 @@ public static class AspectSizing
     public const int BottomRightCorner = 8;
 
     /// <param name="aspect">Width over height.</param>
-    public static PixelRect Fit(PixelRect rect, int edge, double aspect, int minWidth, int maxWidth)
+    /// <param name="initial">The rectangle when the gesture began: corners can follow either axis.</param>
+    public static PixelRect Fit(PixelRect rect, int edge, double aspect, int minWidth, int maxWidth, PixelRect? initial = null)
     {
         var leadsByHeight = edge is TopEdge or BottomEdge;
+        if (initial is { } start && edge is TopLeftCorner or TopRightCorner or BottomLeftCorner or BottomRightCorner)
+            leadsByHeight = Math.Abs(rect.Height - start.Height) * aspect > Math.Abs(rect.Width - start.Width);
         var width = leadsByHeight ? (int)Math.Round(rect.Height * aspect) : rect.Width;
         width = Math.Clamp(width, minWidth, maxWidth);
         var height = (int)Math.Round(width / aspect);
