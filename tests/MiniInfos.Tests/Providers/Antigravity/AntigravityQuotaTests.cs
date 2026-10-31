@@ -81,15 +81,19 @@ public sealed class AntigravityQuotaTests
     [InlineData("{\"response\":{\"groups\":[null,3,{\"displayName\":\"Bad\",\"buckets\":[null,{\"window\":\"weekly\",\"remainingFraction\":-1,\"resetTime\":\"2026-11-06T01:00:00Z\"}]}]}}")]
     public void UnexpectedOrInvalidQuotaValuesDoNotBecomePercentages(string json) => Assert.Empty(AntigravityQuotas.Parse(json));
 
-    internal static string Summary() => JsonSerializer.Serialize(new
+    /// <param name="at">The clock the summary is read with: the fixed test time, or the real one for a card that renders now.</param>
+    internal static string Summary(DateTimeOffset? at = null)
     {
-        response = new { groups = new[]
+        var resets = (at ?? Now).AddDays(7).ToString("O");
+        object Bucket(string window, double left) => new { window, remainingFraction = left, resetTime = resets };
+        return JsonSerializer.Serialize(new
         {
-            new { displayName = "Gemini Models", buckets = new[] { Bucket("weekly", 1), Bucket("5h", 1) } },
-            new { displayName = "Claude and GPT models", buckets = new[] { Bucket("weekly", 1), Bucket("5h", 1) } },
-            new { displayName = "Gemini 4 Argon", buckets = new[] { Bucket("weekly", .58) } },
-        } },
-    });
-
-    private static object Bucket(string window, double left) => new { window, remainingFraction = left, resetTime = Now.AddDays(7).ToString("O") };
+            response = new { groups = new[]
+            {
+                new { displayName = "Gemini Models", buckets = new[] { Bucket("weekly", 1), Bucket("5h", 1) } },
+                new { displayName = "Claude and GPT models", buckets = new[] { Bucket("weekly", 1), Bucket("5h", 1) } },
+                new { displayName = "Gemini 4 Argon", buckets = new[] { Bucket("weekly", .58) } },
+            } },
+        });
+    }
 }

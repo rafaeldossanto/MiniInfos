@@ -4,8 +4,11 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { siteRoute } from '../src/routing.ts';
+import { generateEnglishPages } from '../scripts/localized-pages.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+// Pages built from a template (Comunidade and the English copies) exist only once generated, as in the build.
+generateEnglishPages();
 const sources = [
   'index.html',
   'privacidade.html',
