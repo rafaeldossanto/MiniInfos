@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-26T22:50:50.9003287+00:00",
+  "generatedAt": "2026-10-31T00:37:35.3482223+00:00",
   "packages": [
     {
       "id": "community.buster-beaver",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "kind": "mascot",
       "license": "Fan art não oficial, uso não comercial; o personagem pertence aos donos de The Boys",
       "name": "Buster Beaver",
       "author": "MiniInfos Community",
       "description": "Fan art não oficial do Buster Beaver, mascote da pizzaria da série The Boys, com as poses de repouso, atividade, alerta, sono e interações. Sem afiliação com os donos da série; sai do catálogo se houver pedido.",
-      "asset": "community.buster-beaver-1.0.0.miniinfos",
-      "preview": "community.buster-beaver-1.0.0.png",
-      "size": 5822977,
-      "sha256": "ddd0c13d215ca6e17bf9b60de328deda230047e9b92637afb9c22f07d482eb53",
-      "previewSha256": "5d98fa53558f5dede0502bdc609b5cb097d60757c37383034929e5ba5f58326e",
-      "publishedAt": "2026-10-26T22:50:53Z"
+      "asset": "community.buster-beaver-1.0.1.miniinfos",
+      "preview": "community.buster-beaver-1.0.1.png",
+      "size": 6501837,
+      "sha256": "25e755ca6f1fceab61a8e49cbe940e8d02f3ebab9d1da4efa5e60a7ae6f90d34",
+      "previewSha256": "b86d840443836ec85010f3d027f4132155fd8e0380ce1daa8ec05b7db725b9c1",
+      "publishedAt": "2026-10-31T00:37:37Z"
     },
     {
       "id": "community.ocean",
@@ -30,7 +30,7 @@
       "size": 494,
       "sha256": "b9066ec27f94ec80b95eff4bcae59e38998770aa4934f1fd374940e8592cdc34",
       "previewSha256": "86d11ac4ac4f2dfb18a83fbd6c96061137cd6dfdfa680834c761a77518b0bdef",
-      "publishedAt": "2026-10-26T22:50:53Z"
+      "publishedAt": "2026-10-31T00:37:37Z"
     }
   ]
 }
