@@ -152,7 +152,11 @@ Claude e Codex procuram pastas padrão, variáveis de ambiente, fontes já encon
 
 No Claude, encontrar o executável e conseguir instalar o mod são resultados separados. O instalador lembra uma cópia encontrada mesmo quando ela recusa o mod; o cartão reutiliza esse caminho enquanto ainda apontar para um Claude Code válido. Os tokens não exigem o mod. Percentuais dos limites, contexto informado pelo mod e acompanhamento automático de chats de terminal/editor dependem dele.
 
-A descoberta local tem limites de profundidade e tempo. O aplicativo Windows não procura automaticamente dentro de WSL, contêineres ou máquinas remotas. Conversas do navegador e sessões que não gravam históricos locais não fornecem tokens a esses leitores. Registros apagados antes da primeira leitura não podem ser recuperados; o ledger preserva o que o MiniInfos já leu.
+A descoberta local tem limites de profundidade e tempo. No Windows, o Claude também acompanha os históricos das distribuições WSL em execução: procura `.claude/projects` nas pastas de usuários de `/home` e em `/root`, sem ler credenciais, instalar componentes no Linux ou escrever na distribuição. A consulta roda em segundo plano, no máximo a cada dez segundos; ↻ força uma nova tentativa. Distribuições desligadas não entram na busca. Se o WSL ficar indisponível, a leitura do Windows continua e os totais já registrados permanecem no ledger.
+
+Os tokens de Windows e WSL entram no mesmo livro-caixa, com deduplicação por resposta e contagem por conversa e projeto. A primeira leitura do WSL em cada abertura relê os históricos disponíveis; as seguintes leem somente os trechos acrescentados. Os títulos personalizados do desktop não são consultados pelos caminhos WSL guardados no ledger, para não reabrir uma distribuição parada; a conversa usa o nome do projeto. Pastas Linux personalizadas por `CLAUDE_CONFIG_DIR` ainda não são descobertas. Essa cobertura não instala o mod nem fornece percentuais de 5h/semanal: sessões WSL do Claude desktop não carregam plugins, e os limites continuam dependendo de uma fonte real do mod.
+
+Contêineres e máquinas remotas continuam fora da descoberta. Conversas do navegador e sessões que não gravam históricos locais não fornecem tokens a esses leitores. Registros apagados antes da primeira leitura não podem ser recuperados; o ledger preserva o que o MiniInfos já leu.
 
 ### Organização do código
 

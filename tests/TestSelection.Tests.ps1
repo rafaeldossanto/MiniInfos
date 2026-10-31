@@ -41,6 +41,8 @@ Assert-Selection (($packagesOnly.Domains -join ',') -eq 'CatalogTool' -and $pack
 
 $tail = Get-TestSelection -Paths @('widget/Infrastructure/Storage/JsonlTail.cs')
 Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Gemini,Kimi,Storage') 'Leitura compartilhada não incluiu todos os provedores'
+$wsl = Get-TestSelection -Paths @('widget/Infrastructure/Desktop/WslDistributions.cs', 'widget/Sources/WslClaudeSources.cs', 'widget/Providers/Claude/WslClaudeHistory.cs')
+Assert-Selection (($wsl.Domains -join ',') -eq 'Claude,Desktop,Sources' -and -not $wsl.All) 'Leitura WSL perdeu consumidores ou selecionou regressão completa'
 $newProviders = Get-TestSelection -Paths @('widget/Providers/Kimi/KimiUsage.cs', 'widget/Providers/Gemini/GeminiResponses.cs')
 Assert-Selection (($newProviders.Domains -join ',') -eq 'Gemini,Kimi' -and -not $newProviders.All) 'Kimi e Gemini selecionaram outros provedores'
 

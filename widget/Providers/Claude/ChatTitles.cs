@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using MiniInfos.Infrastructure.Storage;
+using MiniInfos.Infrastructure.Desktop;
 
 namespace MiniInfos.Providers.Claude;
 
@@ -13,7 +14,9 @@ public static class ChatTitles
 
     /// <summary>The name given in the app to the chat of this transcript: its custom-title.json sits beside it, in the chat's folder.</summary>
     public static string? Custom(string transcriptPath, string sessionId) =>
-        Path.GetDirectoryName(transcriptPath) is { } project ? Read(Path.Combine(project, sessionId, "custom-title.json")) : null;
+        // Reopening a cached UNC path could wake a stopped distro. WSL conversations retain their project name.
+        !WslDistributions.IsPath(transcriptPath) && Path.GetDirectoryName(transcriptPath) is { } project
+            ? Read(Path.Combine(project, sessionId, "custom-title.json")) : null;
 
     private static string? FindCustomTitle(string sessionId) =>
         ClaudePaths.ProjectFolders.SelectMany(root => SourceFiles.Directories(root))

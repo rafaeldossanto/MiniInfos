@@ -39,7 +39,7 @@ public sealed class ClaudeUsage : IUsageProvider
 
         var tokens = await Task.Run(() =>
         {
-            _ledger.Scan();
+            _ledger.Scan(force);
             return _ledger.Summarize(now, fiveHour.Start(now), week.Start(now));
         });
 

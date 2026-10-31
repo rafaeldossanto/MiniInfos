@@ -100,6 +100,7 @@
         @{ Path = 'widget/Providers/Token*.cs'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Charts', 'Mascot', 'Conversations', 'Desktop') }
         @{ Path = 'widget/Providers/UsagePage.cs'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Charts', 'Mascot', 'Conversations', 'Desktop') }
         @{ Path = 'widget/Providers/*'; Domains = @('Providers', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Mascot', 'Conversations') }
+        @{ Path = 'widget/Sources/WslClaudeSources.cs'; Domains = @('Sources', 'Claude', 'Desktop') }
         @{ Path = 'widget/Sources/*'; Domains = @('Sources', 'Claude', 'Codex', 'Kimi') }
         @{ Path = 'widget/Settings/PageSelection.cs'; Domains = @('Cards', 'Settings', 'Desktop') }
         @{ Path = 'widget/Settings/CardGridLayout.cs'; Domains = @('Cards', 'Desktop') }
@@ -119,6 +120,7 @@
         @{ Path = 'widget/Infrastructure/Windows/AspectSizing.cs'; Domains = @('Windows', 'Cards') }
         @{ Path = 'widget/Infrastructure/Windows/StartupShortcut.cs'; Domains = @('Windows', 'Settings') }
         @{ Path = 'widget/Infrastructure/Network/*'; Domains = @('Community', 'Updates') }
+        @{ Path = 'widget/Infrastructure/Desktop/WslDistributions.cs'; Domains = @('Sources', 'Claude', 'Desktop') }
         @{ Path = 'widget/Infrastructure/Desktop/AntigravityServerDiscovery.cs'; Domains = @('Antigravity', 'Desktop') }
         @{ Path = 'widget/Infrastructure/Desktop/*'; Domains = @('Windows', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards', 'Desktop') }
         @{ Path = 'widget/Infrastructure/Windows/*'; Domains = @('Windows', 'Claude', 'Codex', 'Antigravity', 'Gemini', 'Kimi', 'Cards') }
