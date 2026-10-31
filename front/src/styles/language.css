@@ -3,12 +3,29 @@
   align-items: center;
   gap: 12px;
 }
+.desktop-language {
+  display: flex;
+}
 .language-picker {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  vertical-align: middle;
   gap: 8px;
   width: max-content;
   max-width: 100%;
+}
+.language-picker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-75%) rotate(45deg);
+  pointer-events: none;
 }
 .language-picker > svg {
   width: 20px;
@@ -18,14 +35,20 @@
   stroke-width: 1.5;
 }
 .language-picker select {
+  appearance: none;
+  min-width: 128px;
   min-height: 40px;
-  padding: 8px 12px;
+  padding: 8px 40px 8px 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--nav);
   color: var(--text);
   font: inherit;
   font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  text-align-last: left;
+  outline-offset: 4px;
   cursor: pointer;
   transition:
     background-color 700ms var(--ease),
@@ -51,11 +74,6 @@
 }
 .footer-contact > .language-picker {
   margin-top: 8px;
-}
-@media (max-width: 1120px) {
-  .nav-download {
-    display: none;
-  }
 }
 @media (max-width: 960px) {
   .desktop-language {
