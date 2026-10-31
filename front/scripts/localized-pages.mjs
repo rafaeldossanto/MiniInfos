@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { localizedPath, socialImage } from '../src/localization/model.ts';
 import { sitePages } from '../src/routing.ts';
+import { generateCommunityPage } from './community-page.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const english = JSON.parse(readFileSync(join(root, 'src/localization/en.json'), 'utf8'));
@@ -28,7 +29,7 @@ export function englishHtml(source) {
     (_, tag, attributes, key) => `<${tag}${attributes}>${encode(message(decode(key)))}</${tag}>`,
   );
   html = html.replace(/<[^>]+>/g, (tag) => {
-    for (const attribute of ['aria-label', 'alt', 'title', 'content']) {
+    for (const attribute of ['aria-label', 'alt', 'title', 'content', 'placeholder']) {
       const marker = tag.match(new RegExp('data-i18n-' + attribute + '="([^"]*)"'));
       if (!marker) continue;
       const key = decode(marker[1]);
@@ -39,7 +40,7 @@ export function englishHtml(source) {
     }
     return tag;
   });
-  html = html.replace(/\bhref="(\/[^"#]*)"/g, (_, path) => `href="${localizedPath(path, 'en')}"`);
+  html = html.replace(/\bhref="(\/[^"]*)"/g, (_, path) => `href="${localizedPath(path, 'en')}"`);
   html = html.replace(/<(link|meta)\b[^>]*>/g, (tag) => {
     if (/property="og:image"/.test(tag))
       return tag.replace(
@@ -56,6 +57,7 @@ export function englishHtml(source) {
 }
 
 export function generateEnglishPages() {
+  generateCommunityPage();
   mkdirSync(join(root, 'en'), { recursive: true });
   for (const page of sitePages)
     writeFileSync(

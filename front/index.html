@@ -34,6 +34,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" href="/fonts/Manrope-Regular.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="preload" href="/fonts/Manrope-SemiBold.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/landing.css" />
+    <link rel="stylesheet" href="/src/styles/language.css" />
+    <link rel="stylesheet" href="/src/styles/widget.css" />
+    <link rel="stylesheet" href="/src/styles/card-carousel.css" />
+    <link rel="stylesheet" href="/src/styles/conversations.css" />
+    <link rel="stylesheet" href="/src/styles/downloads.css" />
     <script>
       try {
         if (localStorage.getItem('miniinfos.site.theme') === 'light')
@@ -63,7 +70,7 @@
         <div class="desktop-links">
           <a href="#recursos" data-i18n="Recursos">Recursos</a
           ><a href="#aparencia" data-i18n="Aparência">Aparência</a
-          ><a href="#comunidade" data-i18n="Comunidade">Comunidade</a>
+          ><a href="/comunidade" data-i18n="Comunidade">Comunidade</a>
         </div>
         <a class="button button-small nav-download" data-download href="#downloads"
           ><svg aria-hidden="true"><use href="/icons.svg#file" /></svg
@@ -143,7 +150,7 @@
       <nav aria-label="Navegação móvel" data-i18n-aria-label="Navegação móvel">
         <a href="#recursos" data-i18n="Recursos">Recursos</a
         ><a href="#aparencia" data-i18n="Aparência">Aparência</a
-        ><a href="#comunidade" data-i18n="Comunidade">Comunidade</a
+        ><a href="/comunidade" data-i18n="Comunidade">Comunidade</a
         ><a href="#duvidas" data-i18n="Dúvidas">Dúvidas</a>
       </nav>
       <a class="button" data-download href="#downloads"
@@ -222,6 +229,12 @@
                 ><svg class="button-arrow" aria-hidden="true">
                   <use href="/icons.svg#arrow-up-right" /></svg
               ></a>
+              <p
+                class="download-recommendation"
+                data-download-recommendation
+                hidden
+                aria-live="polite"
+              ></p>
               <nav
                 class="download-shortcuts"
                 aria-label="Escolher sistema operacional"
@@ -562,10 +575,7 @@
               Instale temas e mascotes da comunidade ou crie os seus. Seus favoritos ficam na
               biblioteca, prontos para escolher.
             </p>
-            <a
-              class="text-link"
-              href="https://github.com/rafaeldossanto/MiniInfos/tree/main/marketplace"
-              data-community
+            <a class="text-link" href="/comunidade" data-community
               ><span data-i18n="Conheça os pacotes da comunidade"
                 >Conheça os pacotes da comunidade</span
               ><svg aria-hidden="true">
@@ -750,6 +760,7 @@
               tabindex="-1"
             >
               <h3>Windows</h3>
+              <span class="download-recommended" data-download-recommended hidden></span>
               <p data-i18n="Instalador para Windows 10 e 11.">Instalador para Windows 10 e 11.</p>
               <a
                 data-package="MiniInfos-Setup.exe"
@@ -765,6 +776,7 @@
               tabindex="-1"
             >
               <h3>macOS</h3>
+              <span class="download-recommended" data-download-recommended hidden></span>
               <p data-i18n="Para Mac com chip Apple ou Intel.">Para Mac com chip Apple ou Intel.</p>
               <a
                 data-package="MiniInfos-macos-arm64.dmg"
@@ -786,6 +798,7 @@
               tabindex="-1"
             >
               <h3>Linux</h3>
+              <span class="download-recommended" data-download-recommended hidden></span>
               <p data-i18n="Pacote portátil. X11 ou XWayland.">Pacote portátil. X11 ou XWayland.</p>
               <a
                 data-package="MiniInfos-linux-x64.tar.gz"

@@ -11,6 +11,7 @@ const sources = [
   'privacidade.html',
   'termos.html',
   '404.html',
+  'pages/community.html',
   'src/styles/base.css',
   'src/styles/landing.css',
   'src/styles/widget.css',
@@ -40,4 +41,34 @@ test('all internal navigation anchors point to a real section', () => {
   const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]));
   for (const match of html.matchAll(/href="#([^"]+)"/g))
     assert.ok(ids.has(match[1]), 'Missing section: ' + match[1]);
+});
+
+test('every page loads layout styles in the head before deferred JavaScript can run', () => {
+  const pages = [
+    'index.html',
+    'privacidade.html',
+    'termos.html',
+    '404.html',
+    'pages/community.html',
+  ];
+  for (const page of pages) {
+    const html = readFileSync(join(root, page), 'utf8');
+    const head = html.match(/<head>[\s\S]*?<\/head>/)[0];
+    const sheets = [...head.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)].map((match) => {
+      assert.doesNotMatch(match[0], /\b(?:disabled|media|onload)\s*=/, page);
+      return match[0].match(/href="([^"]+)"/)[1];
+    });
+    for (const shared of ['base', 'landing', 'language'])
+      assert.ok(
+        sheets.includes('/src/styles/' + shared + '.css'),
+        page + ' needs blocking ' + shared + ' styles',
+      );
+    if (page === 'index.html')
+      for (const style of ['widget', 'card-carousel', 'conversations', 'downloads'])
+        assert.ok(sheets.includes('/src/styles/' + style + '.css'), page + ': ' + style);
+    if (page === 'pages/community.html')
+      for (const style of ['widget', 'community', 'creation'])
+        assert.ok(sheets.includes('/src/styles/' + style + '.css'), page + ': ' + style);
+    assert.ok(html.indexOf('</head>') < html.indexOf('<body'), page);
+  }
 });

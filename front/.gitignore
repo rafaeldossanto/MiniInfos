@@ -3,3 +3,8 @@ dist/
 .vite/
 test-results/
 en/
+comunidade.html
+service/.dev.vars*
+service/.wrangler/
+**/.output/
+.output/

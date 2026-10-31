@@ -27,6 +27,11 @@ export function resolveLanguage(choice: LanguageChoice, languages: readonly stri
   return 'en';
 }
 export function localizedPath(path: string, language: Language): string {
-  const route = siteRoute(path);
-  return sitePages.find((page) => page.pt === route || page.en === route)?.[language].path ?? path;
+  const separator = path.search(/[?#]/);
+  const pathname = separator < 0 ? path : path.slice(0, separator);
+  const suffix = separator < 0 ? '' : path.slice(separator);
+  const route = siteRoute(pathname);
+  const translated = sitePages.find((page) => page.pt === route || page.en === route)?.[language]
+    .path;
+  return translated ? translated + suffix : path;
 }

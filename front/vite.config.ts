@@ -28,6 +28,19 @@ const cleanUrls: Plugin = {
 
 export default defineConfig({
   plugins: [cleanUrls],
+  server: {
+    fs: {
+      deny: [
+        '.env',
+        '.env.*',
+        '*.{crt,pem}',
+        '**/.git/**',
+        '**/.dev.vars*',
+        '**/.wrangler/**',
+        '**/.output/**',
+      ],
+    },
+  },
   build: {
     rollupOptions: {
       input: siteRoutes.map((route) => route.file),

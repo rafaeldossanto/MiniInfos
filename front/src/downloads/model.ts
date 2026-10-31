@@ -1,5 +1,7 @@
+import { project } from '../config.ts';
+
 export type Platform = 'windows' | 'macos' | 'linux';
-export const releaseApi = 'https://api.github.com/repositories/1432597159/releases/latest';
+export const releaseApi = `https://api.github.com/repositories/${project.repositoryId}/releases/latest`;
 export const releasePage = 'https://github.com/rafaeldossanto/MiniInfos/releases/latest';
 export const packages = [
   { platform: 'windows', file: 'MiniInfos-Setup.exe', label: 'Windows · x64' },
@@ -9,12 +11,32 @@ export const packages = [
   { platform: 'linux', file: 'MiniInfos-linux-arm64.tar.gz', label: 'ARM64' },
 ] as const;
 
-export function detectPlatform(platform: string, userAgent = ''): Platform | null {
-  const value = `${platform} ${userAgent}`.toLowerCase();
-  if (/android|iphone|ipad/.test(value)) return null;
-  if (/win/.test(value)) return 'windows';
+export interface PlatformSignals {
+  platform?: string;
+  mobile?: boolean;
+  maxTouchPoints?: number;
+}
+
+/** Use the browser's basic OS hint when available; no architecture probing or server tracking. */
+export function detectPlatform(
+  platform: string,
+  userAgent = '',
+  signals: PlatformSignals = {},
+): Platform | null {
+  const legacy = `${platform} ${userAgent}`.toLowerCase();
+  const hint = signals.platform?.trim().toLowerCase();
+  if (
+    signals.mobile ||
+    /android|iphone|ipad|ipod|cros|windows phone|iemobile/.test(legacy) ||
+    /android|ios|chrome os/.test(hint ?? '')
+  )
+    return null;
+  // Safari on iPad can report the same platform and user agent as a Mac.
+  if ((/mac/.test(legacy) || hint === 'macos') && (signals.maxTouchPoints ?? 0) > 1) return null;
+  const value = hint || legacy;
+  if (/windows|win32|win64|winnt/.test(value)) return 'windows';
   if (/mac/.test(value)) return 'macos';
-  return /linux|x11/.test(value) ? 'linux' : null;
+  return /linux/.test(value) ? 'linux' : null;
 }
 
 /** The OS chooses a section; the visitor chooses their CPU architecture there. */
@@ -33,9 +55,19 @@ export function availablePackages(release: unknown): Map<string, string> {
     if (!packages.some((item) => item.file === name) || typeof address !== 'string') continue;
     try {
       const url = new URL(address);
-      if (url.protocol === 'https:' && url.hostname === 'github.com' && !url.username && !url.password && !url.port &&
-        url.pathname.startsWith('/rafaeldossanto/MiniInfos/releases/download/') && decodeURIComponent(url.pathname.split('/').at(-1)!) === name) found.set(name, address);
-    } catch { /* Unavailable metadata leaves an honest release-page fallback. */ }
+      if (
+        url.protocol === 'https:' &&
+        url.hostname === 'github.com' &&
+        !url.username &&
+        !url.password &&
+        !url.port &&
+        url.pathname.startsWith('/rafaeldossanto/MiniInfos/releases/download/') &&
+        decodeURIComponent(url.pathname.split('/').at(-1)!) === name
+      )
+        found.set(name, address);
+    } catch {
+      /* Unavailable metadata leaves an honest release-page fallback. */
+    }
   }
   return found;
 }

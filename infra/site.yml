@@ -131,6 +131,8 @@ Resources:
           var pages = {
             '/': '/index.html',
             '/en/': '/en/index.html',
+            '/comunidade': '/comunidade.html',
+            '/en/community': '/en/community.html',
             '/politica-de-privacidade': '/privacidade.html',
             '/en/privacy-policy': '/en/privacy.html',
             '/termos-de-uso': '/termos.html',

@@ -8,17 +8,25 @@
   },
   "scripts": {
     "locales": "node scripts/localized-pages.mjs",
-    "predev": "npm run locales",
+    "catalog": "node scripts/catalog.mjs",
+    "predev": "npm run locales && npm run catalog",
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run locales && tsc --noEmit && vite build",
+    "build": "npm run catalog && npm run locales && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --test tests/*.test.mjs",
-    "check": "npm run test && npm run build",
+    "service:check": "tsc --noEmit -p service/tsconfig.json",
+    "service:dev": "wrangler dev --config service/wrangler.jsonc",
+    "service:bundle": "wrangler deploy --dry-run --config service/wrangler.jsonc --outdir .output",
+    "check": "npm run test && npm run service:check && npm run build",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "prettier": "^3.9.10",
     "typescript": "~7.0.2",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "wrangler": "^4.155.0"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3"
   }
 }

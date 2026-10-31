@@ -93,17 +93,34 @@ test('the development server supports direct clean URLs and redirects legacy lin
   try {
     await server.listen();
     const base = 'http://127.0.0.1:' + server.httpServer.address().port;
+    const styles = new Set();
     for (const route of siteRoutes) {
       const response = await fetch(base + route.path);
       assert.equal(response.status, 200, route.path);
+      const html = await response.text();
       assert.ok(
-        (await response.text()).includes(
-          '<html lang="' + (route.path.startsWith('/en/') ? 'en' : 'pt-BR') + '"',
-        ),
+        html.includes('<html lang="' + (route.path.startsWith('/en/') ? 'en' : 'pt-BR') + '"'),
       );
+      // CSS must be obtainable as CSS from the HTML alone, with no execution of the entry module.
+      const head = html.match(/<head>[\s\S]*?<\/head>/)[0];
+      const sheets = [...head.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)];
+      assert.ok(sheets.length >= 3, route.path + ' has no render-blocking layout styles');
+      for (const [, href] of sheets) styles.add(href);
       const legacy = await fetch(base + '/' + route.file + '?from=old', { redirect: 'manual' });
       assert.equal(legacy.status, 301);
       assert.equal(legacy.headers.get('location'), route.path + '?from=old');
+    }
+    for (const href of styles) {
+      const response = await fetch(new URL(href, base), { headers: { Accept: 'text/css' } });
+      assert.equal(response.status, 200, href);
+      assert.match(response.headers.get('content-type'), /text\/css/, href);
+      const content = await response.text();
+      assert.ok(content.trim().length > 0, href);
+      assert.doesNotMatch(
+        content,
+        /__vite__updateStyle/,
+        href + ' returned a JavaScript style injector',
+      );
     }
   } finally {
     await server.close();
