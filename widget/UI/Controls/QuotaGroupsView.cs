@@ -40,7 +40,7 @@ public sealed class QuotaGroupsView : StackPanel
                 parts.Bar.Value = used;
                 parts.Bar.SetResourceReference(Control.ForegroundProperty, used >= 90 ? "Danger" : used >= 70 ? "Warning" : "Accent");
                 var detail = active ? L.Format("{0} restante", Format.Percent(100 - used)) : L.Text("Limite indisponível");
-                if (limit?.ResetsAtTime is { } at) detail += " · " + Format.Reset(at, now);
+                if (limit?.ResetsAtTime is { } at) detail += " · " + Format.Reset(at, now, remaining: true);
                 parts.Bar.ToolTip = parts.Label.ToolTip = parts.Percent.ToolTip = detail;
                 if (parts.Detail is { } caption) NumericText.Show(caption, detail);
                 labels.Add(label + " " + percent);

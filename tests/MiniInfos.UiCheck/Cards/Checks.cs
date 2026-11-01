@@ -97,9 +97,16 @@ internal static partial class Program
     {
         var rect = WindowRect(handle);
         int Hit(int x, int y) => (int)SendMessage(handle, WmNcHitTest, IntPtr.Zero, (y << 16) | (x & 0xFFFF));
-        Check(Hit(rect.Right - 3, rect.Bottom - 3) == HtBottomRight, "the bottom-right corner resizes");
-        Check(Hit(rect.Left + 2, rect.Top + rect.Height / 2) == HtLeft, "the left edge resizes");
-        Check(Hit(rect.Left + rect.Width / 2, rect.Bottom - 2) == HtBottom, "the bottom edge resizes");
+        foreach (var (x, y, expected, name) in new[] {
+            (rect.Left + 2, rect.Top + rect.Height / 2, 10, "left"),
+            (rect.Right - 2, rect.Top + rect.Height / 2, 11, "right"),
+            (rect.Left + rect.Width / 2, rect.Top + 2, 12, "top"),
+            (rect.Left + 3, rect.Top + 3, 13, "top-left"),
+            (rect.Right - 3, rect.Top + 3, 14, "top-right"),
+            (rect.Left + rect.Width / 2, rect.Bottom - 2, 15, "bottom"),
+            (rect.Left + 3, rect.Bottom - 3, 16, "bottom-left"),
+            (rect.Right - 3, rect.Bottom - 3, 17, "bottom-right") })
+            Check(Hit(x, y) == expected, $"the {name} resize area responds");
         Check(Hit(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2) == HtClient, "the middle is the card, to drag it in any direction");
     }
 
@@ -256,15 +263,27 @@ internal static partial class Program
     private static void CheckDragKeepsProportions(Window window, IntPtr handle, string when)
     {
         var rect = WindowRect(handle);
-        var dragged = new PixelRect(rect.Left, rect.Top, rect.Left + rect.Width * 8 / 5, rect.Bottom);
         var buffer = Marshal.AllocHGlobal(Marshal.SizeOf<PixelRect>());
         try
         {
-            Marshal.StructureToPtr(dragged, buffer, false);
-            SendMessage(handle, WmSizing, AspectSizing.RightEdge, buffer);
-            var fitted = Marshal.PtrToStructure<PixelRect>(buffer);
-            var expected = (int)Math.Round(fitted.Width * (double)rect.Height / rect.Width);
-            Check(Math.Abs(fitted.Height - expected) <= 2, $"with {when}, dragging the right edge grows the height too ({rect.Width}x{rect.Height} -> {fitted.Width}x{fitted.Height})");
+            SendMessage(handle, 0x0231, 0, IntPtr.Zero);
+            foreach (var edge in Enumerable.Range(1, 8))
+            {
+                foreach (var vertical in edge is 4 or 5 or 7 or 8 ? new[] { false, true } : new[] { edge is 3 or 6 })
+                {
+                    var grow = vertical ? rect.Height / 4 : rect.Width / 4;
+                    var left = edge is 1 or 4 or 7;
+                    var top = edge is 3 or 4 or 5;
+                    var dragged = new PixelRect(rect.Left - (left && !vertical ? grow : 0), rect.Top - (top && vertical ? grow : 0),
+                        rect.Right + (!left && !vertical ? grow : 0), rect.Bottom + (!top && vertical ? grow : 0));
+                    Marshal.StructureToPtr(dragged, buffer, false);
+                    SendMessage(handle, WmSizing, edge, buffer);
+                    var fitted = Marshal.PtrToStructure<PixelRect>(buffer);
+                    var expected = (int)Math.Round(fitted.Width * (double)rect.Height / rect.Width);
+                    Check(fitted.Width > rect.Width && fitted.Height > rect.Height && Math.Abs(fitted.Height - expected) <= 2,
+                        $"with {when}, edge {edge} follows {(vertical ? "vertical" : "horizontal")} motion and preserves proportions ({rect.Width}x{rect.Height} -> {fitted.Width}x{fitted.Height})");
+                }
+            }
         }
         finally
         {

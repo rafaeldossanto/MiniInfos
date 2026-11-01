@@ -51,7 +51,7 @@ public sealed class CodexUsage : IUsageProvider
             Activity(snapshot),
             L.Text("Sessão local mais recente"),
             Updated(account, now),
-            L.Text("Atualizar agora os dados locais e os limites da conta Codex."));
+            L.Text("Atualizar agora os dados locais e os limites da conta Codex."), History: snapshot.Tokens.History);
     }
 
     /// <summary>Each local session: its name in the Codex app, else its folder.</summary>

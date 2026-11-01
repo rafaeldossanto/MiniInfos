@@ -20,6 +20,8 @@ $cardHeader = Get-TestSelection -Paths @('widget/UI/Controls/CardHeader.xaml')
 Assert-Selection (($cardHeader.Domains -join ',') -eq 'Cards,Community,Conversations,Fonts,Themes' -and -not $cardHeader.All) 'Cabeçalho compartilhado perdeu consumidores'
 $cardResize = Get-TestSelection -Paths @('widget/UI/Controls/CardResize.cs')
 Assert-Selection (($cardResize.Domains -join ',') -eq 'Cards,Conversations' -and -not $cardResize.All) 'Redimensionamento perdeu um dos cartões'
+$grid = Get-TestSelection -Paths @('widget/Settings/PageSelection.cs', 'widget/Settings/CardGridLayout.cs', 'widget/Settings/CardSettings.cs')
+Assert-Selection (($grid.Domains -join ',') -eq 'Cards,Desktop,Settings' -and -not $grid.All) 'Grade perdeu seleção, persistência ou o consumidor nativo'
 $language = Get-TestSelection -Paths @('widget/Localization/en.json', 'widget/Settings/LanguageChoice.cs')
 Assert-Selection (($language.Domains -join ',') -eq 'Localization' -and ($language.Suites -join ',') -eq 'Localization') 'Idioma selecionou cenários não relacionados'
 Assert-Selection (($theme.Suites -join ',') -eq 'Conversations,Themes') 'Tema perdeu um dos cartões que o consomem'
@@ -39,6 +41,8 @@ Assert-Selection (($packagesOnly.Domains -join ',') -eq 'CatalogTool' -and $pack
 
 $tail = Get-TestSelection -Paths @('widget/Infrastructure/Storage/JsonlTail.cs')
 Assert-Selection (($tail.Domains -join ',') -eq 'Claude,Codex,Gemini,Kimi,Storage') 'Leitura compartilhada não incluiu todos os provedores'
+$wsl = Get-TestSelection -Paths @('widget/Infrastructure/Desktop/WslDistributions.cs', 'widget/Sources/WslClaudeSources.cs', 'widget/Providers/Claude/WslClaudeHistory.cs')
+Assert-Selection (($wsl.Domains -join ',') -eq 'Claude,Desktop,Sources' -and -not $wsl.All) 'Leitura WSL perdeu consumidores ou selecionou regressão completa'
 $newProviders = Get-TestSelection -Paths @('widget/Providers/Kimi/KimiUsage.cs', 'widget/Providers/Gemini/GeminiResponses.cs')
 Assert-Selection (($newProviders.Domains -join ',') -eq 'Gemini,Kimi' -and -not $newProviders.All) 'Kimi e Gemini selecionaram outros provedores'
 
@@ -48,6 +52,8 @@ $ledger = Get-TestSelection -Paths @('widget/Providers/ResponseLedger.cs')
 Assert-Selection ($ledger.Domains -contains 'Antigravity') 'Livro-caixa compartilhado perdeu Antigravity'
 
 $prefs = Get-TestSelection -Paths @('widget/Settings/Preferences.cs')
+Assert-Selection ((Get-TestSelection -Paths @('widget/Settings/UsageChartLayout.cs')).Domains -contains 'Desktop') 'Posicionamento dos gráficos perdeu a interface nativa'
+Assert-Selection ((Get-TestSelection -Paths @('widget/UI/Controls/UsageChart.cs')).Suites -contains 'Charts') 'Gráfico perdeu sua verificação visual focada'
 Assert-Selection ($prefs.Domains -contains 'Mascot' -and $prefs.Domains -contains 'Themes') 'Preferências não incluíram seus consumidores'
 
 $moved = Get-TestSelection -Paths @('widget/Mascot/old.cs', 'widget/Updates/new.cs')

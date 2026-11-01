@@ -37,7 +37,7 @@ public static class Format
 
     public static string Cost(double usd) => L.Format("US$ {0}", usd.ToString("0.00", Culture));
 
-    public static string Reset(DateTimeOffset resetsAt, DateTimeOffset now)
+    public static string Reset(DateTimeOffset resetsAt, DateTimeOffset now, bool remaining = false)
     {
         var left = resetsAt - now;
         if (left <= TimeSpan.Zero) return L.Text("reiniciou");
@@ -47,10 +47,10 @@ public static class Format
         var hours = minutes % 1_440 / 60;
         var rest = minutes % 60;
 
-        if (days > 0) return L.Format("reinicia em {0}d {1}h", days, hours);
-        if (hours > 0) return L.Format("reinicia em {0}h {1}min", hours, rest);
+        if (days > 0) return L.Format(remaining ? "faltam {0}d {1}h para reiniciar" : "reinicia em {0}d {1}h", days, hours);
+        if (hours > 0) return L.Format(remaining ? "faltam {0}h {1}min para reiniciar" : "reinicia em {0}h {1}min", hours, rest);
 
-        return L.Format("reinicia em {0}min", rest);
+        return L.Format(remaining ? (rest == 1 ? "falta {0}min para reiniciar" : "faltam {0}min para reiniciar") : "reinicia em {0}min", rest);
     }
 
     public static string Ago(DateTimeOffset at, DateTimeOffset now)

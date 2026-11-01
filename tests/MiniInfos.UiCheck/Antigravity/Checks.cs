@@ -21,6 +21,7 @@ internal static partial class Program
             Check(bars.Length == 5 && bars.All(bar => bar.Height == 3), "five thin meters, with only one weekly meter for Argon");
             Check(Math.Abs(bars[0].Value - 42) < .01 && bars.Skip(1).All(bar => bar.Value == 0), "42 percent used fills Argon; fully available groups remain empty");
             Check(text.Contains("Semanal") && text.Any(value => value.StartsWith("58% restante")), "Argon keeps its weekly label and remaining/reset caption");
+            Check(text.Any(value => value.Contains("para reiniciar")), "the weekly countdown explicitly describes time remaining until reset");
             Check(!text.Any(value => value.Contains("High") || value.Contains("Tokens somados")), "the two removed captions are absent");
             Check(Find<StackPanel>(column, "StandardWindows").Visibility == Visibility.Collapsed && Find<TextBlock>(column, "ChatText").Visibility == Visibility.Collapsed,
                 "the standard two-window layout and bottom activity do not leave extra rows");
@@ -60,13 +61,14 @@ internal static partial class Program
 
     private sealed class GroupedSample : IUsageProvider
     {
+        private readonly DateTimeOffset _quotaAt = DateTimeOffset.Now;
         public string Id => "antigravity";
         public bool IsInstalled() => true;
         public bool IsInUse() => true;
         public void Flush() { }
         public Task<UsagePage> ReadAsync(DateTimeOffset now, bool isShown, bool force)
         {
-            PlanWindow Window(int hours, double percent) => new(TimeSpan.FromHours(hours), new RateLimit("fixture", percent, now.AddHours(hours).ToString("O")));
+            PlanWindow Window(int hours, double percent) => new(TimeSpan.FromHours(hours), new RateLimit("fixture", percent, _quotaAt.AddHours(hours).ToString("O")));
             var week = Window(168, 42);
             return Task.FromResult(new UsagePage("Antigravity", new WindowLine(Window(5, 0), default), new WindowLine(week, default),
                 new TokenCount(10_600_000, 0, 0, 0), new TokenCount(10_600_000, 0, 0, 0), "Fixture", "", "Fixture", "atualizado agora", "Fixture",

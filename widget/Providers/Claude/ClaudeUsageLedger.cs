@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using MiniInfos.Infrastructure.Storage;
+using MiniInfos.Sources;
 using MiniInfos.Providers;
 
 namespace MiniInfos.Providers.Claude;
@@ -13,17 +14,26 @@ namespace MiniInfos.Providers.Claude;
 public sealed class ClaudeUsageLedger
 {
     private readonly ResponseLedger _ledger;
+    private readonly WslClaudeHistory? _wsl;
 
-    private ClaudeUsageLedger(Func<IReadOnlyList<string>> projects, string storePath) =>
+    private ClaudeUsageLedger(Func<IReadOnlyList<string>> projects, string storePath, Func<IReadOnlyList<string>>? wslProjects = null)
+    {
         _ledger = new ResponseLedger(projects, storePath, "\"usage\""u8, Read);
+        if (wslProjects is not null) _wsl = new(wslProjects, _ledger.Import);
+    }
 
     public static ClaudeUsageLedger Load(string? projectsPath = null, string? storePath = null) => new(
         projectsPath is null ? () => ClaudePaths.ProjectFolders : () => [projectsPath],
-        storePath ?? Path.Combine(AppPaths.Data, "ledger.json"));
+        storePath ?? Path.Combine(AppPaths.Data, "ledger.json"),
+        projectsPath is null && OperatingSystem.IsWindows() ? new Func<IReadOnlyList<string>>(() => WslClaudeSources.Projects()) : null);
 
     public static ClaudeUsageLedger LoadSources(Func<IReadOnlyList<string>> projects, string storePath) => new(projects, storePath);
 
-    public void Scan() => _ledger.Scan();
+    public void Scan(bool force = false)
+    {
+        _ledger.Scan();
+        _ = _wsl?.Refresh(force);
+    }
 
     public TokenSummary Summarize(DateTimeOffset now, DateTimeOffset shortWindowStart, DateTimeOffset longWindowStart) =>
         _ledger.Summarize(now, shortWindowStart, longWindowStart);
@@ -33,7 +43,7 @@ public sealed class ClaudeUsageLedger
     public void Flush() => _ledger.Flush();
 
     /// <summary>One response is written once per content block, all under the message's id, with its chat's id and folder.</summary>
-    private static LoggedResponse? Read(string path, ReadOnlySpan<byte> line)
+    internal static LoggedResponse? Read(string path, ReadOnlySpan<byte> line)
     {
         try
         {

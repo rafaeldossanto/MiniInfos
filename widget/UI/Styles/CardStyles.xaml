@@ -2,6 +2,39 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- What the card, each page column and the settings window draw with, kept once for all. Colors come
          from the theme (UI/Themes/*.xaml), so they are dynamic resources everywhere. -->
+    <Style x:Key="CardScrollPage" TargetType="RepeatButton">
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent" /></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="CardPagesScroll" TargetType="ScrollViewer">
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="PanningMode" Value="VerticalOnly" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollViewer">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" />
+                        <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Width="8" Margin="8,0,0,0"
+                                   Orientation="Vertical" Maximum="{TemplateBinding ScrollableHeight}"
+                                   ViewportSize="{TemplateBinding ViewportHeight}" Value="{Binding VerticalOffset, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"
+                                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}">
+                            <ScrollBar.Template>
+                                <ControlTemplate TargetType="ScrollBar">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="True" Orientation="Vertical">
+                                        <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource CardScrollPage}" /></Track.DecreaseRepeatButton>
+                                        <Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border CornerRadius="3" Background="{DynamicResource IconOther}" /></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+                                        <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource CardScrollPage}" /></Track.IncreaseRepeatButton>
+                                    </Track>
+                                </ControlTemplate>
+                            </ScrollBar.Template>
+                        </ScrollBar>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style x:Key="Meter" TargetType="ProgressBar">
         <Setter Property="Height" Value="4" />
         <Setter Property="Minimum" Value="0" />

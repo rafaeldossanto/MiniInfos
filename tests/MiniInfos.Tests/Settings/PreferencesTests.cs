@@ -7,6 +7,27 @@ namespace MiniInfos.Tests.Settings;
 public sealed class PreferencesTests
 {
     [Fact]
+    public void OlderSettingsUseAutomaticChartsAndAlwaysShowingIsSavedAndNotified()
+    {
+        using var folder = new TempFolder();
+        var path = folder.File("settings.json");
+        File.WriteAllText(path, """{"Theme":"Light","PetEnabled":true}""");
+        var preferences = new Preferences(path);
+        Assert.False(preferences.AlwaysShowUsageChart);
+        var changes = new List<string?>();
+        preferences.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        preferences.AlwaysShowUsageChart = true;
+        preferences.AlwaysShowUsageChart = true;
+        Assert.Equal([nameof(Preferences.AlwaysShowUsageChart)], changes);
+        var saved = new Preferences(path);
+        Assert.True(saved.AlwaysShowUsageChart);
+        Assert.True(saved.PetEnabled);
+        Assert.Equal(ThemeChoice.Light, saved.Theme);
+        preferences.AlwaysShowUsageChart = false;
+        Assert.False(new Preferences(path).AlwaysShowUsageChart);
+    }
+
+    [Fact]
     public void WithNoFileTheCardsStayOnTopFollowTheAppsAndAreSimple()
     {
         using var folder = new TempFolder();

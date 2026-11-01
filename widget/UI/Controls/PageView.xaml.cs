@@ -26,6 +26,13 @@ public partial class PageView : UserControl
     /// <summary>The page's limits in one line, as the tray icon reads them: "Janela 5h 42% · Semanal 92%".</summary>
     public string LimitsLine => _grouped ? GroupedWindows.LimitsLine : $"{ShortLabel.Text} {ShortPercent.Text} · {LongLabel.Text} {LongPercent.Text}";
 
+    public double NaturalHeight
+    {
+        get { Numbers.Measure(new Size(Width, double.PositiveInfinity)); return Numbers.DesiredSize.Height; }
+    }
+
+    public void ShowChart(bool shown) => RecentUsage.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+
     /// <param name="countText">How the chosen view writes a count: 1,4B, or every digit.</param>
     public bool Show(UsagePage page, DateTimeOffset now, Func<long, string> countText)
     {
@@ -57,6 +64,7 @@ public partial class PageView : UserControl
         NumericText.Show(ChatText, page.Activity);
         ChatText.ToolTip = $"{page.Activity}\n{page.ActivityHint}";
         ChatText.Visibility = grouped ? Visibility.Collapsed : Visibility.Visible;
+        RecentUsage.Show(page.History, countText);
         return changed;
     }
 

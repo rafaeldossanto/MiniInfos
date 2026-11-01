@@ -125,6 +125,11 @@
                                        Foreground="{DynamicResource DimText}" Margin="64,8,0,0" />
                         </StackPanel>
 
+                        <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Sempre mostrar minigráfico'}"
+                                                Tag="{loc:Text 'Consumo das últimas 6h em todos os cartões. Desativado, aparece automaticamente quando sobra espaço ao lado de uma página mais alta.'}">
+                            <CheckBox x:Name="UsageChartToggle" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding AlwaysShowUsageChart}" />
+                        </HeaderedContentControl>
+
                         <TextBlock Text="{loc:Text 'Este cartão'}" Style="{StaticResource SectionTitle}" />
                         <HeaderedContentControl Style="{StaticResource SettingRow}" Header="{loc:Text 'Números'}"
                                                 Tag="{loc:Text 'Resumido: 1,4B. Detalhado: cada dígito.'}">

@@ -30,7 +30,7 @@ public enum CardKind
 }
 
 /// <summary>
-/// A card: the pages of the usage providers, one or two side by side (<see cref="PageSelection"/>),
+/// A card: the selected usage providers in a grid (<see cref="PageSelection"/>),
 /// each drawn by a <see cref="PageView"/> from its provider's <see cref="UsagePage"/>. It knows no
 /// provider by name.
 /// </summary>
@@ -62,12 +62,14 @@ public partial class MainWindow : Window, ISettingsCard
 
     private IReadOnlyList<IUsageProvider> _providers;
     private readonly CardStore _store;
+    private readonly Preferences _preferences;
     private readonly CardKind _kind;
     private readonly DispatcherTimer _timer = new() { Interval = RefreshEvery };
     private readonly List<PageView> _columns = [];
     private PageSelection _selection;
     private IReadOnlySet<int> _pagesElsewhere = new HashSet<int>();
     private double _designWidth = SinglePageWidth;
+    private int _gridColumns = 1;
     private double _designHeight;
     private Task? _refresh;
     private int _swipe;
@@ -143,7 +145,7 @@ public partial class MainWindow : Window, ISettingsCard
         var before = ShownProviders();
         _providers = providers;
         var kept = before.Select(provider => IndexOf(provider.Id)).Where(page => page >= 0).ToArray();
-        _selection = PageSelection.Restore(kept.Length > 0 ? kept[0] : -1, kept.Length > 1 ? kept[1] : -1, providers.Count);
+        _selection = PageSelection.Restore(kept, providers.Count);
         _pagesElsewhere = new HashSet<int>();
         BuildPageIcons();
         ShowSelection(before);
@@ -158,24 +160,27 @@ public partial class MainWindow : Window, ISettingsCard
 
         _providers = providers;
         _store = store ?? CardStore.Main;
+        _preferences = preferences;
         _kind = kind;
         InitializeComponent();
-        _ = new CardResize(this, () => new Size(_designWidth, _designHeight), SaveSettings);
+        _ = new CardResize(this, () => new Size(_designWidth, _designHeight), () => { LayOutColumns(); SaveSettings(); });
         ShowTitle();
         ThemeManager.Changed += OnAppearanceChanged;
         AppFonts.Changed += OnAppearanceChanged;
+        preferences.PropertyChanged += OnUsageChartPreferenceChanged;
         L.Current.Changed += OnLanguageChanged;
         Closed += (_, _) =>
         {
             ThemeManager.Changed -= OnAppearanceChanged;
             AppFonts.Changed -= OnAppearanceChanged;
+            preferences.PropertyChanged -= OnUsageChartPreferenceChanged;
             L.Current.Changed -= OnLanguageChanged;
         };
         SetBinding(TopmostProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences });
         TopmostItem.SetBinding(MenuItem.IsCheckedProperty, new Binding(nameof(Preferences.IsTopmost)) { Source = preferences, Mode = BindingMode.TwoWay });
 
         var settings = _store.Load();
-        _selection = PageSelection.Restore(IndexOf(settings?.Page), IndexOf(settings?.BesidePage), providers.Count);
+        _selection = PageSelection.Restore((settings?.SelectedPages ?? []).Select(IndexOf), providers.Count);
         BuildPageIcons();
         LayOutColumns();
         Header.DismissToolTip = _kind == CardKind.Main ? L.Text("Esconder (volta quando um app acompanhado abrir de novo)") : L.Text("Fechar esta janela");
@@ -199,10 +204,8 @@ public partial class MainWindow : Window, ISettingsCard
             var firstRead = RefreshAsync();
             if (await Task.WhenAny(firstRead, Task.Delay(FirstReadWait)) != firstRead) _isMeasureDue = true;
             SizeToContent = SizeToContent.Manual;
-            MeasureDesign();
-
             var saved = _store.Load();
-            Resize(saved?.Scale ?? 1);
+            FitColumns(saved?.Scale ?? 1);
             Place(_placesAtCorner ? null : saved);
             Opacity = 1;
         };
@@ -360,7 +363,7 @@ public partial class MainWindow : Window, ISettingsCard
         UsageRead?.Invoke(pages.Select((page, index) => PetUsage.Of(providers[index].Id, page, now)).ToArray(), now);
     }
 
-    /// <summary>Draws the pages on screen, one or two.</summary>
+    /// <summary>Draws every selected page.</summary>
     private void Show(UsagePage[] pages, DateTimeOffset now)
     {
         for (var column = 0; column < _columns.Count; column++)
@@ -426,17 +429,47 @@ public partial class MainWindow : Window, ISettingsCard
         if (_columns.Count > count) _columns.RemoveRange(count, _columns.Count - count);
 
         Columns.Children.Clear();
+        Columns.ColumnDefinitions.Clear();
+        Columns.RowDefinitions.Clear();
+        var scale = _designHeight > 0 ? Width / _designWidth : _store.Load()?.Scale ?? 1;
+        var layout = CardGridLayout.Fit(count, (SystemParameters.WorkArea.Width - ScreenMargin * 2) / scale - 16, SinglePageWidth, ColumnWidth + ColumnGap);
+        _gridColumns = layout.Columns;
+        for (var column = 0; column < layout.Columns; column++)
+        {
+            if (column > 0) Columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(ColumnGap) });
+            Columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(ColumnWidth) });
+        }
+        for (var row = 0; row < layout.Rows; row++)
+        {
+            if (row > 0) Columns.RowDefinitions.Add(new RowDefinition { Height = new GridLength(ColumnGap) });
+            Columns.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        }
         for (var column = 0; column < _columns.Count; column++)
         {
-            if (column > 0) Columns.Children.Add(ColumnDivider());
+            Grid.SetColumn(_columns[column], column % layout.Columns * 2);
+            Grid.SetRow(_columns[column], column / layout.Columns * 2);
+            _columns[column].VerticalAlignment = VerticalAlignment.Top;
             Columns.Children.Add(_columns[column]);
+        }
+        for (var column = 1; column < layout.Columns; column++)
+        {
+            var divider = new Border { Width = 1, HorizontalAlignment = HorizontalAlignment.Center, IsHitTestVisible = false };
+            divider.SetResourceReference(Border.BackgroundProperty, "Divider");
+            Grid.SetColumn(divider, column * 2 - 1); Grid.SetRowSpan(divider, layout.Rows * 2 - 1);
+            Columns.Children.Add(divider);
+        }
+        for (var row = 1; row < layout.Rows; row++)
+        {
+            var divider = new Border { Height = 1, VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
+            divider.SetResourceReference(Border.BackgroundProperty, "Divider");
+            Grid.SetRow(divider, row * 2 - 1); Grid.SetColumnSpan(divider, layout.Columns * 2 - 1);
+            Columns.Children.Add(divider);
         }
 
         // Hidden, never collapsed: with the arrows' room on both sides, the icons stay centered in the card however many there are.
         PreviousPageButton.Visibility = NextPageButton.Visibility = _selection.CanTurn ? Visibility.Visible : Visibility.Hidden;
 
-        var scale = _designHeight > 0 ? Width / _designWidth : 1;
-        _designWidth = SinglePageWidth + (count - 1) * (ColumnWidth + ColumnGap);
+        _designWidth = SinglePageWidth + (layout.Columns - 1) * (ColumnWidth + ColumnGap);
         Card.Width = _designWidth;
         if (_designHeight <= 0)
         {
@@ -451,7 +484,17 @@ public partial class MainWindow : Window, ISettingsCard
     /// <summary>Sizes a shown card to its columns at its scale, kept on screen.</summary>
     private void FitColumns(double? scale = null)
     {
-        var keep = scale ?? Width / _designWidth;
+        var keep = Math.Clamp(scale ?? Width / _designWidth, MinScale, MaxScale);
+        keep = Math.Min(keep, (SystemParameters.WorkArea.Height - ScreenMargin * 2) / (Header.Height + 200));
+        PagesScroll.MaxHeight = Math.Max(120, (SystemParameters.WorkArea.Height - ScreenMargin * 2) / keep - Header.Height - 80);
+        // Reserve room for the scrollbar only when it is needed, without narrowing any page.
+        var charts = UsageChartLayout.Fit(_columns.Select(page => page.NaturalHeight).ToArray(), _gridColumns, _preferences.AlwaysShowUsageChart);
+        for (var page = 0; page < _columns.Count; page++) _columns[page].ShowChart(charts[page]);
+        // Visibility invalidations must reach the scroll viewer before the card is measured again.
+        Columns.UpdateLayout();
+        Columns.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        Card.Width = _designWidth = SinglePageWidth + (_gridColumns - 1) * (ColumnWidth + ColumnGap)
+            + (Columns.DesiredSize.Height > PagesScroll.MaxHeight ? 16 : 0);
         MeasureDesign();
         Resize(keep);
         KeepOnScreen();
@@ -471,6 +514,11 @@ public partial class MainWindow : Window, ISettingsCard
 
     /// <summary>The app's name, in the capitals the text font wants.</summary>
     private void ShowTitle() => Header.Title = "MiniInfos";
+
+    private void OnUsageChartPreferenceChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Preferences.AlwaysShowUsageChart) && IsLoaded) FitColumns();
+    }
 
     private void OnAppearanceChanged()
     {
@@ -493,14 +541,6 @@ public partial class MainWindow : Window, ISettingsCard
         DismissItem.Header = _kind == CardKind.Main ? L.Text("Esconder") : L.Text("Fechar esta janela");
         BuildPageIcons();
         OnAppearanceChanged();
-    }
-
-    /// <summary>The line between two columns, in the theme's divider color.</summary>
-    private static Border ColumnDivider()
-    {
-        var divider = new Border { Width = 1, Margin = new Thickness((ColumnGap - 1) / 2, 0, (ColumnGap - 1) / 2, 0) };
-        divider.SetResourceReference(Border.BackgroundProperty, "Divider");
-        return divider;
     }
 
     private void BuildPageIcons()
@@ -539,16 +579,19 @@ public partial class MainWindow : Window, ISettingsCard
     /// </summary>
     private ContextMenu PageMenu(int page)
     {
-        var split = new MenuItem { Header = L.Text("Visualização dividida") };
+        var split = new MenuItem { Header = L.Text("Visualização dividida"), Tag = "add-page" };
         split.Click += (_, _) => Select(_selection.SplitWith(page));
         var single = new MenuItem { Header = L.Text("Visualização única") };
         single.Click += (_, _) => Select(PageSelection.Single(page, _providers.Count));
+        var remove = new MenuItem { Header = L.Text("Remover desta visualização") };
+        remove.Click += (_, _) => Select(_selection.Remove(page));
         var newWindow = new MenuItem { Header = L.Text("Nova janela") };
         newWindow.Click += (_, _) => NewWindowRequested?.Invoke(this, _providers[page].Id);
 
         var openIn = new MenuItem { Header = L.Text("Abrir em") };
         openIn.Items.Add(split);
         openIn.Items.Add(single);
+        openIn.Items.Add(remove);
         openIn.Items.Add(new Separator());
         openIn.Items.Add(newWindow);
 
@@ -556,9 +599,10 @@ public partial class MainWindow : Window, ISettingsCard
         menu.Items.Add(openIn);
         menu.Opened += (_, _) =>
         {
-            // Splitting from a split card puts this page beside the first; it is offered while that changes something.
+            split.Header = L.Text(_selection.IsSplit ? "Adicionar à visualização" : "Visualização dividida");
             split.Visibility = _providers.Count > 1 && !_selection.SplitWith(page).SameAs(_selection) ? Visibility.Visible : Visibility.Collapsed;
             single.Visibility = _selection.IsSplit ? Visibility.Visible : Visibility.Collapsed;
+            remove.Visibility = _selection.IsSplit && _selection.Shows(page) ? Visibility.Visible : Visibility.Collapsed;
         };
         return menu;
     }
@@ -592,6 +636,8 @@ public partial class MainWindow : Window, ISettingsCard
     private void Resize(double scale)
     {
         var clamped = Math.Clamp(scale, MinScale, MaxScale);
+        clamped = Math.Min(clamped, Math.Min((SystemParameters.WorkArea.Width - ScreenMargin * 2) / _designWidth,
+            (SystemParameters.WorkArea.Height - ScreenMargin * 2) / _designHeight));
         Width = _designWidth * clamped;
         Height = _designHeight * clamped;
     }
@@ -630,7 +676,8 @@ public partial class MainWindow : Window, ISettingsCard
         if (_designHeight <= 0) return;
 
         var beside = _selection.IsSplit ? _providers[_selection.Shown[1]].Id : null;
-        _store.Save(new CardSettings(Left, Top, Width / _designWidth, _isDetailed, _providers[_selection.Shown[0]].Id, beside));
+        _store.Save(new CardSettings(Left, Top, Width / _designWidth, _isDetailed, _providers[_selection.Shown[0]].Id, beside,
+            _selection.Shown.Select(index => _providers[index].Id).ToArray()));
     }
 
     private IntPtr OnWindowMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam, ref bool handled)

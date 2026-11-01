@@ -21,6 +21,8 @@ public sealed record LedgerEntry(long At, long Input, long Output, long CacheRea
 /// <summary>A ledger's tokens: today, inside each of the plan's two windows, and in all.</summary>
 public sealed record TokenSummary(TokenCount Today, TokenCount ShortWindow, TokenCount LongWindow, TokenCount Total)
 {
+    public TokenHistory? History { get; init; }
+
     /// <param name="now">Local now: today counts from its midnight.</param>
     public static TokenSummary Of(
         IEnumerable<LedgerEntry> entries,
@@ -32,6 +34,9 @@ public sealed record TokenSummary(TokenCount Today, TokenCount ShortWindow, Toke
         var shortStart = shortWindowStart.ToUnixTimeSeconds();
         var longStart = longWindowStart.ToUnixTimeSeconds();
         TokenCount todayCount = default, shortCount = default, longCount = default, total = default;
+        var recent = new long[TokenHistory.BucketCount];
+        var end = now.ToUnixTimeSeconds();
+        var start = end - (long)TokenHistory.Length.TotalSeconds;
 
         foreach (var entry in entries)
         {
@@ -40,8 +45,13 @@ public sealed record TokenSummary(TokenCount Today, TokenCount ShortWindow, Toke
             if (entry.At >= today) todayCount += count;
             if (entry.At >= shortStart) shortCount += count;
             if (entry.At >= longStart) longCount += count;
+            if (entry.At >= start && entry.At <= end)
+            {
+                var bucket = Math.Min((entry.At - start) / (long)TokenHistory.BucketLength.TotalSeconds, recent.Length - 1);
+                recent[bucket] += count.Total;
+            }
         }
 
-        return new TokenSummary(todayCount, shortCount, longCount, total);
+        return new TokenSummary(todayCount, shortCount, longCount, total) { History = new(now, recent) };
     }
 }
